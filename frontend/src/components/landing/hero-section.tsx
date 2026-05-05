@@ -42,21 +42,16 @@ export function HeroSection() {
           </div>
 
           <div className="relative">
-            <div className="mx-auto max-w-[560px] rounded-2xl border border-brand-grey bg-white shadow-[0_18px_50px_-35px_rgba(26,26,46,0.25)] overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-brand-grey bg-brand-grey/20">
-                <div className="text-xs font-medium uppercase tracking-[0.18em] text-brand-dark/60">
+            <div className="mx-auto max-w-[560px] lg:max-w-[420px] rounded-2xl border border-brand-grey bg-white shadow-[0_18px_50px_-35px_rgba(26,26,46,0.25)] overflow-hidden">
+              <div className="flex items-center justify-center px-5 py-4 border-b border-brand-grey bg-brand-grey/20">
+                <div className="text-center text-xs font-medium uppercase tracking-[0.18em] text-brand-dark/60">
                   Watch a quick intro
-                </div>
-                <div className="flex gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-brand-grey" />
-                  <span className="h-2 w-2 rounded-full bg-brand-grey" />
-                  <span className="h-2 w-2 rounded-full bg-brand-grey" />
                 </div>
               </div>
 
-              <div className="p-5">
-                <div className="mx-auto w-full max-w-[420px] lg:max-w-[460px]">
-                  <div className="relative aspect-9/16 overflow-hidden rounded-xl border border-brand-grey bg-brand-grey/30 shadow-sm">
+              <div className="p-5 lg:p-4">
+                <div className="mx-auto flex w-full justify-center">
+                  <div className="relative aspect-9/16 h-[420px] sm:h-[460px] lg:h-[min(60vh,520px)] w-auto max-w-full overflow-hidden rounded-xl border border-brand-grey bg-brand-grey/30 shadow-sm">
                     <iframe
                       className="absolute inset-0 h-full w-full"
                       src="https://www.youtube-nocookie.com/embed/o75xaFFw0vU?playsinline=1&rel=0&modestbranding=1&vq=hd1080"
