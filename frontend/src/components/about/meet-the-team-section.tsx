@@ -7,11 +7,11 @@ import { cn } from '@/lib/utils';
 const team = [
   {
     name: 'Shou Yee',
-    title: 'The Insider Advantage',
+    title: 'The Selection Insider',
     initials: 'SY',
     accent: 'from-brand-cream to-white',
     photoPath: 'about/shouyee.png',
-    bio: 'Shou Yee graduated from SMU with a double degree in Finance and Economics as a Lee Kong Chian Scholar. He began his professional career at UBS through its Graduate Talent Programme, but his true edge lies in his unique experience on both sides of the scholarship table. Having served on the official selection panel for the Lee Kong Chian Scholarship and as an assessor for global bank recruitment, Shou Yee provides students with an assessor&apos;s-eye view. He teaches them how to navigate the specific criteria and personality traits that selection boards prioritise.',
+    bio: 'An alumnus of the pioneer batch of the Raffles Integrated Programme, Shou Yee witnessed firsthand the shift toward holistic education in Singapore. This experience of being among the first to navigate a system that demanded more than just exam scores fuels his passion for Beyond Grades. A double degree graduate from SMU and a Lee Kong Chian Scholar, Shou Yee’s edge lies in him being on both sides of the scholarship table. Having served on the selection panel for the Lee Kong Chian Scholarship and as an assessor for a global bank campus recruitment, he provides students with an "assessor’s eye" view of the specific personality traits and leadership markers that elite selection boards prioritise today.',
   },
   {
     name: 'Isaac',
@@ -19,7 +19,7 @@ const team = [
     initials: 'I',
     accent: 'from-brand-grey/60 to-white',
     photoPath: 'about/isaac.jpg',
-    bio: 'Isaac offers a multidisciplinary perspective that is virtually unmatched, holding a Law degree from Cambridge University and a Medical degree from Duke-NUS. In the world of DSA, many top students struggle to bridge their diverse interests into a cohesive story. Isaac specializes in helping students with "multiple talents"—whether in academics, sports, or the arts—synthesize their domains of interest into a powerful, multifaceted profile that stands out to top-tier Integrated Programme (IP) schools.',
+    bio: 'Isaac’s journey is a testament to the power of strategic positioning across different domains. He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University (Law) before making the bold transition to Duke-NUS Medical School. This rare multidisciplinary background makes him a specialist in guiding "multi-talent" students. Isaac excels at helping multi-disciplinary learners synthesise diverse interests into a cohesive, high-impact narrative that stands out to schools and university boards alike.',
   },
   {
     name: 'Hugo',
@@ -27,7 +27,7 @@ const team = [
     initials: 'H',
     accent: 'from-brand-sage/35 to-white',
     photoPath: 'about/hugo.jpg',
-    bio: 'A graduate of UCLA, Hugo is the architect behind the Young Explorers methodology. Hugo&apos;s expertise is built on the belief that a student is more than their grades; he secured his own spot at a coveted US university by mastering the art of the personal narrative despite not having a "perfect" academic record. He specialises in helping students find their "Unique Selling Point," teaching them how to craft authentic stories and personal brands that resonate with interview panels on an emotional and intellectual level.',
+    bio: 'A graduate of UCLA, Hugo’s deep connection to the mission of Beyond Grades began decades ago at ACS Primary, where he first met his co-founder, Isaac. While Isaac navigated the academic pathways of Law and Medicine, Hugo focused on the power of the personal narrative. He secured his own spot at a US university by mastering the art of branding despite not having “perfect” academic results. He now specialises in helping students find their "Unique Selling Point," teaching them how to craft authentic stories that resonate with interview panels on an emotional and intellectual level.',
   },
   {
     name: 'Martin',
@@ -35,7 +35,7 @@ const team = [
     initials: 'M',
     accent: 'from-brand-sage/25 to-white',
     photoPath: 'about/martin.jpg',
-    bio: 'Martin is a proud representative of the University of Oxford and was offered the PSC/SAFOS Overseas Scholarship—a testament to his standing among the top tier of student leaders in Singapore. Having successfully navigated the most rigorous selection process in the country, Martin possesses a deep understanding of what it takes to excel in elite international environments, from the historic halls of Oxford to the competitive offices of GIC in London. He specializes in training students to tackle high-level applications with the refined communication skills required to win over the most discerning selection panels.',
+    bio: 'Martin is a proud representative of Hwa Chong Institution and the University of Oxford, where he was offered the prestigious PSC/SAFOS Overseas Scholarship. Having successfully navigated the most rigorous selection process in the country, Martin possesses a deep understanding of what it takes to thrive in international environments, from the historic halls of Oxford to the competitive offices of GIC in London. He specialises in training students to tackle high-level applications with the refined communication skills and poise required to win over the most discerning selection panels.',
   },
 ];
 
@@ -96,19 +96,17 @@ export function MeetTheTeamSection() {
             world, your grades get you into the room, but your voice gets you the seat.
           </p>
           <p>
-            We saw brilliant students miss out on life-changing opportunities-not because they
+            We saw brilliant students miss out on life-changing opportunities—not because they
             weren&apos;t smart enough, but because they hadn&apos;t yet found their personal brand or the
             confidence to speak their truth authentically.
           </p>
           <p>
             We came together to create Beyond Grades because we believe these "insider" skills
-            shouldn&apos;t be a secret.
-          </p>
-          <p>
-            Whether you are preparing for a DSA interview, a university application, or a
-            competitive scholarship, we are here to help you find your voice and position yourself
-            for success. From free resources to specialised coaching, we are dedicated to making
-            high-level mentorship accessible to every student who is ready to be heard.
+            shouldn&apos;t be a secret. Whether you are preparing for a DSA interview, a university
+            application, or a competitive scholarship, we are here to help you find your voice and
+            position yourself for success. From free resources to specialised coaching, we are
+            dedicated to making high-level mentorship accessible to every student who is ready to
+            be heard.
           </p>
         </div>
 

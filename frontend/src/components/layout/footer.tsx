@@ -1,3 +1,5 @@
+import { FEATURES } from '@/lib/features';
+
 export function Footer() {
   return (
     <footer className="bg-brand-cream border-t border-brand-grey">
@@ -104,14 +106,16 @@ export function Footer() {
                   Meet the Team
                 </a>
               </li>
-              <li>
-                <a
-                  href="#consult"
-                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                >
-                  Consult Us
-                </a>
-              </li>
+              {FEATURES.consult ? (
+                <li>
+                  <a
+                    href="#consult"
+                    className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
+                  >
+                    Consult Us
+                  </a>
+                </li>
+              ) : null}
               <li>
                 <a
                   href="#"
@@ -128,14 +132,16 @@ export function Footer() {
               Contact
             </h3>
             <ul className="mt-4 grid gap-2">
-              <li>
-                <a
-                  href="#consult"
-                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                >
-                  Contact Us
-                </a>
-              </li>
+              {FEATURES.consult ? (
+                <li>
+                  <a
+                    href="#consult"
+                    className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+              ) : null}
             </ul>
 
             <div className="mt-6">

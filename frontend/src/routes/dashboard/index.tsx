@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { usePortalAuth } from '@/auth/auth-context';
-import { ConsultationRequestCard } from '@/components/dashboard/consultation-request-card';
 import { CourseAccordion } from '@/components/dashboard/course-accordion';
 
 export const Route = createFileRoute('/dashboard/')({
@@ -22,7 +21,6 @@ function DashboardHomePage() {
           Welcome back, {first} {wave}
         </h1>
         <CourseAccordion />
-        <ConsultationRequestCard />
       </div>
     </main>
   );

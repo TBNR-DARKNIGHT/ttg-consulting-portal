@@ -10,6 +10,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import { FEATURES } from '@/lib/features';
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -49,14 +50,16 @@ export function Navbar() {
           >
             About us
           </Link>
-          <Link
-            to="/consult"
-            activeProps={{ className: 'text-brand-indigo' }}
-            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-            className="text-sm transition-colors"
-          >
-            Consult us
-          </Link>
+          {FEATURES.consult ? (
+            <Link
+              to="/consult"
+              activeProps={{ className: 'text-brand-indigo' }}
+              inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+              className="text-sm transition-colors"
+            >
+              Consult us
+            </Link>
+          ) : null}
         </div>
 
         <div className="hidden md:flex items-center gap-2">
@@ -114,13 +117,15 @@ export function Navbar() {
               >
                 About us
               </Link>
-              <Link
-                to="/consult"
-                onClick={() => setOpen(false)}
-                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-              >
-                Consult us
-              </Link>
+              {FEATURES.consult ? (
+                <Link
+                  to="/consult"
+                  onClick={() => setOpen(false)}
+                  className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
+                >
+                  Consult us
+                </Link>
+              ) : null}
               {!isLoaded ? (
                 <div className="relative mt-4 h-10 rounded-md bg-brand-grey/40">
                   <span className="sr-only">Loading account</span>

@@ -56,6 +56,7 @@ function DashboardResourcesPage() {
               const isPublic = resource.access !== 'paid';
               const isPaidPdf = isPdf && !isPublic;
               const canOpenPublic = Boolean(isPdf && isPublic && resource.bucket && resource.filePath);
+              const typeLabel = isPdf ? 'PDF' : resource.type;
               return (
                 <li
                   key={resource.id}
@@ -63,8 +64,8 @@ function DashboardResourcesPage() {
                 >
                   <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                     <h2 className="font-semibold leading-snug text-foreground">{resource.title}</h2>
-                    <Badge variant="secondary" className="shrink-0 capitalize">
-                      {resource.type}
+                    <Badge variant="secondary" className="shrink-0">
+                      {typeLabel}
                     </Badge>
                   </div>
                   <p className="mb-2 text-xs text-primary">{topicLabel}</p>
