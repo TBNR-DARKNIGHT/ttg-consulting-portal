@@ -37,7 +37,9 @@ export function VideoSampleCarouselSection() {
   const [activeIdx, setActiveIdx] = useState(1);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
-  const cardWidthClass = 'basis-[86%] sm:basis-[72%] md:basis-[60%]';
+  /** Portrait FAQ clips: narrow cards so height stays manageable in the carousel. */
+  const cardWidthClass =
+    'w-[min(88vw,300px)] sm:w-[min(52vw,280px)] md:w-[min(38vw,300px)] lg:w-[280px]';
 
   const scrollToIndex = (idx: number) => {
     const el = scrollerRef.current;
@@ -60,7 +62,7 @@ export function VideoSampleCarouselSection() {
     return () => window.clearTimeout(t);
   }, []);
 
-  const headingId = useMemo(() => 'video-samples', []);
+  const headingId = useMemo(() => 'frequently-asked-questions', []);
 
   return (
     <section aria-labelledby={headingId} className="w-full bg-brand-grey/30">
@@ -71,7 +73,7 @@ export function VideoSampleCarouselSection() {
             id={headingId}
             className="flex-1 text-center text-brand-dark text-3xl md:text-[40px] font-bold tracking-[-0.02em]"
           >
-            See What Our Students Say
+            Frequently Asked Questions
           </h2>
           <div className="flex-1" />
         </div>
@@ -86,7 +88,7 @@ export function VideoSampleCarouselSection() {
                 onClick={onPrev}
                 disabled={activeIdx === 0}
                 className="h-11 w-11 rounded-full border-brand-grey bg-white/80 hover:bg-white shadow-sm"
-                aria-label="Previous video"
+                aria-label="Previous FAQ video"
               >
                 <ChevronLeft className="h-5 w-5 text-brand-dark" />
               </Button>
@@ -99,7 +101,7 @@ export function VideoSampleCarouselSection() {
                 onClick={onNext}
                 disabled={activeIdx === teasers.length - 1}
                 className="h-11 w-11 rounded-full border-brand-grey bg-white/80 hover:bg-white shadow-sm"
-                aria-label="Next video"
+                aria-label="Next FAQ video"
               >
                 <ChevronRight className="h-5 w-5 text-brand-dark" />
               </Button>
@@ -108,7 +110,7 @@ export function VideoSampleCarouselSection() {
 
           <div
             ref={scrollerRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory px-[7%] md:px-[10%] pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory px-4 sm:px-[8%] md:px-[12%] pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {teasers.map((t, idx) => {
               const isActive = idx === activeIdx;
@@ -120,12 +122,12 @@ export function VideoSampleCarouselSection() {
                     'snap-center shrink-0',
                     cardWidthClass,
                     'transition-transform duration-300',
-                    isActive ? 'md:scale-[1.02]' : 'md:scale-[0.94] opacity-95',
+                    isActive ? 'md:scale-[1.03]' : 'md:scale-[0.96] opacity-95',
                   ].join(' ')}
                 >
                   <div className="rounded-2xl overflow-hidden border border-brand-grey bg-white shadow-[0_18px_50px_-40px_rgba(26,26,46,0.25)]">
-                    {/* Thumbnail */}
-                    <div className="relative aspect-video bg-linear-to-br from-brand-indigo via-brand-indigo/85 to-brand-sage/55">
+                    {/* Portrait FAQ video placeholder (9:16) */}
+                    <div className="relative aspect-[9/16] w-full bg-linear-to-br from-brand-indigo via-brand-indigo/85 to-brand-sage/55">
                       <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.55),transparent_45%),radial-gradient(circle_at_70%_60%,rgba(255,255,255,0.25),transparent_45%)]" />
 
                       <div className="absolute inset-0 grid place-items-center">
@@ -134,11 +136,11 @@ export function VideoSampleCarouselSection() {
                         </div>
                       </div>
 
-                      <div className="absolute inset-x-0 bottom-0 p-5 pt-12 bg-linear-to-t from-black/60 via-black/10 to-transparent">
-                        <div className="text-white font-semibold text-lg leading-tight">
+                      <div className="absolute inset-x-0 bottom-0 p-4 pt-16 bg-linear-to-t from-black/65 via-black/15 to-transparent">
+                        <div className="text-white font-semibold text-base leading-tight sm:text-lg">
                           {t.studentName}
                         </div>
-                        <div className="text-white/85 font-semibold text-sm">
+                        <div className="text-white/85 font-semibold text-xs sm:text-sm">
                           {t.school}
                         </div>
                       </div>
