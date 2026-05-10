@@ -1,9 +1,9 @@
 # PRD: Think Teach Group Consulting Portal MVP
 
-**Version**: 1.6.0
+**Version**: 1.7.0
 **Component**: Full-stack
 **Status**: In Development
-**Last Updated**: 2026-05-06
+**Last Updated**: 2026-05-10
 **Related**: [@docs/architecture/overview.md](../architecture/overview.md), [@docs/data/models.md](../data/models.md)
 
 ---
@@ -193,6 +193,17 @@ And a clear CTA "Access Premium DSA Resources" is visible
 And no login is required
 ```
 
+### Scenario: Phase 1 dashboard — course resources and in-app PDF (US-1.4)
+```gherkin
+Given a logged-in TTA client on the Content Dashboard
+When they expand Course 2 in the sidebar and open Resources
+Then they see PDFs and materials for that course
+When they choose View on a PDF that has a storage path
+Then they navigate to the resource detail route
+And the PDF is shown in the in-app viewer without requiring a separate-tab open action
+And Back returns them to the correct course Resources list
+```
+
 ---
 
 ## 4. Functional Requirements
@@ -203,7 +214,9 @@ And no login is required
 
 **Local demo / UX prototyping**: For stakeholder walkthroughs without Clerk or a running API, the React app supports **`VITE_AUTH_MODE=mock`** (development builds only): in-memory “sign in”, shared `usePortalAuth()` abstraction, and static resource/progress fixtures (no FastAPI calls). **`VITE_AUTH_MODE=public`** enables the **same** demo behaviour in **production builds** (e.g. static hosting on Vercel when Clerk is not configured yet); copy must state preview-only, no real accounts. Neither `mock` nor `public` replaces Clerk for staging acceptance, production users, or security review parity with Clerk.
 
-**Content Access**: Strictly scoped — users only see content their account is provisioned for. Videos play in-browser. Resources remain accessible indefinitely (one-time purchase, lifetime access).
+**Content Access**: Strictly scoped — users only see content their account is provisioned for. Videos play in-browser. PDFs and downloadable materials open in an **in-app resource detail view** (embedded viewer), not a separate browser tab by default. Resources remain accessible indefinitely (one-time purchase, lifetime access).
+
+**Paid file storage (Supabase)**: The `resources-paid` bucket remains **private** (not a public bucket). Authenticated users access objects only via backend endpoints (`/api/v1/storage/paid-download`, `/api/v1/storage/paid-url`) that validate **Clerk JWT** and use the **Supabase service role** server-side. Production deployments should configure `SUPABASE_SERVICE_KEY` and Clerk; the API may log a warning at startup if required keys are missing outside development.
 
 **Payment**: All payments processed through existing TTA Shop infrastructure. Portal does not handle payment directly.
 
@@ -275,7 +288,7 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 | **Mock (local demo)** | `VITE_AUTH_MODE=mock` (case-insensitive); **rejected** in production builds (`import.meta.env.PROD`) | `MockAuthProvider` only; demo action on `/auth/login`; `/dashboard` shows static lists; fixture data when API base URL is unset or mode is mock |
 | **Public (hosted preview)** | `VITE_AUTH_MODE=public` (case-insensitive); **allowed** in production builds | Same as mock for auth and fixture data; login UI labelled as preview; use for temporary static hosts (e.g. Vercel) **without** Clerk |
 
-**SPA routes (Phase 1 shell):** `/` (landing), `/auth/login` (Clerk embedded sign-in or demo flow for mock/public), `/auth/sign-up` (Clerk only; in mock/public redirect to login), `/dashboard` (post-login resource shell; redirects to login if unauthenticated).
+**SPA routes (Phase 1 shell):** `/` (landing), `/auth/login` (Clerk embedded sign-in or demo flow for mock/public), `/auth/sign-up` (Clerk only; in mock/public redirect to login), `/dashboard` (post-login shell; redirects to login if unauthenticated). **Authenticated dashboard routes** include: `/dashboard` (progress overview), `/dashboard/course/{courseId}/resources` and `/dashboard/course/{courseId}/videos` (course-scoped lists), `/dashboard/resources/{resourceId}` (in-app PDF/detail view), `/dashboard/settings`; legacy `/dashboard/resources` (no id) redirects to a default course resources list. Parent `/dashboard/resources` renders an **outlet** so `/dashboard/resources/{resourceId}` is reachable (child detail route must not be shadowed by a blanket redirect).
 
 **Client data loading:** TanStack Query keys for resources and progress include a **`mock` vs `live`** segment so switching fixture vs API source during development does not reuse stale cached rows.
 
@@ -449,12 +462,13 @@ interface UserContentAccess {
 
 **3. Content Dashboard** (authenticated)
 - Personalized greeting ("Welcome back, [First Name]")
-- Organized library: videos, modules, downloadable materials
-- Content grouped by topic (DSA Pathways, Interview Prep, Timelines & Deadlines)
-- Each item shows: title, type (video/article/download), completion status
-- Videos play in-browser
-- Navigation: Dashboard, Resources, Account Settings, Logout
-- Access scoped to provisioned content only
+- **Dashboard home**: Progress summary per course (e.g. completion counts / bars), not a duplicate course library
+- **Sidebar (desktop) / sheet (mobile)**: Primary navigation with **Dashboard**, expandable **Course 1** and **Course 2** sections (accordion), each offering **Resources** (PDFs and other file-backed materials for that course) and **Video**; **Account Settings**; **Logout** pinned to the bottom of the column
+- Course **Resources** and **Video** lists are filtered by course topic mapping (e.g. Course 1: pathways + timelines; Course 2: interview preparation)
+- Each list item shows: title, type, topic label, description preview, completion status where applicable
+- **PDFs**: Open via `/dashboard/resources/{resourceId}` with an in-app embedded viewer (public bucket URLs or paid streaming via API); no primary CTA to open PDFs in a new tab
+- Videos: listed under the course Video tab; playback UX as implemented (in-browser when a playable URL exists)
+- Access scoped to provisioned content only (Phase 1 demo catalog may treat signed-in users as having access to paid materials for UX testing)
 
 **4. MapleBear Parent Dashboard** (authenticated)
 - Child's name and programme displayed
@@ -478,7 +492,7 @@ interface UserContentAccess {
 
 ### Responsive Behavior
 - **Desktop**: Full sidebar navigation, multi-column content grid
-- **Mobile**: Bottom navigation, single-column stack, touch-optimized video player
+- **Mobile**: Top bar with **hamburger** opening a **sheet** that mirrors sidebar links (including course accordions and logout at bottom), single-column content stack, touch-optimized video player when applicable
 
 ---
 
@@ -489,7 +503,7 @@ interface UserContentAccess {
 1. ~~**Scaffold frontend + backend**: Vite React app + FastAPI project with Docker setup~~ **Done** — Frontend scaffold complete (Vite, TanStack Router, TanStack Query, Tailwind CSS, shadcn/ui, typed API client, static mock data layer, ESLint). **Done** — Portal auth abstraction (`usePortalAuth`), `VITE_AUTH_MODE=mock` demo path (dev-only), routes `/auth/login`, `/auth/sign-up`, `/dashboard`, navbar/landing SPA links, TanStack Query keys scoped by mock vs live data source. **Done** — Root **`npm run dev`** using **`concurrently`** + **`run-script-os`** to start Vite and Uvicorn together for local full-stack development.
 2. **Integrate Clerk**: JWT validation middleware for FastAPI; production auth hardening. SPA shells: Clerk components on `/auth/login` and `/auth/sign-up`
 3. **Set up Supabase**: Database schema, storage buckets for videos/files
-4. **Build Phase 1** (TTA Consulting): ~~Landing page~~, ~~auth shell (Clerk + mock demo)~~, ~~dashboard shell (mock/API hooks)~~, admin provisioning — Landing page complete with navbar, hero, video samples carousel, community Q&A, social proof CTA, final features + CTA, stats, CTA, and redesigned multi-column footer; authenticated dashboard shell lists resources/progress from fixtures or API per env
+4. **Build Phase 1** (TTA Consulting): ~~Landing page~~, ~~auth shell (Clerk + mock demo)~~, ~~dashboard shell (mock/API hooks)~~, admin provisioning — Landing page complete with navbar, hero, video samples carousel, community Q&A, social proof CTA, final features + CTA, stats, CTA, and redesigned multi-column footer; authenticated **content dashboard** includes course-scoped sidebar navigation, progress home, Resources/Video routes per course, in-app PDF detail view, paid storage gated via FastAPI + Clerk; demo catalog and API seeds aligned (e.g. single paid Course 2 PDF in `resources-paid`)
 5. **Build Phase 2** (MapleBear): Parent dashboard, video library, consultant upload
 6. **Build Phase 3** (DSA Resources): Public content hub, purchase flow integration
 
@@ -504,7 +518,8 @@ interface UserContentAccess {
   - `EDXP_SERVICE_NAME` (JWT `sub`, defaults to `ttg-portal`)
 - In development, the backend may expose `POST /api/v1/dev/authz/authorize` to validate the EdXP integration wiring. This endpoint must remain development-only.
 - Supabase Row Level Security (RLS) policies enforce data access boundaries
-- Video URLs use signed/expiring links from Supabase Storage
+- Video URLs use signed/expiring links from Supabase Storage where applicable
+- **Paid resource files**: Served only through authenticated API routes; **`resources-paid`** must stay non-public; backend restricts paid download/signed-url calls to the configured paid bucket name to reduce arbitrary bucket access via query parameters
 - PII encrypted at rest in Supabase (database-level encryption)
 - CORS configured to allow only portal domain origins; preview origins must be explicitly constrained (e.g. anchored regex), particularly when browser credentials are permitted
 - Rate limiting on auth endpoints
@@ -552,7 +567,7 @@ interface UserContentAccess {
 - [ ] **Clerk mode**: With valid Clerk publishable key, `/auth/login` shows Clerk sign-in; after sign-in, user reaches `/dashboard`; sign-out clears session and navbar returns to “Sign in”
 - [ ] **Backend storage smoke test (dev-only)**: With `ENVIRONMENT=development` and Supabase configured, confirm the API can produce a public URL for a public bucket path and a signed URL for a paid bucket path via dev-only endpoints under `/api/v1/dev/storage/*`. If dev bearer auth is enabled, confirm paid endpoints require `Authorization: Bearer <DEV_BEARER_TOKEN>`.
 - [ ] **AC: Auth Page**: Login, failed login, forgot password all work
-- [ ] **AC: Content Dashboard**: Shows only provisioned content
+- [ ] **AC: Content Dashboard**: Shows only provisioned content; sidebar course accordions, Resources/Video lists, progress home, in-app PDF detail, and legacy `/dashboard/resources` redirect do not break `/dashboard/resources/{id}`
 - [ ] **AC: Video Library**: Parent sees only own child's videos
 - [ ] **AC: Upload**: Consultant uploads and feedback appears for parent
 - [ ] **AC: Public Page**: Free DSA content accessible without login
@@ -627,6 +642,15 @@ interface UserContentAccess {
 ---
 
 ## Change Log
+
+### 2026-05-10 v1.7.0
+- Status: In Development
+- Changes:
+  - **UX (Content Dashboard)**: Documented course-based sidebar (accordion per course, Resources + Video, Settings, bottom Logout), progress-focused dashboard home, mobile sheet parity, in-app PDF viewing (removed primary “open in new tab” CTA from PRD scope)
+  - **Routing**: Documented `/dashboard/course/{courseId}/resources|videos`, resource detail `/dashboard/resources/{resourceId}`, legacy list redirect, and outlet requirement so detail route is not shadowed
+  - **Storage / security**: Documented private `resources-paid`, Clerk + service-role access via API, paid-bucket allowlist on backend, non-dev startup warning for missing Supabase/Clerk config
+  - **Functional / implementation**: PDFs open in-app; Phase 1 demo alignment (single paid Course 2 PDF catalog note)
+  - **Acceptance Criteria**: Added Gherkin scenario for course Resources and in-app PDF; expanded manual verification for dashboard navigation
 
 ### 2026-05-06 v1.6.0
 - Status: In Development

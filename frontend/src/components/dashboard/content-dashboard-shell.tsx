@@ -30,17 +30,19 @@ export function ContentDashboardShell({ children }: { children: ReactNode }) {
                 <span className="sr-only">Open dashboard menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
+            <SheetContent side="left" className="flex h-full w-72 flex-col p-0">
               <SheetTitle className="sr-only">Dashboard</SheetTitle>
               <SheetDescription className="sr-only">Dashboard navigation</SheetDescription>
-              <div className="flex h-14 items-center gap-3 border-b border-border px-5">
+              <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-indigo text-sm font-semibold tracking-tight text-white">
                   bg
                 </div>
                 <span className="truncate font-serif font-semibold text-brand-dark">beyond grades</span>
               </div>
-              <ContentDashboardNavLinks onNavigate={() => setOpen(false)} />
-              <div className="border-t border-border p-3">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <ContentDashboardNavLinks onNavigate={() => setOpen(false)} />
+              </div>
+              <div className="mt-auto shrink-0 border-t border-border p-3">
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"

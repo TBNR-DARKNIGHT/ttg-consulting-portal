@@ -5,6 +5,7 @@ import { usePortalAuth } from '@/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { apiFetchBlob, getPublicStorageUrl } from '@/lib/api';
 import { useResources } from '@/hooks/use-resources';
+import { getCourseIdForTopic } from '@/lib/courses';
 
 export const Route = createFileRoute('/dashboard/resources/$resourceId')({
   component: ResourceDetailPage,
@@ -18,6 +19,17 @@ function ResourceDetailPage() {
   const resource = useMemo(() => resources.find((r) => r.id === resourceId) ?? null, [resources, resourceId]);
 
   const canAccess = resource ? tier === 'paid' || resource.access !== 'paid' : false;
+
+  const backToCourseList = useMemo(() => {
+    if (!resource) {
+      return { to: '/dashboard/course/$courseId/resources' as const, params: { courseId: 'course-1' as const } };
+    }
+    const courseId = getCourseIdForTopic(resource.topic);
+    if (resource.type === 'video') {
+      return { to: '/dashboard/course/$courseId/videos' as const, params: { courseId } };
+    }
+    return { to: '/dashboard/course/$courseId/resources' as const, params: { courseId } };
+  }, [resource]);
 
   const publicUrlQuery = useQuery({
     enabled: Boolean(
@@ -70,7 +82,6 @@ function ResourceDetailPage() {
   }, [blobUrl]);
 
   const publicObjectUrl = publicUrlQuery.data?.url ?? null;
-  const canOpenInNewTab = Boolean(publicObjectUrl || blobUrl);
 
   const backendDownloadUrl = useMemo(() => {
     if (!resource?.bucket || !resource.filePath) return null;
@@ -90,7 +101,9 @@ function ResourceDetailPage() {
         <div className="mx-auto max-w-4xl space-y-6">
           <p className="text-sm text-muted-foreground">Resource not found.</p>
           <Button variant="outline" asChild>
-            <Link to="/dashboard/resources">Back to resources</Link>
+            <Link to={backToCourseList.to} params={backToCourseList.params}>
+              Back to course list
+            </Link>
           </Button>
         </div>
       </main>
@@ -108,7 +121,9 @@ function ResourceDetailPage() {
             This resource is part of Course 2 (Paid). Sign in with the paid login to unlock it.
           </p>
           <Button variant="outline" asChild>
-            <Link to="/dashboard/resources">Back to resources</Link>
+            <Link to={backToCourseList.to} params={backToCourseList.params}>
+              Back to course list
+            </Link>
           </Button>
         </div>
       </main>
@@ -127,15 +142,10 @@ function ResourceDetailPage() {
           </div>
           <div className="flex shrink-0 gap-2">
             <Button variant="outline" asChild>
-              <Link to="/dashboard/resources">Back</Link>
+              <Link to={backToCourseList.to} params={backToCourseList.params}>
+                Back
+              </Link>
             </Button>
-            {canOpenInNewTab && (
-              <Button asChild>
-                <a href={publicObjectUrl ?? blobUrl ?? '#'} target="_blank" rel="noreferrer">
-                  Open in new tab
-                </a>
-              </Button>
-            )}
           </div>
         </header>
 

@@ -32,7 +32,7 @@ async def test_list_resources_returns_demo_catalog(client: AsyncClient) -> None:
     body = response.json()
     assert body["error"] is None
     assert isinstance(body["data"], list)
-    assert len(body["data"]) == 8
+    assert len(body["data"]) == 7
     first = body["data"][0]
     assert first["id"] == "res-001"
     assert first["title"] == "DSA pathways overview"
@@ -58,6 +58,6 @@ async def test_list_progress_scopes_user_id(client: AsyncClient) -> None:
     body = response.json()
     assert body["error"] is None
     rows = body["data"]
-    assert len(rows) == 8
+    assert len(rows) == 7
     assert all(r["userId"] == "clerk_abc" for r in rows)
     assert rows[0]["resourceId"] == "res-001"

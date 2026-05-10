@@ -36,6 +36,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     else:
         logger.warning("Supabase credentials not configured — skipping client init")
 
+    if not settings.is_development:
+        missing: list[str] = []
+        if not settings.supabase_url.strip():
+            missing.append("SUPABASE_URL")
+        if not settings.supabase_service_key.strip():
+            missing.append("SUPABASE_SERVICE_KEY")
+        if not settings.clerk_jwks_url.strip():
+            missing.append("CLERK_JWKS_URL")
+        if not settings.clerk_issuer.strip():
+            missing.append("CLERK_ISSUER")
+        if missing:
+            logger.warning(
+                "Production storage/auth may be incomplete (paid downloads need Supabase + Clerk)",
+                missing_keys=missing,
+            )
+
     logger.info("Application started", version=settings.app_version, env=settings.environment)
     yield
     logger.info("Application shutting down")

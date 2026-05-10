@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import structlog
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel
 from supabase import Client
@@ -12,6 +12,17 @@ from app.models.schemas import ApiResponse, ClerkUser
 logger = structlog.get_logger()
 
 router = APIRouter()
+
+# Private Supabase bucket: keep it non-public; access only via these endpoints + service role.
+PAID_STORAGE_BUCKET = "resources-paid"
+
+
+def _require_paid_bucket(bucket: str) -> None:
+    if bucket != PAID_STORAGE_BUCKET:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid bucket for paid storage (expected {PAID_STORAGE_BUCKET})",
+        )
 
 
 class StorageUrlResponse(BaseModel):
@@ -66,6 +77,7 @@ async def storage_paid_url(
     _user: ClerkUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase),
 ) -> ApiResponse[StorageUrlResponse]:
+    _require_paid_bucket(bucket)
     signed = supabase.storage.from_(bucket).create_signed_url(path, expires_in)
     if isinstance(signed, dict):
         url = signed.get("signedURL") or signed.get("signedUrl") or signed.get("signed_url")
@@ -92,6 +104,7 @@ async def storage_paid_download(
     _user: ClerkUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase),
 ) -> Response:
+    _require_paid_bucket(bucket)
     data = supabase.storage.from_(bucket).download(path)
     if not isinstance(data, (bytes, bytearray)):
         raise ValueError("Unexpected download response")

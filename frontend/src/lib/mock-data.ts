@@ -24,7 +24,7 @@ export const mockResources: Resource[] = [
     title: 'Interview body language tips',
     type: 'video',
     topic: 'interview-preparation',
-    access: 'paid',
+    access: 'public',
     description:
       'Learn how to present confidently in DSA interviews with practical body language techniques that help students make a strong first impression.',
     duration: '8 min',
@@ -58,20 +58,6 @@ export const mockResources: Resource[] = [
     updatedAt: '2026-03-01T14:00:00Z',
   },
   {
-    id: 'res-005',
-    title: 'Course 2 PDF (Paid)',
-    type: 'pdf',
-    topic: 'interview-preparation',
-    access: 'paid',
-    bucket: 'resources-paid',
-    filePath: 'multipage.pdf',
-    description:
-      'Paid multi-page PDF preview hosted in the resources-paid bucket.',
-    duration: 'Multi-page PDF',
-    createdAt: '2026-02-15T08:00:00Z',
-    updatedAt: '2026-02-15T08:00:00Z',
-  },
-  {
     id: 'res-006',
     title: 'School selection strategy',
     type: 'video',
@@ -90,7 +76,7 @@ export const mockResources: Resource[] = [
     topic: 'interview-preparation',
     access: 'paid',
     bucket: 'resources-paid',
-    filePath: 'course-2/parent-guide-to-dsa-interviews.pdf',
+    filePath: 'multipage.pdf',
     description:
       'Everything parents need to know about supporting their child through the DSA interview process, from preparation to day-of logistics.',
     duration: '32 pages',
@@ -137,11 +123,6 @@ export const mockProgress: ResourceProgress[] = [
     userId: 'user-001',
     completed: false,
     lastAccessedAt: '2026-03-05T10:00:00Z',
-  },
-  {
-    resourceId: 'res-005',
-    userId: 'user-001',
-    completed: false,
   },
   {
     resourceId: 'res-006',

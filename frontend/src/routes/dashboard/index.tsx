@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { usePortalAuth } from '@/auth/auth-context';
-import { CourseAccordion } from '@/components/dashboard/course-accordion';
+import { DashboardProgressOverview } from '@/components/dashboard/dashboard-progress-overview';
 
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardHomePage,
@@ -20,7 +20,10 @@ function DashboardHomePage() {
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
           Welcome back, {first} {wave}
         </h1>
-        <CourseAccordion />
+        <section className="space-y-4">
+          <h2 className="text-sm font-medium text-muted-foreground">Your progress</h2>
+          <DashboardProgressOverview />
+        </section>
       </div>
     </main>
   );

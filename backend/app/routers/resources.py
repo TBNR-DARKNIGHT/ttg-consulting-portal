@@ -67,7 +67,7 @@ _RESOURCE_SEEDS: list[dict[str, Any]] = [
         "title": "Interview body language tips",
         "type": "video",
         "topic": "interview-preparation",
-        "access": "paid",
+        "access": "public",
         "description": (
             "Learn how to present confidently in DSA interviews with practical body "
             "language techniques that help students make a strong first impression."
@@ -107,19 +107,6 @@ _RESOURCE_SEEDS: list[dict[str, Any]] = [
         "updated_at": "2026-03-01T14:00:00Z",
     },
     {
-        "id": "res-005",
-        "title": "Course 2 PDF (Paid)",
-        "type": "pdf",
-        "topic": "interview-preparation",
-        "access": "paid",
-        "bucket": "resources-paid",
-        "file_path": "multipage.pdf",
-        "description": "Paid multi-page PDF preview hosted in the resources-paid bucket.",
-        "duration": "Multi-page PDF",
-        "created_at": "2026-02-15T08:00:00Z",
-        "updated_at": "2026-02-15T08:00:00Z",
-    },
-    {
         "id": "res-006",
         "title": "School selection strategy",
         "type": "video",
@@ -140,7 +127,7 @@ _RESOURCE_SEEDS: list[dict[str, Any]] = [
         "topic": "interview-preparation",
         "access": "paid",
         "bucket": "resources-paid",
-        "file_path": "course-2/parent-guide-to-dsa-interviews.pdf",
+        "file_path": "multipage.pdf",
         "description": (
             "Everything parents need to know about supporting their child through the "
             "DSA interview process, from preparation to day-of logistics."
@@ -188,7 +175,6 @@ _PROGRESS_SEEDS: list[dict[str, Any]] = [
         "completed": False,
         "last_accessed_at": "2026-03-05T10:00:00Z",
     },
-    {"resource_id": "res-005", "completed": False},
     {"resource_id": "res-006", "completed": False},
     {"resource_id": "res-007", "completed": False},
     {"resource_id": "res-008", "completed": False},
