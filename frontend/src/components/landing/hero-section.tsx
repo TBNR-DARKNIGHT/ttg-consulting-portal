@@ -40,7 +40,7 @@ export function HeroSection() {
 
             <p className="font-sans mt-6 text-brand-dark/80 max-w-[560px] text-base md:text-lg leading-relaxed mb-10 lg:max-w-[52ch]">
               We help students find their voice, build standout portfolios, and master
-              the art of personal branding—from primary school to university and beyond.
+              the art of personal branding and interviews—from primary school to university and beyond.
             </p>
 
             <Button asChild size="lg" className="h-12 px-7">
@@ -82,10 +82,6 @@ export function HeroSection() {
                       allowFullScreen
                     />
                   </div>
-                </div>
-
-                <div className="mt-4 text-xs text-brand-dark/60 text-center">
-                  A quick look at how the portal supports your DSA journey
                 </div>
               </div>
             </div>

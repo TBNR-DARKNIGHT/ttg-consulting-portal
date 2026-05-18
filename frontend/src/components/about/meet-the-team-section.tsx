@@ -11,6 +11,7 @@ const team = [
     initials: 'SY',
     accent: 'from-brand-cream to-white',
     photoPath: 'about/shouyee.png',
+    linkedinUrl: 'https://www.linkedin.com/in/shou-yee/',
     bio: 'An alumnus of the pioneer batch of the Raffles Integrated Programme, Shou Yee witnessed firsthand the shift toward holistic education in Singapore. This experience of being among the first to navigate a system that demanded more than just exam scores fuels his passion for Beyond Grades. A double degree graduate from SMU and a Lee Kong Chian Scholar, Shou Yee’s edge lies in him being on both sides of the scholarship table. Having served on the selection panel for the Lee Kong Chian Scholarship and as an assessor for a global bank campus recruitment, he provides students with an "assessor’s eye" view of the specific personality traits and leadership markers that elite selection boards prioritise today.',
   },
   {
@@ -19,6 +20,7 @@ const team = [
     initials: 'I',
     accent: 'from-brand-grey/60 to-white',
     photoPath: 'about/isaac.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/isaac-ong-6a9a51163/',
     bio: 'Isaac’s journey is a testament to the power of strategic positioning across different domains. He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University (Law) before making the bold transition to Duke-NUS Medical School. This rare multidisciplinary background makes him a specialist in guiding "multi-talent" students. Isaac excels at helping multi-disciplinary learners synthesise diverse interests into a cohesive, high-impact narrative that stands out to schools and university boards alike.',
   },
   {
@@ -27,6 +29,7 @@ const team = [
     initials: 'H',
     accent: 'from-brand-sage/35 to-white',
     photoPath: 'about/hugo.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/mrhugobear/',
     bio: 'A graduate of UCLA, Hugo’s deep connection to the mission of Beyond Grades began decades ago at ACS Primary, where he first met his co-founder, Isaac. While Isaac navigated the academic pathways of Law and Medicine, Hugo focused on the power of the personal narrative. He secured his own spot at a US university by mastering the art of branding despite not having “perfect” academic results. He now specialises in helping students find their "Unique Selling Point," teaching them how to craft authentic stories that resonate with interview panels on an emotional and intellectual level.',
   },
   {
@@ -35,6 +38,7 @@ const team = [
     initials: 'M',
     accent: 'from-brand-sage/25 to-white',
     photoPath: 'about/martin.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/li-yicheng/',
     bio: 'Martin is a proud representative of Hwa Chong Institution and the University of Oxford, where he was offered the prestigious PSC/SAFOS Overseas Scholarship. Having successfully navigated the most rigorous selection process in the country, Martin possesses a deep understanding of what it takes to thrive in international environments, from the historic halls of Oxford to the competitive offices of GIC in London. He specialises in training students to tackle high-level applications with the refined communication skills and poise required to win over the most discerning selection panels.',
   },
 ];
@@ -52,13 +56,13 @@ function TeamAvatar({
 }) {
   const [showFallback, setShowFallback] = useState(() => !photoUrl);
 
-  const circleClass = 'size-28 shrink-0 rounded-full border-2 border-brand-grey';
+  const circleClass = 'size-36 shrink-0 rounded-full border-2 border-brand-grey';
 
   if (showFallback) {
     return (
       <div
         className={cn(
-          'flex items-center justify-center bg-linear-to-br text-lg font-semibold text-brand-dark/90',
+          'flex items-center justify-center bg-linear-to-br text-xl font-semibold text-brand-dark/90',
           circleClass,
           accent
         )}
@@ -134,14 +138,17 @@ export function MeetTheTeamSection() {
                   <p className="mt-1 text-sm font-medium text-brand-indigo">{member.title}</p>
                   <p className="mt-3 text-sm leading-relaxed text-brand-dark/75">{member.bio}</p>
                   <a
-                    href="https://www.linkedin.com"
+                    href={member.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-indigo underline-offset-4 hover:underline"
                   >
                     <Linkedin className="size-4 shrink-0" aria-hidden />
                     LinkedIn
-                    <span className="sr-only"> (opens in new tab)</span>
+                    <span className="sr-only">
+                      {' '}
+                      — {member.name} (opens in new tab)
+                    </span>
                   </a>
                 </CardContent>
               </Card>
