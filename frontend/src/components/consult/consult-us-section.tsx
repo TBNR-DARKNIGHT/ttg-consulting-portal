@@ -1,131 +1,118 @@
 import { Link } from '@tanstack/react-router';
-import { Lock, Phone } from 'lucide-react';
-import { usePortalAuth } from '@/auth/auth-context';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { publicStorageUrl } from '@/lib/public-assets';
 
-const CONTACT_PHONE = '+65 6123 4567';
-const CONTACT_EMAIL = 'consult@beyondgrades.sg';
+const EXECUTIVE_CONSULTING_IMAGE = publicStorageUrl('landing/executive_counsulting.jpg');
+const PERSONALIZED_NEXT_STEPS_IMAGE = publicStorageUrl('landing/personalized_next_steps.jpg');
 
 export function ConsultUsSection() {
-  const { isLoaded, isSignedIn } = usePortalAuth();
-  const showContact = isLoaded && isSignedIn;
-  const obscureContact = !isLoaded || !isSignedIn;
-
   return (
-    <section className="bg-white py-16 md:py-24" aria-label="Consultation details">
+    <section className="bg-white pt-8 pb-16 md:pt-10 md:pb-24" aria-label="Consultation details">
       <div className="mx-auto max-w-[900px] px-6">
         <div className="mx-auto max-w-3xl">
+          {EXECUTIVE_CONSULTING_IMAGE ? (
+            <div className="mx-auto mb-6 max-w-[520px] overflow-hidden rounded-xl border border-brand-grey">
+              <img
+                src={EXECUTIVE_CONSULTING_IMAGE}
+                alt="Executive consulting session"
+                className="w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          ) : null}
+
           <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-4xl">
-            We Are Here to Support Your Child in Their DSA Journey
+            Clarity on Your Child&apos;s DSA Journey. In a Single Conversation.
           </h1>
           <div className="mt-5 space-y-4 text-base leading-relaxed text-brand-dark/80">
             <p>
-              When Algene first encouraged me to leave my finance job at UBS to start an education
-              company, it wasn&apos;t an easy decision. But what gave me conviction was the vision we
-              shared: to build something that goes beyond academics. We wanted to create a place
-              that not only helps students excel in their studies but also equips them with the
-              confidence, skills, and strategies to thrive in life.
-            </p>
-            <p>
-              My own journey has shown me how important these qualities are. As part of the pioneer
-              batch of the Raffles Integrated Programme, I saw how different pathways like DSA
-              opened doors for my peers. I was fortunate to receive scholarships myself and later
-              sat on scholarship boards, learning first-hand what selectors look for. In my
-              professional career, I represented UBS at campus recruitment and assessed candidates
-              for global programmes. Sitting on both sides of the table taught me an important
-              truth: grades alone are never enough; character, clarity, and confidence often make
-              the difference.
-            </p>
-            <p>
-              That&apos;s why at Think Teach Academy, together with Macro Academy and Summit Education
-              in the Think Teach Group, we aim to guide students through every stage from academics
-              to interviews so they are ready for opportunities when they come.
-            </p>
-            <p>
-              Offering DSA consultation services is a natural extension of this mission. We want to
-              give your child the guidance and preparation I wish I had when I was younger, not to
-              pressure them, but to help them bring out their best selves with confidence and
-              authenticity.
-            </p>
-            <p>
-              Thank you for trusting us to walk alongside your child in this journey. It&apos;s a
-              privilege we don&apos;t take lightly, and we&apos;re proud to play a small part in their
-              growth.
-            </p>
-            <p className="pt-2 text-brand-dark">
-              Yours in Education,
-              <br />
-              Shou Yee
-              <br />
-              Co-Founder, Think Teach Academy
+            Every child’s profile is different. The right domain, the right schools, the right preparation focus. 
+            And none of that can be answered by a generic checklist. 
+            Our Initial Consultation gives you an honest, personalised assessment of where your child stands and what a realistic path forward looks like.
             </p>
           </div>
-        </div>
+          <div className="mt-5">
+            <Button asChild>
+              <a href="https://wa.me/6597692396" target="_blank" rel="noopener noreferrer">
+                Book Your Initial Consultation
+              </a>
+            </Button>
+          </div>
 
-        <div className="relative mt-12 md:mt-14">
-          <div className="overflow-hidden rounded-2xl border border-brand-grey bg-brand-grey/20 shadow-sm">
-            <div
-              className={cn(
-                'px-8 py-10 transition-[filter]',
-                obscureContact && 'blur-md select-none'
-              )}
-              aria-hidden={!showContact}
-            >
-              <h2 className="text-center text-sm font-semibold uppercase tracking-[0.12em] text-brand-dark/80">
-                Contact us directly
-              </h2>
-              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-10">
-                {showContact ? (
-                  <>
-                    <a
-                      href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`}
-                      className="flex items-center gap-2 text-lg font-semibold text-brand-dark"
-                    >
-                      <Phone className="size-5 shrink-0 text-brand-sage" aria-hidden />
-                      {CONTACT_PHONE}
-                    </a>
-                    <a
-                      href={`mailto:${CONTACT_EMAIL}`}
-                      className="text-lg font-semibold text-brand-dark underline-offset-2 hover:underline"
-                    >
-                      {CONTACT_EMAIL}
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex items-center gap-2 text-lg font-semibold text-brand-dark">
-                      <Phone className="size-5 shrink-0 text-brand-sage" aria-hidden />
-                      {CONTACT_PHONE}
-                    </span>
-                    <span className="text-lg font-semibold text-brand-dark">{CONTACT_EMAIL}</span>
-                  </>
-                )}
-              </div>
-              <p className="mt-4 text-center text-xs text-brand-dark/55">
-                Weekdays 9am–6pm (SGT). We typically reply within one business day.
-              </p>
+          <div className="mt-8 grid gap-4 rounded-2xl border border-brand-grey bg-brand-grey/20 p-6">
+            <h2 className="text-xl font-semibold text-brand-dark">What to Expect</h2>
+            <p className="text-brand-dark/75">
+              A focused 1-on-1 session with a member of our team. We cover five areas:
+            </p>
+            <ul className="grid gap-3 text-sm md:text-base text-brand-dark/80">
+              <li>
+                <span className="font-semibold text-brand-dark">Holistic Profile Understanding:</span>{' '}
+                We look beyond grades to understand your child&apos;s genuine strengths, interests,
+                and experiences, and identify the domains where they can present themselves
+                authentically.
+              </li>
+              <li>
+                <span className="font-semibold text-brand-dark">Identifying the Right Domain:</span>{' '}
+                We help you determine which areas genuinely fit your child&apos;s profile and what
+                specific schools look for, so you invest your time and effort in a direction that
+                makes sense for them.
+              </li>
+              <li><span className="font-semibold text-brand-dark">Portfolio Evaluation:</span> We review what your child has already built, identify what carries real weight with selection panels, and share honest feedback on where the gaps are.</li>
+              <li>
+                <span className="font-semibold text-brand-dark">Interview Readiness Assessment:</span>{' '}
+                We give your child an honest picture of where they stand relative to what schools
+                are looking for, and what they need to work on before the application window.
+              </li>
+              <li>
+                <span className="font-semibold text-brand-dark">Personalised Next Steps:</span>{' '}
+                Every session ends with a clear, realistic plan your family can act on immediately.
+              </li>
+            </ul>
+          </div>
+
+          {PERSONALIZED_NEXT_STEPS_IMAGE ? (
+            <div className="mx-auto mt-8 mb-8 max-w-[520px] overflow-hidden rounded-xl border border-brand-grey">
+              <img
+                src={PERSONALIZED_NEXT_STEPS_IMAGE}
+                alt="Personalized next steps"
+                className="w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
+          ) : null}
 
-            {obscureContact && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-2xl bg-white/50 px-6 backdrop-blur-md">
-                {!isLoaded ? (
-                  <span className="text-sm font-medium text-brand-dark/80">Loading…</span>
-                ) : (
-                  <>
-                    <div className="flex size-12 items-center justify-center rounded-full bg-brand-grey/60 text-brand-dark">
-                      <Lock className="size-6" aria-hidden />
-                    </div>
-                    <p className="max-w-sm text-center text-base font-medium text-brand-dark">
-                      Log in to view our contact details
-                    </p>
-                    <Button asChild className="h-10 px-8 font-semibold">
-                      <Link to="/auth/login">Log In to Continue</Link>
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
+          <div className="mt-8 rounded-2xl border border-brand-grey bg-white p-6">
+            <h3 className="text-xl font-semibold text-brand-dark">Our Approach</h3>
+            <p className="mt-3 text-brand-dark/75 leading-relaxed">
+              DSA selection is designed to identify students who know themselves well - their
+              interests, their strengths, and their reasons for pursuing a particular pathway. Our
+              role is not to manufacture a profile, but to help your child develop the
+              self-awareness and clarity to present who they genuinely are with confidence. The
+              students who do well in DSA interviews are rarely the most polished. They are the
+              most prepared to be themselves.
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-brand-grey bg-white p-6">
+            <p className="mt-3 text-brand-dark/75 leading-relaxed">
+              Prefer group-based interview preparation? Our DSA Interview Intensive returns each
+              April and May.
+            </p>
+            <Link
+              to="/group-programme"
+              className="mt-1 inline-block text-brand-indigo underline underline-offset-4"
+            >
+              Join the 2027 Waitlist
+            </Link>
+            <p className="mt-4 text-brand-dark/75 leading-relaxed">
+              Prefer to start at your own pace? The Beyond Grades Portal is free to join and gives
+              you immediate access to our foundational frameworks.
+            </p>
+            <Link to="/portal" className="mt-1 inline-block text-brand-indigo underline underline-offset-4">
+              Explore the Portal
+            </Link>
           </div>
         </div>
       </div>

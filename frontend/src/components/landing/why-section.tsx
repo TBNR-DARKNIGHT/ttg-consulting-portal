@@ -36,7 +36,7 @@ export function WhySection() {
               life. Whether a child is successful in their application or not, the process of
               building a portfolio and preparing for an interview is invaluable. It is a rare
               opportunity for students to explore their identity and learn to articulate their
-              thinking with confidence.
+              thinking with confidence. These are skills that compound for decades.
             </p>
           </div>
 

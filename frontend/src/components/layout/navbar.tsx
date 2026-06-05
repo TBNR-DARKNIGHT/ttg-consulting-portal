@@ -10,7 +10,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { FEATURES } from '@/lib/features';
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -36,12 +35,41 @@ export function Navbar() {
           <div className="w-9 h-9 rounded-full bg-brand-indigo flex items-center justify-center text-white text-sm font-semibold tracking-tight">
             bg
           </div>
-          <span className="font-serif font-semibold text-brand-dark group-hover:opacity-80 transition-opacity">
-            beyond grades
-          </span>
+          <div className="leading-tight">
+            <span className="block font-serif font-semibold text-brand-dark group-hover:opacity-80 transition-opacity">
+              beyond grades
+            </span>
+            <span className="block text-[11px] text-brand-dark/70 italic group-hover:opacity-80 transition-opacity">
+              Part of the Think Teach Group
+            </span>
+          </div>
         </Link>
 
         <div className="hidden md:flex items-center justify-center gap-8 flex-1 px-8">
+          <Link
+            to="/portal"
+            activeProps={{ className: 'text-brand-indigo' }}
+            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+            className="text-sm transition-colors"
+          >
+            Portal
+          </Link>
+          <Link
+            to="/group-programme"
+            activeProps={{ className: 'text-brand-indigo' }}
+            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+            className="text-sm transition-colors"
+          >
+            Group Programme
+          </Link>
+          <Link
+            to="/consult"
+            activeProps={{ className: 'text-brand-indigo' }}
+            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+            className="text-sm transition-colors"
+          >
+            Executive Consulting
+          </Link>
           <Link
             to="/about"
             activeProps={{ className: 'text-brand-indigo' }}
@@ -50,16 +78,6 @@ export function Navbar() {
           >
             About us
           </Link>
-          {FEATURES.consult ? (
-            <Link
-              to="/consult"
-              activeProps={{ className: 'text-brand-indigo' }}
-              inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-              className="text-sm transition-colors"
-            >
-              Consult us
-            </Link>
-          ) : null}
         </div>
 
         <div className="hidden md:flex items-center gap-2">
@@ -91,7 +109,7 @@ export function Navbar() {
                 <Link to="/auth/login">Log In</Link>
               </Button>
               <Button asChild>
-                <Link to="/auth/sign-up">Sign Up</Link>
+                <Link to="/portal">Get Started</Link>
               </Button>
             </>
           )}
@@ -111,21 +129,33 @@ export function Navbar() {
             </SheetDescription>
             <div className="flex flex-col gap-2 pt-8 px-2">
               <Link
+                to="/portal"
+                onClick={() => setOpen(false)}
+                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
+              >
+                Portal
+              </Link>
+              <Link
+                to="/group-programme"
+                onClick={() => setOpen(false)}
+                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
+              >
+                Group Programme
+              </Link>
+              <Link
+                to="/consult"
+                onClick={() => setOpen(false)}
+                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
+              >
+                Executive Consulting
+              </Link>
+              <Link
                 to="/about"
                 onClick={() => setOpen(false)}
                 className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
               >
                 About us
               </Link>
-              {FEATURES.consult ? (
-                <Link
-                  to="/consult"
-                  onClick={() => setOpen(false)}
-                  className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-                >
-                  Consult us
-                </Link>
-              ) : null}
               {!isLoaded ? (
                 <div className="relative mt-4 h-10 rounded-md bg-brand-grey/40">
                   <span className="sr-only">Loading account</span>
@@ -156,8 +186,8 @@ export function Navbar() {
                     </Link>
                   </Button>
                   <Button asChild>
-                    <Link to="/auth/sign-up" onClick={() => setOpen(false)}>
-                      Sign Up
+                    <Link to="/portal" onClick={() => setOpen(false)}>
+                      Get Started
                     </Link>
                   </Button>
                 </div>

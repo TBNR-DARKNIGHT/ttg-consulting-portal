@@ -2,11 +2,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { HeroSection } from '@/components/landing/hero-section';
+import { PromoVideoCardSection } from '@/components/landing/promo-video-card-section';
+import { StartOptionsSection } from '@/components/landing/start-options-section';
+import { TtaFamilyNoteSection } from '@/components/landing/tta-family-note-section';
+import { BuiltBySection } from '@/components/landing/built-by-section';
 import { WhySection } from '@/components/landing/why-section';
-import { PrepLoungeSection } from '@/components/landing/prep-lounge-section';
-import { CommunityQnaSection } from '@/components/landing/community-qna-section';
-import { VideoSampleCarouselSection } from '@/components/landing/video-sample-carousel-section';
-import { StatsSection } from '@/components/landing/stats-section';
+import { YoungExplorersTeaserSection } from '@/components/landing/young-explorers-teaser-section';
 import { FinalFeaturesCtaSection } from '@/components/landing/final-features-cta-section';
 
 export const Route = createFileRoute('/')({
@@ -19,11 +20,12 @@ function LandingPage() {
       <Navbar />
       <main>
         <HeroSection />
+        <PromoVideoCardSection />
+        <StartOptionsSection />
+        <TtaFamilyNoteSection />
+        <BuiltBySection />
         <WhySection />
-        <PrepLoungeSection />
-        <VideoSampleCarouselSection />
-        <CommunityQnaSection />
-        <StatsSection />
+        <YoungExplorersTeaserSection />
         <FinalFeaturesCtaSection />
       </main>
       <Footer />

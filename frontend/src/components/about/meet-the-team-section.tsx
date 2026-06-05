@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { Linkedin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { publicStorageUrl } from '@/lib/public-assets';
 import { cn } from '@/lib/utils';
@@ -12,7 +14,11 @@ const team = [
     accent: 'from-brand-cream to-white',
     photoPath: 'about/shouyee.png',
     linkedinUrl: 'https://www.linkedin.com/in/shou-yee/',
-    bio: 'An alumnus of the pioneer batch of the Raffles Integrated Programme, Shou Yee witnessed firsthand the shift toward holistic education in Singapore. This experience of being among the first to navigate a system that demanded more than just exam scores fuels his passion for Beyond Grades. A double degree graduate from SMU and a Lee Kong Chian Scholar, Shou Yee’s edge lies in him being on both sides of the scholarship table. Having served on the selection panel for the Lee Kong Chian Scholarship and as an assessor for a global bank campus recruitment, he provides students with an "assessor’s eye" view of the specific personality traits and leadership markers that elite selection boards prioritise today.',
+    bio: `Most advisors teach students how to impress a panel. Shou Yee has been on one.
+
+Having served as an assessor on the Lee Kong Chian Scholarship panel and as a campus recruitment assessor for UBS, Shou Yee brings a perspective that is genuinely rare in Singapore's education space: he knows precisely what selection panels look for, because he has looked for it himself.
+
+A pioneer batch alumnus of the Raffles Integrated Programme, Shou Yee was among the first cohort in Singapore to navigate a system that demanded more than exam scores. He went on to complete a double degree at SMU as a Lee Kong Chian Scholar. His work with Beyond Grades is driven by a conviction that the insider's perspective on selection should be available to every family, not just those with the right connections.`,
   },
   {
     name: 'Isaac',
@@ -21,7 +27,11 @@ const team = [
     accent: 'from-brand-grey/60 to-white',
     photoPath: 'about/isaac.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/isaac-ong-6a9a51163/',
-    bio: 'Isaac’s journey is a testament to the power of strategic positioning across different domains. He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University (Law) before making the bold transition to Duke-NUS Medical School. This rare multidisciplinary background makes him a specialist in guiding "multi-talent" students. Isaac excels at helping multi-disciplinary learners synthesise diverse interests into a cohesive, high-impact narrative that stands out to schools and university boards alike.',
+    bio: `Isaac's greatest strength is an ability to see the coherent narrative running through what looks, on the surface, like a collection of unrelated interests and achievements.
+
+He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University with a Law degree before making the deliberate transition to Duke-NUS Medical School. This is not a career that followed a straight line - it is a profile built on the rare ability to synthesise diverse passions into a compelling, unified story.
+
+Isaac now brings that same skill to the students he works with. He specialises in guiding multi-disciplinary learners who feel their range of interests is a liability, and helping them understand that it is, in fact, their most powerful asset.`,
   },
   {
     name: 'Hugo',
@@ -30,7 +40,11 @@ const team = [
     accent: 'from-brand-sage/35 to-white',
     photoPath: 'about/hugo.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/mrhugobear/',
-    bio: 'A graduate of UCLA, Hugo’s deep connection to the mission of Beyond Grades began decades ago at ACS Primary, where he first met his co-founder, Isaac. While Isaac navigated the academic pathways of Law and Medicine, Hugo focused on the power of the personal narrative. He secured his own spot at a US university by mastering the art of branding despite not having “perfect” academic results. He now specialises in helping students find their "Unique Selling Point," teaching them how to craft authentic stories that resonate with interview panels on an emotional and intellectual level.',
+    bio: `Hugo's founding insight is a personal one: you do not need a perfect record to earn a place at the table. You need a compelling story about why you belong there.
+
+A graduate of UCLA and a lifelong friend and co-founder alongside Isaac since their days at ACS Primary, Hugo secured his place at an American university not on the strength of flawless grades but on the power of his personal narrative. He understood, earlier than most, that elite institutions are not just selecting academic performers. They are selecting people.
+
+He now specialises in helping students find their Unique Selling Point and craft authentic stories that resonate with interview panels on both an emotional and intellectual level - the kind of stories that panels remember long after the interview ends.`,
   },
   {
     name: 'Martin',
@@ -39,7 +53,11 @@ const team = [
     accent: 'from-brand-sage/25 to-white',
     photoPath: 'about/martin.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/li-yicheng/',
-    bio: 'Martin is a proud representative of Hwa Chong Institution and the University of Oxford, where he was offered the prestigious PSC/SAFOS Overseas Scholarship. Having successfully navigated the most rigorous selection process in the country, Martin possesses a deep understanding of what it takes to thrive in international environments, from the historic halls of Oxford to the competitive offices of GIC in London. He specialises in training students to tackle high-level applications with the refined communication skills and poise required to win over the most discerning selection panels.',
+    bio: `Martin has competed at the highest level of Singapore's selection landscape - and was offered the PSC and SAFOS Overseas Scholarship, one of the most coveted and demanding awards in the country.
+
+A graduate of Hwa Chong Institution and the University of Oxford, Martin went on to work at GIC in London, bringing Singapore's sovereign wealth perspective to one of the world's most competitive financial environments. He has navigated, from the inside, the specific combination of intellectual rigour, communication poise, and personal clarity that the most demanding selection panels require.
+
+Martin now specialises in preparing students for high-stakes applications and interviews, teaching the refined communication skills and composure required to perform when the pressure is highest.`,
   },
 ];
 
@@ -93,6 +111,9 @@ export function MeetTheTeamSection() {
         >
           About Us
         </h2>
+        <h3 className="mt-4 text-center text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
+          We Built This Because We Saw What Was Missing From the Inside.
+        </h3>
         <div className="mx-auto mt-4 max-w-4xl space-y-4 text-center text-base leading-relaxed text-brand-dark/75">
           <p>
             We spent years navigating the corridors of global banks, law firms, hospitals, and
@@ -115,7 +136,7 @@ export function MeetTheTeamSection() {
         </div>
 
         <h3 className="mt-12 text-center text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
-          Meet the Team
+          The Team
         </h3>
 
         <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -136,7 +157,9 @@ export function MeetTheTeamSection() {
                   />
                   <h3 className="mt-5 font-bold text-brand-dark">{member.name}</h3>
                   <p className="mt-1 text-sm font-medium text-brand-indigo">{member.title}</p>
-                  <p className="mt-3 text-sm leading-relaxed text-brand-dark/75">{member.bio}</p>
+                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-brand-dark/75">
+                    {member.bio}
+                  </p>
                   <a
                     href={member.linkedinUrl}
                     target="_blank"
@@ -155,6 +178,44 @@ export function MeetTheTeamSection() {
             </li>
           ))}
         </ul>
+
+        <div className="mx-auto mt-14 max-w-4xl rounded-2xl border border-brand-grey bg-brand-grey/20 px-6 py-8 text-center">
+          <h3 className="text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
+            Our Work Begins Earlier Than You Might Think.
+          </h3>
+          <p className="mt-4 text-base leading-relaxed text-brand-dark/75">
+            The Beyond Grades mission does not begin at P5. Through Young Explorers, our formally
+            partnered programme with MapleBear Student Care Eunos, the same team brings the
+            foundations of confident communication to younger children from Primary 1 onwards.
+            Delivered in Singapore and Shanghai, Young Explorers gives students an early and joyful
+            introduction to public speaking, personal storytelling, and self-expression - skills
+            that compound long before the DSA journey officially begins.
+          </p>
+          <Button asChild variant="link" className="mt-2 h-auto p-0 text-brand-indigo">
+            <Link to="/young-explorers">Learn More About Young Explorers</Link>
+          </Button>
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl rounded-2xl border border-brand-grey bg-white px-6 py-8 text-center">
+          <h3 className="text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
+            Ready to Work With Us?
+          </h3>
+          <p className="mt-4 text-base leading-relaxed text-brand-dark/75">
+            Explore our three ways to engage: at your own pace, in a cohort, or one-on-one with
+            our team.
+          </p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button asChild>
+              <Link to="/portal">Explore the Portal - Free to Join</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/group-programme">View the Group Programme</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/consult">Book a Consulting Call</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </section>
   );

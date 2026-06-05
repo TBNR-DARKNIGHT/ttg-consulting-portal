@@ -1,5 +1,3 @@
-import { FEATURES } from '@/lib/features';
-
 export function Footer() {
   return (
     <footer className="bg-brand-cream border-t border-brand-grey">
@@ -12,7 +10,7 @@ export function Footer() {
             <ul className="mt-4 grid gap-2">
               <li>
                 <a
-                  href="#"
+                  href="/portal"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   DSA Pathways
@@ -20,7 +18,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/group-programme"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   Interview Prep
@@ -28,7 +26,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/portal"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   Timeline &amp; Deadlines
@@ -36,7 +34,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/portal"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   PDF Downloads
@@ -52,34 +50,34 @@ export function Footer() {
             <ul className="mt-4 grid gap-2">
               <li>
                 <a
+                  href="/portal"
+                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
+                >
+                  The Portal
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/group-programme"
+                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
+                >
+                  Group Programme
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/consult"
+                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
+                >
+                  Executive Consulting
+                </a>
+              </li>
+              <li>
+                <a
                   href="/auth/sign-up"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   Sign Up
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/auth/login"
-                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                >
-                  Log In
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                >
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/dashboard"
-                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                >
-                  Dashboard
                 </a>
               </li>
             </ul>
@@ -92,7 +90,7 @@ export function Footer() {
             <ul className="mt-4 grid gap-2">
               <li>
                 <a
-                  href="#about"
+                  href="/about"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   About Us
@@ -100,28 +98,18 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/about"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
                   Meet the Team
                 </a>
               </li>
-              {FEATURES.consult ? (
-                <li>
-                  <a
-                    href="#consult"
-                    className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                  >
-                    Consult Us
-                  </a>
-                </li>
-              ) : null}
               <li>
                 <a
-                  href="#"
+                  href="/young-explorers"
                   className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
                 >
-                  Careers
+                  Young Explorers
                 </a>
               </li>
             </ul>
@@ -132,16 +120,16 @@ export function Footer() {
               Contact
             </h3>
             <ul className="mt-4 grid gap-2">
-              {FEATURES.consult ? (
-                <li>
-                  <a
-                    href="#consult"
-                    className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
-                  >
-                    Contact Us
-                  </a>
-                </li>
-              ) : null}
+              <li>
+                <a
+                  href="https://wa.me/6597692396"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] text-brand-dark/70 hover:text-brand-indigo transition-colors"
+                >
+                  Contact Us on WhatsApp
+                </a>
+              </li>
             </ul>
 
             <div className="mt-6">
@@ -233,8 +221,8 @@ export function Footer() {
 
         <div className="mt-10 pt-7 border-t border-brand-grey flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[12px] text-brand-dark/65">
-            &copy; {new Date().getFullYear()} Think Teach Group. All rights
-            reserved.
+            Beyond Grades is part of the Think Teach Group, alongside Think Teach Academy and MACRO
+            Academy.
           </p>
           <div className="flex items-center gap-6">
             <a

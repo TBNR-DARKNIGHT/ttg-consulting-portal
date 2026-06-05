@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YoungExplorersRouteImport } from './routes/young-explorers'
+import { Route as PortalRouteImport } from './routes/portal'
+import { Route as GroupProgrammeRouteImport } from './routes/group-programme'
 import { Route as ConsultRouteImport } from './routes/consult'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
@@ -22,6 +25,21 @@ import { Route as DashboardResourcesResourceIdRouteImport } from './routes/dashb
 import { Route as DashboardCourseCourseIdVideosRouteImport } from './routes/dashboard/course.$courseId.videos'
 import { Route as DashboardCourseCourseIdResourcesRouteImport } from './routes/dashboard/course.$courseId.resources'
 
+const YoungExplorersRoute = YoungExplorersRouteImport.update({
+  id: '/young-explorers',
+  path: '/young-explorers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupProgrammeRoute = GroupProgrammeRouteImport.update({
+  id: '/group-programme',
+  path: '/group-programme',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConsultRoute = ConsultRouteImport.update({
   id: '/consult',
   path: '/consult',
@@ -91,6 +109,9 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/consult': typeof ConsultRoute
+  '/group-programme': typeof GroupProgrammeRoute
+  '/portal': typeof PortalRoute
+  '/young-explorers': typeof YoungExplorersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/dashboard/resources': typeof DashboardResourcesRouteWithChildren
@@ -104,6 +125,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/consult': typeof ConsultRoute
+  '/group-programme': typeof GroupProgrammeRoute
+  '/portal': typeof PortalRoute
+  '/young-explorers': typeof YoungExplorersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/dashboard/resources': typeof DashboardResourcesRouteWithChildren
@@ -119,6 +143,9 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/consult': typeof ConsultRoute
+  '/group-programme': typeof GroupProgrammeRoute
+  '/portal': typeof PortalRoute
+  '/young-explorers': typeof YoungExplorersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/dashboard/resources': typeof DashboardResourcesRouteWithChildren
@@ -135,6 +162,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/about'
     | '/consult'
+    | '/group-programme'
+    | '/portal'
+    | '/young-explorers'
     | '/auth/login'
     | '/auth/sign-up'
     | '/dashboard/resources'
@@ -148,6 +178,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/consult'
+    | '/group-programme'
+    | '/portal'
+    | '/young-explorers'
     | '/auth/login'
     | '/auth/sign-up'
     | '/dashboard/resources'
@@ -162,6 +195,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/about'
     | '/consult'
+    | '/group-programme'
+    | '/portal'
+    | '/young-explorers'
     | '/auth/login'
     | '/auth/sign-up'
     | '/dashboard/resources'
@@ -177,12 +213,36 @@ export interface RootRouteChildren {
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   ConsultRoute: typeof ConsultRoute
+  GroupProgrammeRoute: typeof GroupProgrammeRoute
+  PortalRoute: typeof PortalRoute
+  YoungExplorersRoute: typeof YoungExplorersRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/young-explorers': {
+      id: '/young-explorers'
+      path: '/young-explorers'
+      fullPath: '/young-explorers'
+      preLoaderRoute: typeof YoungExplorersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group-programme': {
+      id: '/group-programme'
+      path: '/group-programme'
+      fullPath: '/group-programme'
+      preLoaderRoute: typeof GroupProgrammeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/consult': {
       id: '/consult'
       path: '/consult'
@@ -306,6 +366,9 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   ConsultRoute: ConsultRoute,
+  GroupProgrammeRoute: GroupProgrammeRoute,
+  PortalRoute: PortalRoute,
+  YoungExplorersRoute: YoungExplorersRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignUpRoute: AuthSignUpRoute,
 }
