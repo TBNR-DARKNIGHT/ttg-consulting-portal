@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     allow_dev_bearer_auth: bool = False
     dev_bearer_token: str = ""
 
+    # Mux Video — signing key mints short-lived JWTs for **signed** playback IDs only.
+    # Create keys in the Mux dashboard (Settings → Signing Keys). Private key may be PEM
+    # or base64-encoded PEM as returned by the API.
+    mux_signing_key_id: str = ""
+    mux_signing_private_key: str = ""
+    # Public playback ID for **Course 1** (free) catalog videos — topics dsa-pathways &
+    # timelines-deadlines. If unset, a Mux sample asset is used for local dev only.
+    mux_public_playback_id: str = ""
+    # Signed playback ID for **Course 2** paid catalog video (res-009) when set.
+    mux_seed_signed_playback_id: str = ""
+
     @property
     def is_development(self) -> bool:
         return self.environment == "development"

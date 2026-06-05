@@ -160,8 +160,12 @@ CREATE INDEX idx_uca_content ON user_content_access(content_id);
 
 | Bucket | Purpose | Access |
 |--------|---------|--------|
+| `resources-public` | Dashboard **PDFs** and other public course files | Public read URL in browser when bucket is public |
+| `resources-paid` | Dashboard **paid PDFs** (private bucket) | Clerk JWT + API (`paid-url` / `paid-download`) |
 | `student-videos` | MapleBear student recordings | Signed URLs, consultant upload, parent read |
-| `dsa-resources` | DSA content files (videos, PDFs) | Signed URLs, admin upload, client read |
+| `public-assets` | Marketing / About page images | Public read |
+
+**Course videos (DSA / interview modules)** use **Mux Video**, not Supabase object storage: the catalog stores a **Mux playback ID** and whether playback is **public** or **signed** (JWT minted by `GET /api/v1/playback/mux-token`). In the demo catalog, **public** IDs apply to **Course 1** topics only; the optional paid **Course 2** video uses a **signed** ID. See [API overview](../api/overview.md) and [Mux secure playback](https://www.mux.com/docs/guides/secure-video-playback).
 
 ---
 

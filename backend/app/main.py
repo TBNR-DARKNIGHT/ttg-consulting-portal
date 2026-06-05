@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.middleware.logging import LoggingMiddleware, configure_logging
-from app.routers import dev_authz, dev_storage, health, resources, storage
+from app.routers import dev_authz, dev_storage, health, playback, resources, storage
 from app.services.supabase import get_client
 
 
@@ -76,6 +76,7 @@ app.add_middleware(LoggingMiddleware)
 
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(resources.router, prefix="/api/v1", tags=["resources"])
+app.include_router(playback.router, prefix="/api/v1", tags=["playback"])
 app.include_router(storage.router, prefix="/api/v1", tags=["storage"])
 if settings.is_development:
     app.include_router(dev_storage.router, prefix="/api/v1", tags=["dev"])

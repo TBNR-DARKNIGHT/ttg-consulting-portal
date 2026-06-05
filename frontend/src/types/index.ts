@@ -19,6 +19,10 @@ export interface Resource {
   filePath?: string;
   thumbnailUrl?: string;
   contentUrl?: string;
+  /** Mux Video playback ID (public or signed policy per `muxPlaybackSigned`). */
+  muxPlaybackId?: string;
+  /** When true, the browser must fetch a short-lived JWT from `/playback/mux-token`. */
+  muxPlaybackSigned?: boolean;
   createdAt: string;
   updatedAt: string;
 }

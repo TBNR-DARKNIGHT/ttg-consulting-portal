@@ -48,6 +48,9 @@ export function DashboardResourceGrid({ topics, resourceTypes }: DashboardResour
         const topicLabel = TOPIC_LABELS[resource.topic];
         const isPdf = resource.type === 'pdf';
         const pdfViewableInApp = Boolean(isPdf && resource.bucket && resource.filePath);
+        const videoWatchable = Boolean(
+          resource.type === 'video' && resource.muxPlaybackId,
+        );
         const typeLabel = isPdf ? 'PDF' : resource.type;
         return (
           <li key={resource.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -61,13 +64,22 @@ export function DashboardResourceGrid({ topics, resourceTypes }: DashboardResour
             <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">{resource.description}</p>
             <div className="mb-4 flex items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">{resource.duration}</span>
-              {pdfViewableInApp && (
-                <Button size="sm" asChild>
-                  <Link to="/dashboard/resources/$resourceId" params={{ resourceId: resource.id }}>
-                    View
-                  </Link>
-                </Button>
-              )}
+              <div className="flex shrink-0 gap-2">
+                {pdfViewableInApp && (
+                  <Button size="sm" asChild>
+                    <Link to="/dashboard/resources/$resourceId" params={{ resourceId: resource.id }}>
+                      View
+                    </Link>
+                  </Button>
+                )}
+                {videoWatchable && (
+                  <Button size="sm" asChild>
+                    <Link to="/dashboard/resources/$resourceId" params={{ resourceId: resource.id }}>
+                      Watch
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
               {p?.completed ? (

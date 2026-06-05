@@ -187,6 +187,23 @@ GET    /api/v1/storage/paid-download    # Paid bucket: stream bytes (Clerk JWT)
 
 In **development** only, equivalent **`/api/v1/dev/storage/...`** helpers may be registered for smoke tests.
 
+### Playback (Mux Video; implemented)
+
+Course videos are delivered via **Mux** (transcoded + CDN). **PDFs** remain in Supabase Storage (`resources-public` / `resources-paid`) using the routes above.
+
+- **Public** Mux playback IDs: the SPA uses **Mux Player** with `playbackId` only (no JWT).
+- **Signed** Mux playback IDs: the SPA requests a short-lived RS256 JWT from the API after Clerk auth, then passes `tokens.playback` to Mux Player.
+
+```
+GET    /api/v1/playback/mux-token       # Mint Mux Video playback JWT (Clerk JWT)
+```
+
+**Query parameters**: `resource_id` (catalog id, e.g. `res-009`), optional `expires_in` (seconds, default 3600, min 60, max 86400).
+
+**Responses**: `200` with `{ "data": { "token": "...", "expiresAt": 1735689600 }, "error": null }` (camelCase JSON). Returns `400` if the resource is not a signed Mux video, `404` if unknown or not provisioned, `503` if signing keys are not configured on the server.
+
+Configure **`MUX_SIGNING_KEY_ID`** and **`MUX_SIGNING_PRIVATE_KEY`** (Mux dashboard → Signing Keys; private key as PEM or base64 PEM). **`MUX_PUBLIC_PLAYBACK_ID`**: your **public** playback ID for **Course 1** free videos (`dsa-pathways`, `timelines-deadlines`); if unset, a Mux sample ID is used in development. Optional **`MUX_SEED_SIGNED_PLAYBACK_ID`**: your **signed** playback ID — when set, the demo `/resources` catalog includes paid **Course 2** sample `res-009` for local testing.
+
 ### Health
 
 ```

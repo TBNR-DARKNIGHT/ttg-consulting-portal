@@ -7,10 +7,17 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from app.config import settings
 from app.dependencies import get_current_user
 from app.models.schemas import ApiResponse, ClerkUser
 
 router = APIRouter()
+
+# Public sample from Mux Player docs (Big Buck Bunny) — fallback when MUX_PUBLIC_PLAYBACK_ID unset.
+_MUX_PUBLIC_DEMO_PLAYBACK_ID = "DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"
+
+# Course 1 topics (see frontend `COURSES` / `getCourseIdForTopic`) — free-tier Mux public asset.
+_COURSE_1_TOPICS = frozenset({"dsa-pathways", "timelines-deadlines"})
 
 
 class ResourceItem(BaseModel):
@@ -29,6 +36,8 @@ class ResourceItem(BaseModel):
     file_path: str | None = None
     thumbnail_url: str | None = None
     content_url: str | None = None
+    mux_playback_id: str | None = None
+    mux_playback_signed: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -47,7 +56,8 @@ class ResourceProgressItem(BaseModel):
 
 # Demo catalog — mirrors `frontend/src/lib/mock-data.ts` until Supabase-backed content exists.
 # PDF object keys: course-1/* under resources-public (free), course-2/* under resources-paid (paid).
-_RESOURCE_SEEDS: list[dict[str, Any]] = [
+# Mux: public playback ID → Course 1 free videos only; signed ID + res-009 → paid Course 2 (interview-prep).
+_RESOURCE_SEEDS_BASE: list[dict[str, Any]] = [
     {
         "id": "res-001",
         "title": "DSA pathways overview",
@@ -153,7 +163,45 @@ _RESOURCE_SEEDS: list[dict[str, Any]] = [
     },
 ]
 
-_PROGRESS_SEEDS: list[dict[str, Any]] = [
+
+def _apply_mux_public_course1(rows: list[dict[str, Any]]) -> None:
+    """Attach public Mux playback to free Course 1 videos only (not interview-prep / Course 2)."""
+    public_pid = (settings.mux_public_playback_id or "").strip() or _MUX_PUBLIC_DEMO_PLAYBACK_ID
+    for row in rows:
+        if row.get("type") != "video":
+            continue
+        if row.get("access") != "public":
+            continue
+        if row.get("topic") not in _COURSE_1_TOPICS:
+            continue
+        row["mux_playback_id"] = public_pid
+        row["mux_playback_signed"] = False
+
+
+_RESOURCE_SEEDS: list[dict[str, Any]] = list(_RESOURCE_SEEDS_BASE)
+_apply_mux_public_course1(_RESOURCE_SEEDS)
+_signed = (settings.mux_seed_signed_playback_id or "").strip()
+if _signed:
+    _RESOURCE_SEEDS.append(
+        {
+            "id": "res-009",
+            "title": "Advanced DSA interview workshop",
+            "type": "video",
+            "topic": "interview-preparation",
+            "access": "paid",
+            "mux_playback_id": _signed,
+            "mux_playback_signed": True,
+            "description": (
+                "A deeper workshop on interview structure, follow-up questions, and how "
+                "to reflect your child's authentic strengths under pressure."
+            ),
+            "duration": "42 min",
+            "created_at": "2026-03-12T09:00:00Z",
+            "updated_at": "2026-03-12T09:00:00Z",
+        },
+    )
+
+_PROGRESS_SEEDS_BASE: list[dict[str, Any]] = [
     {
         "resource_id": "res-001",
         "completed": True,
@@ -181,7 +229,18 @@ _PROGRESS_SEEDS: list[dict[str, Any]] = [
     {"resource_id": "res-008", "completed": False},
 ]
 
+_PROGRESS_SEEDS: list[dict[str, Any]] = list(_PROGRESS_SEEDS_BASE)
+if _signed:
+    _PROGRESS_SEEDS.append({"resource_id": "res-009", "completed": False})
+
 _DEMO_RESOURCES = [ResourceItem.model_validate(row) for row in _RESOURCE_SEEDS]
+
+
+def find_demo_resource(resource_id: str) -> ResourceItem | None:
+    for item in _DEMO_RESOURCES:
+        if item.id == resource_id:
+            return item
+    return None
 
 
 def _demo_progress_for_user(clerk_id: str) -> list[ResourceProgressItem]:

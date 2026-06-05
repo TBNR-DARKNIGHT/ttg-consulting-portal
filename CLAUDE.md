@@ -148,7 +148,10 @@ import type { Video } from '@/types'        // 4. Types
 
 **Key endpoints:**
 - `GET /api/v1/health` — public health check (no auth)
-- Future: resource, user, progress, and video endpoints under `/api/v1/`
+- `GET /api/v1/resources` / `GET /api/v1/resources/progress` — demo catalog (Clerk)
+- `GET /api/v1/playback/mux-token` — Mux Video playback JWT for signed playback IDs (Clerk)
+- Storage routes under `GET /api/v1/storage/*` — Supabase PDFs (see docs)
+- Future: user, progress, and additional content endpoints under `/api/v1/`
 
 ## Environment Variables
 
@@ -156,6 +159,9 @@ import type { Video } from '@/types'        // 4. Types
 - `VITE_CLERK_PUBLISHABLE_KEY` — Clerk frontend key
 - `VITE_API_BASE_URL` — Backend API base URL (include `/api/v1`; default local port is **8000** unless uvicorn uses another `--port`)
 - `VITE_SUPABASE_URL` — Supabase project URL (same as backend `SUPABASE_URL`); the SPA builds public object URLs `{url}/storage/v1/object/public/{bucket}/{path}` for public buckets (About page `public-assets`, public dashboard PDFs). Falls back to `GET /api/v1/storage/public-url` only if this is unset.
+- `VITE_MUX_PUBLIC_PLAYBACK_ID` — Optional; when using `VITE_AUTH_MODE=mock/public`, set to the same **public** Mux playback ID as backend `MUX_PUBLIC_PLAYBACK_ID` (Course 1 free videos).
+- `VITE_MUX_SEED_SIGNED_PLAYBACK_ID` — Optional; same **signed** playback ID as backend `MUX_SEED_SIGNED_PLAYBACK_ID` for mock paid Course 2 video `res-009`.
+- `VITE_MUX_ENV_KEY` — Optional Mux Data environment key when your Mux project requires it.
 
 **Backend** (`.env`):
 - `SUPABASE_URL` — Supabase project URL
@@ -166,6 +172,9 @@ import type { Video } from '@/types'        // 4. Types
 - `FRONTEND_URL` — Frontend origin for CORS (default: `http://localhost:5173`)
 - `LOG_LEVEL` — structlog level (default: `INFO`)
 - `ENVIRONMENT` — `development` | `staging` | `production`
+- `MUX_SIGNING_KEY_ID` / `MUX_SIGNING_PRIVATE_KEY` — Mux signing key (server-only) for `GET /api/v1/playback/mux-token` on **signed** playback IDs (Course 2 paid video)
+- `MUX_PUBLIC_PLAYBACK_ID` — Optional; your **public** Mux playback ID for **Course 1** free videos (topics `dsa-pathways`, `timelines-deadlines`). If unset, a Mux sample ID is used in dev.
+- `MUX_SEED_SIGNED_PLAYBACK_ID` — Optional; your **signed** Mux playback ID for paid **Course 2** demo video `res-009` when set
 
 ## External Documentation
 

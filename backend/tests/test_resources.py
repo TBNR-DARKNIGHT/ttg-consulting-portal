@@ -36,6 +36,8 @@ async def test_list_resources_returns_demo_catalog(client: AsyncClient) -> None:
     first = body["data"][0]
     assert first["id"] == "res-001"
     assert first["title"] == "DSA pathways overview"
+    assert first.get("muxPlaybackId")
+    assert first.get("muxPlaybackSigned") is False
     assert "createdAt" in first
     assert "filePath" not in first or first.get("filePath") is None
 

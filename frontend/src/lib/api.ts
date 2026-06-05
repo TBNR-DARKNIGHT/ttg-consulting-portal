@@ -20,8 +20,18 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `HTTP ${res.status}`);
+    const error = (await res.json().catch(() => ({}))) as {
+      message?: string;
+      detail?: string | unknown[];
+      error?: { message?: string };
+    };
+    const detail =
+      typeof error.detail === 'string'
+        ? error.detail
+        : Array.isArray(error.detail)
+          ? error.detail.map(String).join(', ')
+          : undefined;
+    throw new Error(error.error?.message || error.message || detail || `HTTP ${res.status}`);
   }
 
   const json = await res.json();
@@ -97,4 +107,20 @@ export function getPublicStorageUrl(
   const encodedBucket = encodeURIComponent(params.bucket);
   const encodedPath = encodeURIComponent(params.path);
   return apiFetch<StorageUrlResponse>(`/storage/public-url?bucket=${encodedBucket}&path=${encodedPath}`, getToken);
+}
+
+export interface MuxPlaybackTokenResponse {
+  token: string;
+  expiresAt: number;
+}
+
+export function getMuxPlaybackToken(
+  params: { resourceId: string; expiresIn?: number },
+  getToken: () => Promise<string | null>,
+): Promise<MuxPlaybackTokenResponse> {
+  const q = new URLSearchParams({ resource_id: params.resourceId });
+  if (params.expiresIn != null) {
+    q.set('expires_in', String(params.expiresIn));
+  }
+  return apiFetch<MuxPlaybackTokenResponse>(`/playback/mux-token?${q.toString()}`, getToken);
 }

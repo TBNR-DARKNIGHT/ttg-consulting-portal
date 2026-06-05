@@ -6,6 +6,15 @@ export const TOPIC_LABELS: Record<ContentTopic, string> = {
   'timelines-deadlines': 'Timelines & deadlines',
 };
 
+/** Public sample from Mux Player docs (Big Buck Bunny) — fallback when VITE_MUX_PUBLIC_PLAYBACK_ID unset. */
+const MUX_PUBLIC_DEMO_PLAYBACK_ID = 'DS00Spx1CV902MCtPj5WknGlR102V5HFkDe';
+
+/** Course 1 topics — public Mux asset is wired here only (see backend `MUX_PUBLIC_PLAYBACK_ID`). */
+const course1PublicMux =
+  import.meta.env.VITE_MUX_PUBLIC_PLAYBACK_ID?.trim() || MUX_PUBLIC_DEMO_PLAYBACK_ID;
+
+const signedMuxSeed = import.meta.env.VITE_MUX_SEED_SIGNED_PLAYBACK_ID?.trim() ?? '';
+
 export const mockResources: Resource[] = [
   {
     id: 'res-001',
@@ -16,6 +25,8 @@ export const mockResources: Resource[] = [
     description:
       'A comprehensive overview of Direct School Admission pathways, covering eligibility criteria, school options, and strategic planning for your child\u2019s application.',
     duration: '12 min',
+    muxPlaybackId: course1PublicMux,
+    muxPlaybackSigned: false,
     createdAt: '2026-01-15T08:00:00Z',
     updatedAt: '2026-01-15T08:00:00Z',
   },
@@ -28,6 +39,7 @@ export const mockResources: Resource[] = [
     description:
       'Learn how to present confidently in DSA interviews with practical body language techniques that help students make a strong first impression.',
     duration: '8 min',
+    // No Mux id: public asset is reserved for Course 1; this row is Course 2 topic (see backend seeds).
     createdAt: '2026-01-20T10:00:00Z',
     updatedAt: '2026-01-20T10:00:00Z',
   },
@@ -66,6 +78,8 @@ export const mockResources: Resource[] = [
     description:
       'How to shortlist schools based on your child\u2019s strengths, the school\u2019s talent areas, and realistic acceptance rates.',
     duration: '15 min',
+    muxPlaybackId: course1PublicMux,
+    muxPlaybackSigned: false,
     createdAt: '2026-02-20T10:00:00Z',
     updatedAt: '2026-02-20T10:00:00Z',
   },
@@ -95,6 +109,24 @@ export const mockResources: Resource[] = [
     createdAt: '2026-03-10T08:00:00Z',
     updatedAt: '2026-03-10T08:00:00Z',
   },
+  ...(signedMuxSeed
+    ? [
+        {
+          id: 'res-009',
+          title: 'Advanced DSA interview workshop',
+          type: 'video' as const,
+          topic: 'interview-preparation' as const,
+          access: 'paid' as const,
+          muxPlaybackId: signedMuxSeed,
+          muxPlaybackSigned: true,
+          description:
+            'A deeper workshop on interview structure, follow-up questions, and how to reflect your child\u2019s authentic strengths under pressure.',
+          duration: '42 min',
+          createdAt: '2026-03-12T09:00:00Z',
+          updatedAt: '2026-03-12T09:00:00Z',
+        } satisfies Resource,
+      ]
+    : []),
 ];
 
 export const mockProgress: ResourceProgress[] = [
@@ -139,4 +171,13 @@ export const mockProgress: ResourceProgress[] = [
     userId: 'user-001',
     completed: false,
   },
+  ...(signedMuxSeed
+    ? [
+        {
+          resourceId: 'res-009',
+          userId: 'user-001',
+          completed: false,
+        } satisfies ResourceProgress,
+      ]
+    : []),
 ];

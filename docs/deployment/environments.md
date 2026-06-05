@@ -44,6 +44,7 @@
   - **With Clerk**: `VITE_CLERK_PUBLISHABLE_KEY` and Clerk dashboard URLs for this deployment’s origins; omit `VITE_AUTH_MODE` or use Clerk as in local docs.
   - **With a hosted API**: `VITE_API_BASE_URL` (full base including `/api/v1`). On the **FastAPI** side, set **`FRONTEND_URL`** to this SPA’s exact origin (e.g. `https://your-app.vercel.app`) so CORS allows browser calls. A single `FRONTEND_URL` matches one origin; preview deployments may use different subdomains unless CORS is extended later.
   - **Supabase project URL (public objects in the browser)**: `VITE_SUPABASE_URL` (same as backend `SUPABASE_URL`). The SPA builds **`/storage/v1/object/public/{bucket}/{path}`** URLs for public buckets (e.g. `/about` team photos in `public-assets`, and **public** dashboard PDFs), so those assets do not depend on `GET /api/v1/storage/public-url`. Paid downloads still use the API.
+  - **Mux (course videos)**: optional `VITE_MUX_PUBLIC_PLAYBACK_ID` (match backend `MUX_PUBLIC_PLAYBACK_ID` for Course 1 mock videos) and `VITE_MUX_SEED_SIGNED_PLAYBACK_ID` (match backend `MUX_SEED_SIGNED_PLAYBACK_ID` for mock `res-009`); optional `VITE_MUX_ENV_KEY` for Mux Data when your project requires it.
 
 **CLI (optional)**:
 ```bash
@@ -95,7 +96,7 @@ npx vercel
 - Frontend: Static SPA served via CDN or container (including optional Vercel static deploy)
 - Backend: FastAPI in Docker container
 - Database: Supabase managed PostgreSQL
-- File storage: Supabase Storage
+- File storage: Supabase Storage (**PDFs** and similar assets); **Mux Video** for course VOD (playback IDs + signed JWTs from the API)
 - Auth: Clerk (managed service)
 
 ---

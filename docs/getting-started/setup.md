@@ -11,7 +11,8 @@
 
 **Accounts needed:**
 - [Clerk](https://clerk.com) account (authentication)
-- [Supabase](https://supabase.com) project (database + storage)
+- [Supabase](https://supabase.com) project (database + storage for PDFs and other files)
+- [Mux](https://www.mux.com) account (course video hosting: transcoding, adaptive streaming, signed playback)
 
 **Recommended:**
 - VS Code with Python + TypeScript extensions
@@ -56,6 +57,14 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 # Same as backend SUPABASE_URL. The SPA builds public object URLs as
 # {VITE_SUPABASE_URL}/storage/v1/object/public/{bucket}/{path} for public buckets (dashboard PDFs, About page photos in public-assets, etc.).
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+
+# Optional: match backend MUX_PUBLIC_PLAYBACK_ID for Course 1 mock videos.
+# VITE_MUX_PUBLIC_PLAYBACK_ID=
+# Optional: match backend MUX_SEED_SIGNED_PLAYBACK_ID for paid Course 2 mock video res-009.
+# VITE_MUX_SEED_SIGNED_PLAYBACK_ID=
+
+# Optional: Mux Data environment key when required by your Mux project (often unset for defaults).
+# VITE_MUX_ENV_KEY=
 ```
 
 ### 4. Backend Setup
@@ -69,7 +78,7 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-Edit `.env` using [`backend/.env.example`](../../backend/.env.example) (Supabase, Clerk JWKS/issuer, `FRONTEND_URL`, etc.).
+Edit `.env` using [`backend/.env.example`](../../backend/.env.example) (Supabase, Clerk JWKS/issuer, `FRONTEND_URL`, **Mux signing keys** for paid video tokens, optional `MUX_SEED_SIGNED_PLAYBACK_ID`, etc.).
 
 ### 5. Database Setup
 
