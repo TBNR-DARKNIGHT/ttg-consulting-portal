@@ -46,6 +46,7 @@ class ResourceProgressItem(BaseModel):
 
 
 # Demo catalog — mirrors `frontend/src/lib/mock-data.ts` until Supabase-backed content exists.
+# PDF object keys: course-1/* under resources-public (free), course-2/* under resources-paid (paid).
 _RESOURCE_SEEDS: list[dict[str, Any]] = [
     {
         "id": "res-001",
@@ -83,7 +84,7 @@ _RESOURCE_SEEDS: list[dict[str, Any]] = [
         "topic": "dsa-pathways",
         "access": "public",
         "bucket": "resources-public",
-        "file_path": "sample-local.pdf",
+        "file_path": "course-1/pdf/testpublic.pdf",
         "description": (
             "A step-by-step workbook to help parents and students compile a compelling "
             "portfolio showcasing achievements, talents, and extracurricular involvement."
@@ -127,7 +128,7 @@ _RESOURCE_SEEDS: list[dict[str, Any]] = [
         "topic": "interview-preparation",
         "access": "paid",
         "bucket": "resources-paid",
-        "file_path": "multipage.pdf",
+        "file_path": "course-2/pdf/testpaid.pdf",
         "description": (
             "Everything parents need to know about supporting their child through the "
             "DSA interview process, from preparation to day-of logistics."

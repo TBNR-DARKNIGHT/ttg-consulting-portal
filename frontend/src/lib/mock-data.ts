@@ -38,7 +38,7 @@ export const mockResources: Resource[] = [
     topic: 'dsa-pathways',
     access: 'public',
     bucket: 'resources-public',
-    filePath: 'sample-local.pdf',
+    filePath: 'course-1/pdf/testpublic.pdf',
     description:
       'A step-by-step workbook to help parents and students compile a compelling portfolio showcasing achievements, talents, and extracurricular involvement.',
     duration: '24 pages',
@@ -76,7 +76,7 @@ export const mockResources: Resource[] = [
     topic: 'interview-preparation',
     access: 'paid',
     bucket: 'resources-paid',
-    filePath: 'multipage.pdf',
+    filePath: 'course-2/pdf/testpaid.pdf',
     description:
       'Everything parents need to know about supporting their child through the DSA interview process, from preparation to day-of logistics.',
     duration: '32 pages',

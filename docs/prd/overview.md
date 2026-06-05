@@ -503,7 +503,7 @@ interface UserContentAccess {
 1. ~~**Scaffold frontend + backend**: Vite React app + FastAPI project with Docker setup~~ **Done** — Frontend scaffold complete (Vite, TanStack Router, TanStack Query, Tailwind CSS, shadcn/ui, typed API client, static mock data layer, ESLint). **Done** — Portal auth abstraction (`usePortalAuth`), `VITE_AUTH_MODE=mock` demo path (dev-only), routes `/auth/login`, `/auth/sign-up`, `/dashboard`, navbar/landing SPA links, TanStack Query keys scoped by mock vs live data source. **Done** — Root **`npm run dev`** using **`concurrently`** + **`run-script-os`** to start Vite and Uvicorn together for local full-stack development.
 2. **Integrate Clerk**: JWT validation middleware for FastAPI; production auth hardening. SPA shells: Clerk components on `/auth/login` and `/auth/sign-up`
 3. **Set up Supabase**: Database schema, storage buckets for videos/files
-4. **Build Phase 1** (TTA Consulting): ~~Landing page~~, ~~auth shell (Clerk + mock demo)~~, ~~dashboard shell (mock/API hooks)~~, admin provisioning — Landing page complete with navbar, hero, video samples carousel, community Q&A, social proof CTA, final features + CTA, stats, CTA, and redesigned multi-column footer; authenticated **content dashboard** includes course-scoped sidebar navigation, progress home, Resources/Video routes per course, in-app PDF detail view, paid storage gated via FastAPI + Clerk; demo catalog and API seeds aligned (e.g. single paid Course 2 PDF in `resources-paid`)
+4. **Build Phase 1** (TTA Consulting): ~~Landing page~~, ~~auth shell (Clerk + mock demo)~~, ~~dashboard shell (mock/API hooks)~~, admin provisioning — Landing page complete with navbar, hero, video samples carousel, community Q&A, social proof CTA, final features + CTA, stats, CTA, and redesigned multi-column footer; authenticated **content dashboard** includes course-scoped sidebar navigation, progress home, Resources/Video routes per course, in-app PDF detail view, paid storage gated via FastAPI + Clerk; demo catalog and API seeds aligned (e.g. single paid Course 2 PDF at `course-2/pdf/testpaid.pdf` in `resources-paid`)
 5. **Build Phase 2** (MapleBear): Parent dashboard, video library, consultant upload
 6. **Build Phase 3** (DSA Resources): Public content hub, purchase flow integration
 
@@ -649,7 +649,7 @@ interface UserContentAccess {
   - **UX (Content Dashboard)**: Documented course-based sidebar (accordion per course, Resources + Video, Settings, bottom Logout), progress-focused dashboard home, mobile sheet parity, in-app PDF viewing (removed primary “open in new tab” CTA from PRD scope)
   - **Routing**: Documented `/dashboard/course/{courseId}/resources|videos`, resource detail `/dashboard/resources/{resourceId}`, legacy list redirect, and outlet requirement so detail route is not shadowed
   - **Storage / security**: Documented private `resources-paid`, Clerk + service-role access via API, paid-bucket allowlist on backend, non-dev startup warning for missing Supabase/Clerk config
-  - **Functional / implementation**: PDFs open in-app; Phase 1 demo alignment (single paid Course 2 PDF catalog note)
+  - **Functional / implementation**: PDFs open in-app; Phase 1 demo alignment (single paid Course 2 PDF at `course-2/pdf/testpaid.pdf` in `resources-paid`)
   - **Acceptance Criteria**: Added Gherkin scenario for course Resources and in-app PDF; expanded manual verification for dashboard navigation
 
 ### 2026-05-06 v1.6.0

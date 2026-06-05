@@ -53,7 +53,9 @@ function MockLoginView({ mode }: { mode: 'mock' | 'public' }) {
             <Card className="rounded-2xl border border-brand-grey bg-white/80 p-8 shadow-sm">
               <h2 className="font-serif text-xl font-bold text-brand-dark mb-2">Course 1 (Free)</h2>
               <p className="text-sm text-brand-dark/70 mb-6">
-                Free resources for signed-in users. PDFs are served from <span className="font-mono">resources-public</span>.
+                Free resources for signed-in users. PDFs live under{' '}
+                <span className="font-mono">course-1/pdf/</span> in the{' '}
+                <span className="font-mono">resources-public</span> bucket.
               </p>
               <Button
                 type="button"
@@ -68,7 +70,9 @@ function MockLoginView({ mode }: { mode: 'mock' | 'public' }) {
             <Card className="rounded-2xl border border-brand-grey bg-white/80 p-8 shadow-sm">
               <h2 className="font-serif text-xl font-bold text-brand-dark mb-2">Course 2 (Paid)</h2>
               <p className="text-sm text-brand-dark/70 mb-6">
-                Premium resources. PDFs are served from <span className="font-mono">resources-paid</span>.
+                Premium resources. PDFs live under{' '}
+                <span className="font-mono">course-2/pdf/</span> in the{' '}
+                <span className="font-mono">resources-paid</span> bucket.
               </p>
               <Button
                 type="button"

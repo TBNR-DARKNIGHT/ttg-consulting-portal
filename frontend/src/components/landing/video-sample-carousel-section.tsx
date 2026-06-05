@@ -4,30 +4,26 @@ import { Button } from '@/components/ui/button';
 
 type VideoTeaser = {
   id: string;
-  studentName: string;
-  school: string;
+  benefit: string;
   quote: string;
 };
 
 const teasers: VideoTeaser[] = [
   {
     id: 'teaser-1',
-    studentName: 'Alyssa T.',
-    school: 'Raffles Institution',
+    benefit: 'Clearer answers, confident interviews',
     quote:
       '“The interview framework and practice prompts made our answers much clearer — we walked in confident and prepared.”',
   },
   {
     id: 'teaser-2',
-    studentName: 'Marcus L.',
-    school: 'Hwa Chong Institution',
+    benefit: 'School-aligned prep and practice feedback',
     quote:
       '“The modules broke down what schools really look for. The mock questions and feedback loop were a game changer.”',
   },
   {
     id: 'teaser-3',
-    studentName: 'Sofia K.',
-    school: 'NUS High School',
+    benefit: 'Structured plan and faster iteration',
     quote:
       '“We finally had a step-by-step plan. The community answers helped us avoid common mistakes and iterate fast.”',
   },
@@ -137,11 +133,8 @@ export function VideoSampleCarouselSection() {
                       </div>
 
                       <div className="absolute inset-x-0 bottom-0 p-4 pt-16 bg-linear-to-t from-black/65 via-black/15 to-transparent">
-                        <div className="text-white font-semibold text-base leading-tight sm:text-lg">
-                          {t.studentName}
-                        </div>
-                        <div className="text-white/85 font-semibold text-xs sm:text-sm">
-                          {t.school}
+                        <div className="text-white font-semibold text-base leading-snug sm:text-lg">
+                          {t.benefit}
                         </div>
                       </div>
                     </div>
