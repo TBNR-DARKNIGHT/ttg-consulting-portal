@@ -4,6 +4,7 @@ import {
   ContentDashboardNavLinks,
   ContentDashboardSidebar,
 } from '@/components/dashboard/content-dashboard-sidebar';
+import { SiteBrandMark } from '@/components/layout/site-brand-mark';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -34,9 +35,7 @@ export function ContentDashboardShell({ children }: { children: ReactNode }) {
               <SheetTitle className="sr-only">Dashboard</SheetTitle>
               <SheetDescription className="sr-only">Dashboard navigation</SheetDescription>
               <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-indigo text-sm font-semibold tracking-tight text-white">
-                  bg
-                </div>
+                <SiteBrandMark />
                 <span className="truncate font-serif font-semibold text-brand-dark">beyond grades</span>
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto">

@@ -29,7 +29,7 @@ A pioneer batch alumnus of the Raffles Integrated Programme, Shou Yee was among 
     linkedinUrl: 'https://www.linkedin.com/in/isaac-ong-6a9a51163/',
     bio: `Isaac's greatest strength is an ability to see the coherent narrative running through what looks, on the surface, like a collection of unrelated interests and achievements.
 
-He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University with a Law degree before making the deliberate transition to Duke-NUS Medical School. This is not a career that followed a straight line - it is a profile built on the rare ability to synthesise diverse passions into a compelling, unified story.
+He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University with a Law degree before making the deliberate transition to Duke-NUS Medical School. This is not a career that followed a straight line — it is a profile built on the rare ability to synthesise diverse passions into a compelling, unified story.
 
 Isaac now brings that same skill to the students he works with. He specialises in guiding multi-disciplinary learners who feel their range of interests is a liability, and helping them understand that it is, in fact, their most powerful asset.`,
   },
@@ -44,7 +44,7 @@ Isaac now brings that same skill to the students he works with. He specialises i
 
 A graduate of UCLA and a lifelong friend and co-founder alongside Isaac since their days at ACS Primary, Hugo secured his place at an American university not on the strength of flawless grades but on the power of his personal narrative. He understood, earlier than most, that elite institutions are not just selecting academic performers. They are selecting people.
 
-He now specialises in helping students find their Unique Selling Point and craft authentic stories that resonate with interview panels on both an emotional and intellectual level - the kind of stories that panels remember long after the interview ends.`,
+He now specialises in helping students find their Unique Selling Point and craft authentic stories that resonate with interview panels on both an emotional and intellectual level — the kind of stories that panels remember long after the interview ends.`,
   },
   {
     name: 'Martin',
@@ -53,7 +53,7 @@ He now specialises in helping students find their Unique Selling Point and craft
     accent: 'from-brand-sage/25 to-white',
     photoPath: 'about/martin.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/li-yicheng/',
-    bio: `Martin has competed at the highest level of Singapore's selection landscape - and was offered the PSC and SAFOS Overseas Scholarship, one of the most coveted and demanding awards in the country.
+    bio: `Martin has competed at the highest level of Singapore's selection landscape — and was offered the PSC and SAFOS Overseas Scholarship, one of the most coveted and demanding awards in the country.
 
 A graduate of Hwa Chong Institution and the University of Oxford, Martin went on to work at GIC in London, bringing Singapore's sovereign wealth perspective to one of the world's most competitive financial environments. He has navigated, from the inside, the specific combination of intellectual rigour, communication poise, and personal clarity that the most demanding selection panels require.
 

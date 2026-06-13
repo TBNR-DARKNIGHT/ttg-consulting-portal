@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Menu } from 'lucide-react';
 import { usePortalAuth } from '@/auth/auth-context';
+import { SiteBrandMark } from '@/components/layout/site-brand-mark';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -32,9 +33,7 @@ export function Navbar() {
     >
       <div className="mx-auto max-w-[1200px] flex items-center justify-between px-6 h-20">
         <Link to="/" className="flex items-center gap-3 group py-5 px-4 -ml-4">
-          <div className="w-9 h-9 rounded-full bg-brand-indigo flex items-center justify-center text-white text-sm font-semibold tracking-tight">
-            bg
-          </div>
+          <SiteBrandMark />
           <div className="leading-tight">
             <span className="block font-serif font-semibold text-brand-dark group-hover:opacity-80 transition-opacity">
               beyond grades

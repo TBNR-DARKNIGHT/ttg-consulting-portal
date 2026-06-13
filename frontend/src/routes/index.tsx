@@ -1,10 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { Navbar } from '@/components/layout/navbar';
 import { HeroSection } from '@/components/landing/hero-section';
 import { PromoVideoCardSection } from '@/components/landing/promo-video-card-section';
 import { StartOptionsSection } from '@/components/landing/start-options-section';
-import { TtaFamilyNoteSection } from '@/components/landing/tta-family-note-section';
 import { BuiltBySection } from '@/components/landing/built-by-section';
 import { WhySection } from '@/components/landing/why-section';
 import { YoungExplorersTeaserSection } from '@/components/landing/young-explorers-teaser-section';
@@ -22,7 +21,6 @@ function LandingPage() {
         <HeroSection />
         <PromoVideoCardSection />
         <StartOptionsSection />
-        <TtaFamilyNoteSection />
         <BuiltBySection />
         <WhySection />
         <YoungExplorersTeaserSection />

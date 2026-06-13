@@ -24,20 +24,25 @@ const whyPoints = [
 export function WhySection() {
   return (
     <section className="w-full bg-white">
-      <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22">
+      <div className="mx-auto max-w-[1200px] px-6 pb-12 pt-18 md:pb-16 md:pt-22">
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
             <h2 className="text-brand-dark text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
               The Beyond Grades Philosophy
             </h2>
-            <p className="mt-5 text-brand-dark/75 text-base md:text-lg leading-relaxed max-w-[640px]">
-              Many believe that DSA is only for those with elite talents in sports or the arts. We
-              offer a different perspective. We treat the DSA journey as a foundational workshop for
-              life. Whether a child is successful in their application or not, the process of
-              building a portfolio and preparing for an interview is invaluable. It is a rare
-              opportunity for students to explore their identity and learn to articulate their
-              thinking with confidence. These are skills that compound for decades.
-            </p>
+            <div className="mt-5 max-w-[640px] space-y-4 text-base leading-relaxed text-brand-dark/75 md:text-lg">
+              <p>
+                Many believe that DSA is reserved only for students with elite talents in sports or
+                the arts. We offer a different perspective.
+              </p>
+              <p>
+                We treat the DSA journey as a foundational workshop for life. Whether or not a student
+                secures an offer, the process of building a portfolio and preparing for an interview is
+                invaluable. It is a rare opportunity for students to explore their identity, discover
+                what they genuinely care about, and learn to articulate their thinking with clarity and
+                confidence. These are skills that compound for decades.
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-4">

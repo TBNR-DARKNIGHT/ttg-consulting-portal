@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
 import { usePortalAuth } from '@/auth/auth-context';
+import { SiteBrandMark } from '@/components/layout/site-brand-mark';
 import { DashboardCourseSidebarSection } from '@/components/dashboard/dashboard-course-sidebar-section';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -53,9 +54,7 @@ export function ContentDashboardSidebar() {
   return (
     <aside className="hidden h-svh w-60 shrink-0 flex-col border-r border-border bg-white md:flex">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-indigo text-sm font-semibold tracking-tight text-white">
-          bg
-        </div>
+        <SiteBrandMark />
         <span className="truncate font-serif font-semibold text-brand-dark">beyond grades</span>
       </div>
 

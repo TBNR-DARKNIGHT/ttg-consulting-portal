@@ -46,11 +46,18 @@ function YoungExplorersPage() {
         <section className="mt-8 rounded-2xl border border-brand-grey bg-white p-6">
           <h2 className="text-2xl font-semibold text-brand-dark">How to Enrol</h2>
           <p className="mt-3 text-brand-dark/75 leading-relaxed">
-            Young Explorers is offered exclusively at MapleBear Student Care centres. Reach out to
-            MapleBear Student Care (Eunos) directly for enrolment details.
+            Young Explorers runs at{' '}
+            <span className="font-medium text-brand-dark">MapleBear Student Care (Eunos)</span>
+            . Reach out to the centre directly for programme availability and next steps.
           </p>
           <Button asChild className="mt-5">
-            <a href="tel:+6588935430">Call MapleBear Student Care (Eunos): 8893 5430</a>
+            <a
+              href="https://wa.me/6588935430"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Enquire with MapleBear
+            </a>
           </Button>
         </section>
       </main>

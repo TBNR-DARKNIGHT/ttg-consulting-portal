@@ -2,6 +2,11 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Footer } from '@/components/layout/footer';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
+import { publicStorageUrl } from '@/lib/public-assets';
+import { TTA_SHOP_URL } from '@/lib/tta-shop';
+
+const GROUP_PROG_HEADER_IMAGE = publicStorageUrl('group-prog/header.jpg');
+const GROUP_PROG_SUB_HEADER_IMAGE = publicStorageUrl('group-prog/sub_header.jpg');
 
 export const Route = createFileRoute('/group-programme')({
   component: GroupProgrammePage,
@@ -11,8 +16,22 @@ function GroupProgrammePage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="mx-auto max-w-[1000px] px-6 py-16 md:py-24">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-5xl">
+      <main className="mx-auto max-w-[1000px] px-6 py-16 md:pb-24 md:pt-8">
+        {GROUP_PROG_HEADER_IMAGE ? (
+          <div className="mx-auto max-w-md overflow-hidden rounded-xl border border-brand-grey md:max-w-lg">
+            <img
+              src={GROUP_PROG_HEADER_IMAGE}
+              alt=""
+              className="h-auto w-full"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        ) : null}
+
+        <h1
+          className={`font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-5xl ${GROUP_PROG_HEADER_IMAGE ? 'mt-6 md:mt-8' : ''}`}
+        >
           The DSA Interview Programme That Helps Students Walk Into Selection Rooms With Confidence
         </h1>
         <p className="mt-5 max-w-3xl text-base leading-relaxed text-brand-dark/80 md:text-lg">
@@ -36,13 +55,25 @@ function GroupProgrammePage() {
           </p>
         </section>
 
+        {GROUP_PROG_SUB_HEADER_IMAGE ? (
+          <div className="mx-auto mt-8 max-w-md overflow-hidden rounded-xl border border-brand-grey md:max-w-lg">
+            <img
+              src={GROUP_PROG_SUB_HEADER_IMAGE}
+              alt=""
+              className="h-auto w-full"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        ) : null}
+
         <section className="mt-8 rounded-2xl border border-brand-grey bg-brand-grey/20 p-6">
           <p className="text-brand-dark/80 leading-relaxed">
             The 2026 intake is now closed. To be among the first to know when registration opens
             for 2027, join our waitlist below.
           </p>
           <Button asChild className="mt-5">
-            <a href="https://wa.me/6597692396" target="_blank" rel="noopener noreferrer">
+            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
               Join the 2027 Waitlist
             </a>
           </Button>
@@ -61,7 +92,7 @@ function GroupProgrammePage() {
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <a href="https://wa.me/6597692396" target="_blank" rel="noopener noreferrer">
+              <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
                 Join the 2027 Waitlist
               </a>
             </Button>
