@@ -40,7 +40,7 @@ export function BuiltBySection() {
           Built by People Who Have Been There
         </h2>
         <div className="mt-5 flex flex-col gap-8">
-          <div className="order-3 mx-auto max-w-[920px] space-y-4 text-center text-base leading-relaxed text-brand-dark/75 md:order-2 md:text-lg">
+          <div className="order-3 mx-auto max-w-[920px] space-y-4 text-left text-base leading-relaxed text-brand-dark/75 md:order-2 md:text-lg">
             <p>
               Between us, we hold degrees from Oxford, Cambridge, UCLA, and SMU. We have navigated
               DSA, secured PSC and SAFOS Overseas Scholarships, transitioned between law and medicine,
