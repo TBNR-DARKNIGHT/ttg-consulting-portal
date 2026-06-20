@@ -23,7 +23,7 @@ const founders = [
   {
     name: 'Martin | The Elite Strategy Specialist',
     photoPath: 'about/martin.jpg',
-    bio: 'Hwa Chong Institution and University of Oxford. PSC and SAFOS Overseas Scholar. Former GIC professional. Specialist in training students for the most demanding selection environments.',
+    bio: 'Hwa Chong Institution and University of Oxford. Offered PSC and SAFOS Scholarships. Specialist in training students for the most demanding selection environments.',
   },
 ] as const;
 
@@ -44,7 +44,7 @@ export function BuiltBySection() {
             <p>
               Between us, we hold degrees from Oxford, Cambridge, UCLA, and SMU. We have navigated
               DSA, secured PSC and SAFOS Overseas Scholarships, transitioned between law and medicine,
-              and built careers at global institutions like UBS and GIC.
+              and gained early careers experience at global institutions including UBS and GIC.
             </p>
             <p>But credentials are not why we built Beyond Grades.</p>
             <p>

@@ -16,9 +16,9 @@ const team = [
     linkedinUrl: 'https://www.linkedin.com/in/shou-yee/',
     bio: `Most advisors teach students how to impress a panel. Shou Yee has been on one.
 
-Having served as an assessor on the Lee Kong Chian Scholarship panel and as a campus recruitment assessor for UBS, Shou Yee brings a perspective that is genuinely rare in Singapore's education space: he knows precisely what selection panels look for, because he has looked for it himself.
+A pioneer batch alumnus of the Raffles Integrated Programme and Lee Kong Chian Scholar at SMU, Shou Yee went on to join UBS through its Graduate Talent Programme — where he later crossed to the other side of the table, assessing candidates for campus recruitment. He has also served as an assessor on the Lee Kong Chian Scholarship panel.
 
-A pioneer batch alumnus of the Raffles Integrated Programme, Shou Yee was among the first cohort in Singapore to navigate a system that demanded more than exam scores. He went on to complete a double degree at SMU as a Lee Kong Chian Scholar. His work with Beyond Grades is driven by a conviction that the insider's perspective on selection should be available to every family, not just those with the right connections.`,
+His work with Beyond Grades is driven by a conviction that the insider's perspective on selection should be available to every family, not just those with the right connections.`,
   },
   {
     name: 'Isaac',
@@ -53,9 +53,9 @@ He now specialises in helping students find their Unique Selling Point and craft
     accent: 'from-brand-sage/25 to-white',
     photoPath: 'about/martin.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/li-yicheng/',
-    bio: `Martin has competed at the highest level of Singapore's selection landscape — and was offered the PSC and SAFOS Overseas Scholarship, one of the most coveted and demanding awards in the country.
+    bio: `Martin has competed at the highest level of Singapore’s selection landscape — and was offered the PSC and SAFOS Overseas Scholarship, one of the most coveted and demanding awards in the country.
 
-A graduate of Hwa Chong Institution and the University of Oxford, Martin went on to work at GIC in London, bringing Singapore's sovereign wealth perspective to one of the world's most competitive financial environments. He has navigated, from the inside, the specific combination of intellectual rigour, communication poise, and personal clarity that the most demanding selection panels require.
+A graduate of Hwa Chong Institution and the University of Oxford, Martin gained early experience in one of the world’s most competitive financial environments during his time at GIC’s London office. He understands, from personal experience, the specific combination of intellectual rigour, communication poise, and personal clarity that the most demanding selection panels require.
 
 Martin now specialises in preparing students for high-stakes applications and interviews, teaching the refined communication skills and composure required to perform when the pressure is highest.`,
   },

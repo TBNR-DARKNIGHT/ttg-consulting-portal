@@ -32,16 +32,9 @@ export function Navbar() {
       ].join(' ')}
     >
       <div className="mx-auto max-w-[1200px] flex items-center justify-between px-6 h-20">
-        <Link to="/" className="flex items-center gap-3 group py-5 px-4 -ml-4">
-          <SiteBrandMark />
-          <div className="leading-tight">
-            <span className="block font-serif font-semibold text-brand-dark group-hover:opacity-80 transition-opacity">
-              beyond grades
-            </span>
-            <span className="block text-[11px] text-brand-dark/70 italic group-hover:opacity-80 transition-opacity">
-              Part of the Think Teach Group
-            </span>
-          </div>
+        <Link to="/" className="flex items-center group py-5 px-4 -ml-4">
+          <SiteBrandMark framed={false} sizeClass="h-16 w-52" />
+          <span className="sr-only">Beyond Grades</span>
         </Link>
 
         <div className="hidden md:flex items-center justify-center gap-8 flex-1 px-8">
@@ -51,7 +44,7 @@ export function Navbar() {
             inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
             className="text-sm transition-colors"
           >
-            Portal
+            DSA Portal
           </Link>
           <Link
             to="/group-programme"
@@ -59,7 +52,7 @@ export function Navbar() {
             inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
             className="text-sm transition-colors"
           >
-            Group Programme
+            DSA Interview Intensive
           </Link>
           <Link
             to="/consult"
@@ -67,7 +60,15 @@ export function Navbar() {
             inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
             className="text-sm transition-colors"
           >
-            Executive Consulting
+            DSA Consultation
+          </Link>
+          <Link
+            to="/young-explorers"
+            activeProps={{ className: 'text-brand-indigo' }}
+            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+            className="text-sm transition-colors"
+          >
+            DSA Young Explorers
           </Link>
           <Link
             to="/about"
@@ -132,21 +133,28 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
               >
-                Portal
+                DSA Portal
               </Link>
               <Link
                 to="/group-programme"
                 onClick={() => setOpen(false)}
                 className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
               >
-                Group Programme
+                DSA Interview Intensive
               </Link>
               <Link
                 to="/consult"
                 onClick={() => setOpen(false)}
                 className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
               >
-                Executive Consulting
+                DSA Consultation
+              </Link>
+              <Link
+                to="/young-explorers"
+                onClick={() => setOpen(false)}
+                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
+              >
+                DSA Young Explorers
               </Link>
               <Link
                 to="/about"

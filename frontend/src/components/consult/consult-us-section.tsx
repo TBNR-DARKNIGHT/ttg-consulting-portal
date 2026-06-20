@@ -78,6 +78,15 @@ export function ConsultUsSection() {
                 </p>
               </div>
             </div>
+            <div>
+              <h3 className="text-base font-semibold text-brand-dark">When Should You Book?</h3>
+              <p className="mt-1 text-sm leading-relaxed text-brand-dark/80 md:text-base">
+                The earlier the better. The families who benefit most are those who start the
+                conversation early — giving their child time to build their profile deliberately
+                rather than presenting what they already have under pressure. If your child is in
+                Primary 4 or above and DSA is on your radar, now is the right time.
+              </p>
+            </div>
             <div className="mt-2">
               <Button asChild>
                 <a href="https://wa.me/6597692396" target="_blank" rel="noopener noreferrer">

@@ -14,15 +14,15 @@ const options = [
   },
   {
     title: 'Learn With a Cohort',
-    body: 'Our Group DSA Programme brings motivated students together in a structured, time-bound environment. Working alongside peers who share the same ambition, your child will build their portfolio, refine their personal narrative, and develop the interview presence that selection panels remember. Places are limited each intake.',
-    cta: 'View the Group Programme',
+    body: 'DSA Interview Intensive brings motivated students together in a structured, time-bound environment. Working alongside peers who share the same ambition, your child will build their portfolio, refine their personal narrative, and develop the interview presence that selection panels remember. Places are limited each intake.',
+    cta: 'View DSA Interview Intensive',
     to: '/group-programme',
     /** `public-assets/landing/learn_with_a_cohort.jpeg` */
     logoPath: 'landing/learn_with_a_cohort.jpeg',
   },
   {
     title: 'Work With Us Directly',
-    body: 'Executive Consulting is our highest-touch offering. Your child works one-on-one with a member of our team to build a fully personalised strategy from narrative development to mock interview panels.',
+    body: 'Our DSA Consultation is our highest-touch offering. Your child works one-on-one with a member of our team to build a fully personalised strategy from narrative development to mock interview panels.',
     cta: 'Book a Consulting Call',
     to: '/consult',
     /** `public-assets/landing/work_with_us_directly.jpeg` */
@@ -90,8 +90,8 @@ export function StartOptionsSection() {
             <p>
               Beyond Grades is part of the Think Teach Group, the same team behind Think Teach
               Academy, MACRO Academy and the education approach featured in The Straits Times,
-              Channel NewsAsia, and Bloomberg. As a TTA family, your membership extends here
-              automatically.
+              Channel NewsAsia, and Bloomberg, and South Korea’s Education Broadcasting Network. As
+              a TTA family, your membership extends here automatically.
             </p>
             <p>
               To claim your complimentary access, simply reach out to our client services team and

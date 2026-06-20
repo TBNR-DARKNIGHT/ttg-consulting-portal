@@ -38,7 +38,7 @@ function PortalPage() {
           </div>
         ) : null}
 
-        <p className="mx-auto mt-6 max-w-[520px] text-center text-base leading-relaxed text-brand-dark/80 md:text-lg">
+        <p className="mx-auto mt-6 max-w-[520px] text-center text-lg leading-relaxed text-brand-dark/80 md:text-xl">
           Free to join. Immediately useful. And when you are ready to go deeper, we will be here.
         </p>
 

@@ -43,20 +43,18 @@ export function PortalFreeResourcesSection() {
               key={item.title}
               className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand-grey shadow-none"
             >
-              <div className="aspect-4/3 w-full shrink-0 overflow-hidden bg-brand-grey/30">
-                {thumbUrl ? (
-                  <img
-                    src={thumbUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="h-full min-h-[140px] bg-brand-grey/25" aria-hidden />
-                )}
-              </div>
               <CardHeader className="pb-2 pt-5">
+                {thumbUrl ? (
+                  <div className="mb-2 flex h-16 items-center justify-start">
+                    <img
+                      src={thumbUrl}
+                      alt=""
+                      className="max-h-16 w-auto max-w-[220px] object-contain object-left"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ) : null}
                 <h3 className="text-lg font-semibold leading-snug text-brand-dark">{item.title}</h3>
               </CardHeader>
               <CardContent className="pt-0 pb-5 text-sm leading-relaxed text-brand-dark/75 md:text-base">

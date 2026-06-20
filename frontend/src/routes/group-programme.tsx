@@ -68,6 +68,18 @@ function GroupProgrammePage() {
         ) : null}
 
         <section className="mt-8 rounded-2xl border border-brand-grey bg-brand-grey/20 p-6">
+          <h2 className="text-2xl font-semibold text-brand-dark">What Your Child Leaves With</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-brand-dark/80 leading-relaxed">
+            <li>A clear understanding of what interviewers are genuinely assessing.</li>
+            <li>Practised answers that reflect who they are rather than rehearsed scripts.</li>
+            <li>The composure to hold a real conversation under pressure.</li>
+            <li>
+              And specific feedback on where to sharpen before the application window opens.
+            </li>
+          </ul>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-brand-grey bg-brand-grey/20 p-6">
           <p className="text-brand-dark/80 leading-relaxed">
             The 2026 intake is now closed. To be among the first to know when registration opens
             for 2027, join our waitlist below.
