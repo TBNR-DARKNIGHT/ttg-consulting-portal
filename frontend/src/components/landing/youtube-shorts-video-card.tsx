@@ -35,8 +35,6 @@ export function YoutubeShortsVideoCard({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isExpanded]);
-
-  const iframeSrc = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&vq=hd1080${isExpanded ? '&autoplay=1' : ''}`;
   const iframeBaseSrc = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&vq=hd1080`;
 
   return (

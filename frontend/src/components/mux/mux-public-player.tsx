@@ -5,9 +5,15 @@ export interface MuxPublicPlayerProps {
   playbackId: string;
   title: string;
   className?: string;
+  initialExpanded?: boolean;
 }
 
-export function MuxPublicPlayer({ playbackId, title, className }: MuxPublicPlayerProps) {
+export function MuxPublicPlayer({
+  playbackId,
+  title,
+  className,
+  initialExpanded = false,
+}: MuxPublicPlayerProps) {
   const envKey = muxEnvKey();
 
   return (
@@ -17,6 +23,7 @@ export function MuxPublicPlayer({ playbackId, title, className }: MuxPublicPlaye
       metadataVideoTitle={title}
       {...(envKey ? { envKey } : {})}
       playsInline
+      autoPlay={initialExpanded}
     />
   );
 }

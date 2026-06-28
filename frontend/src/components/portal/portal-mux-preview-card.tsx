@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Play } from 'lucide-react';
 import { MuxPublicPlayer } from '@/components/mux/mux-public-player';
 import { muxThumbnailUrl } from '@/lib/mux';
@@ -42,6 +42,18 @@ export function PortalMuxPreviewCard({
 }: PortalMuxPreviewCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const hasPlayback = Boolean(preview.muxPlaybackId);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      return undefined;
+    }
+
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isPlaying]);
   const videoAreaClassName = cn(
     'aspect-video min-h-[220px] w-full sm:min-h-[260px] md:min-h-[300px]',
     videoClassName,
@@ -64,15 +76,34 @@ export function PortalMuxPreviewCard({
 
   if (isPlaying) {
     return (
-      <PortalPreviewCardShell className={className}>
-        <div className={cn(videoAreaClassName, 'bg-black')}>
-          <MuxPublicPlayer
-            playbackId={preview.muxPlaybackId}
-            title={preview.title}
-            className="aspect-video h-full min-h-[inherit] w-full"
-          />
+      <div
+        className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-3 backdrop-blur-sm sm:p-6"
+        onClick={() => setIsPlaying(false)}
+      >
+        <div className="relative w-full max-w-5xl" onClick={(event) => event.stopPropagation()}>
+          <button
+            type="button"
+            aria-label="Close video"
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsPlaying(false);
+            }}
+            className="absolute right-2 top-2 z-10 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-brand-dark shadow-lg transition hover:bg-white"
+          >
+            ✕
+          </button>
+          <div className="overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl">
+            <div className="mx-auto aspect-video w-full max-w-[900px]">
+              <MuxPublicPlayer
+                playbackId={preview.muxPlaybackId}
+                title={preview.title}
+                className="h-full w-full"
+                initialExpanded
+              />
+            </div>
+          </div>
         </div>
-      </PortalPreviewCardShell>
+      </div>
     );
   }
 
