@@ -1,15 +1,21 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '');
+
+function buildApiUrl(path: string): string {
+  if (!API_BASE) {
+    throw new Error('VITE_API_BASE_URL is not configured');
+  }
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE}${normalizedPath}`;
+}
 
 export function hasApiBaseUrl(): boolean {
   return Boolean(API_BASE?.trim());
 }
 
 export async function apiFetchPublic<T>(path: string, options: RequestInit = {}): Promise<T> {
-  if (!API_BASE) {
-    throw new Error('VITE_API_BASE_URL is not configured');
-  }
+  const url = buildApiUrl(path);
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -47,7 +53,7 @@ export async function apiFetch<T>(
   }
 
   const token = await getToken();
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -86,7 +92,7 @@ export async function apiFetchBlob(
   }
 
   const token = await getToken();
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
       ...options.headers,
