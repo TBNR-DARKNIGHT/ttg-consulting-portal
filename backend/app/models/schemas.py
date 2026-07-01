@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Generic, TypeVar
+from uuid import UUID
 
 from pydantic import BaseModel
+
+from app.models.enums import UserRole
 
 T = TypeVar("T")
 
@@ -12,9 +15,11 @@ class ClerkUser(BaseModel):
     """Extracted from verified Clerk JWT claims."""
 
     clerk_id: str
+    internal_user_id: UUID | None = None
     email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
+    role: UserRole = UserRole.CLIENT
 
 
 class ApiError(BaseModel):

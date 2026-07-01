@@ -43,7 +43,7 @@
   - **Without Clerk (UI preview only)**: `VITE_AUTH_MODE=public` — demo sign-in and fixture data; not real authentication.
   - **With Clerk**: `VITE_CLERK_PUBLISHABLE_KEY` and Clerk dashboard URLs for this deployment’s origins; omit `VITE_AUTH_MODE` or use Clerk as in local docs.
   - **With a hosted API**: `VITE_API_BASE_URL` (full base including `/api/v1`). On the **FastAPI** side, set **`FRONTEND_URL`** to this SPA’s exact origin (e.g. `https://your-app.vercel.app`) so CORS allows browser calls. A single `FRONTEND_URL` matches one origin; preview deployments may use different subdomains unless CORS is extended later.
-  - **Supabase project URL (public objects in the browser)**: `VITE_SUPABASE_URL` (same as backend `SUPABASE_URL`). The SPA builds **`/storage/v1/object/public/{bucket}/{path}`** URLs for public buckets (e.g. `/about` team photos in `public-assets`, and **public** dashboard PDFs), so those assets do not depend on `GET /api/v1/storage/public-url`. Paid downloads still use the API.
+  - **Supabase project URL**: `VITE_SUPABASE_URL` is optional for unrelated direct public assets. Dashboard PDFs do not trust browser-supplied storage locations: both public and paid PDFs resolve `resource_id` through the FastAPI storage routes.
   - **Mux (course videos)**: playback IDs are returned by `GET /api/v1/resources` after backend Mux sync; optional `VITE_MUX_ENV_KEY` for Mux Data when your project requires it.
 
 **CLI (optional)**:
@@ -67,6 +67,10 @@ npx vercel
 - Mirrors production environment
 - Uses staging Supabase project
 - Connected to staging Clerk instance
+- Start from `backend/.env.staging.example` and `frontend/.env.staging.example`, then place real
+  values in the hosting providers' secret/environment settings rather than committed files.
+- Staging uses `VITE_AUTH_MODE=clerk`, `ENVIRONMENT=staging`, a dedicated Supabase project, and
+  exact staging frontend/API origins.
 
 **Access**: Internal team and stakeholders
 
@@ -165,7 +169,7 @@ VITE_AUTH_MODE=
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 # Full base including /api/v1; local default port is 8000 (see root npm run dev / uvicorn).
 VITE_API_BASE_URL=http://localhost:8000/api/v1
-# Required for public Storage URLs in the SPA (marketing assets, public-bucket PDFs).
+# Optional for unrelated direct public assets; dashboard PDFs use VITE_API_BASE_URL.
 VITE_SUPABASE_URL=https://[project].supabase.co
 ```
 
@@ -176,7 +180,12 @@ SUPABASE_SERVICE_KEY=eyJ...
 CLERK_JWKS_URL=https://[clerk-instance].clerk.accounts.dev/.well-known/jwks.json
 CLERK_ISSUER=https://[clerk-instance].clerk.accounts.dev
 CLERK_AUDIENCE=                         # Optional in dev; required in staging/production
+CLERK_SECRET_KEY=                       # Backend-only; required when session JWTs omit profile claims
 FRONTEND_URL=http://localhost:5173      # CORS origin — use exact SPA URL when frontend is on Vercel (e.g. https://app.vercel.app)
+MUX_TOKEN_ID=                           # Backend-only Mux management API token; used by sync_mux
+MUX_TOKEN_SECRET=                       # Backend-only; never expose to the SPA
+MUX_SIGNING_KEY_ID=                     # Mux signing key id for paid playback JWTs
+MUX_SIGNING_PRIVATE_KEY=                # Backend-only PEM or base64 PEM
 LOG_LEVEL=INFO
 ENVIRONMENT=development                 # development | staging | production
 ```
@@ -187,6 +196,8 @@ ENVIRONMENT=development                 # development | staging | production
 - Rotate secrets regularly
 - `CLERK_AUDIENCE` **must** be set in staging/production to prevent cross-client token acceptance
 - `SUPABASE_SERVICE_KEY` bypasses RLS — handle with care; endpoints must scope queries by user
+- Mux API tokens and signing private keys are different credentials; both are backend-only
+- Every paid Mux asset must use a signed playback ID and have all public playback IDs removed
 
 ---
 
@@ -257,6 +268,10 @@ supabase db push
 - [ ] Docker images build successfully
 - [ ] Database migrations tested
 - [ ] Environment variables configured
+- [ ] `ADMIN` users resolve through `GET /api/v1/me` and unauthorized users receive `403` from admin APIs
+- [ ] Paid Mux rows have `mux_playback_signed = true`; signed IDs fail without JWTs
+- [ ] No paid Mux asset retains a public playback ID
+- [ ] Create/revoke/reissue writes the expected `admin_audit_log` record
 - [ ] Health check verified
 - [ ] Rollback plan prepared
 

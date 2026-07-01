@@ -102,12 +102,18 @@ export async function apiFetchBlob(
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
+    let message = text || `HTTP ${res.status}`;
     try {
-      const json = JSON.parse(text) as { message?: string; error?: { message?: string } };
-      throw new Error(json?.error?.message || json?.message || `HTTP ${res.status}`);
+      const json = JSON.parse(text) as {
+        message?: string;
+        detail?: string;
+        error?: { message?: string };
+      };
+      message = json.error?.message || json.message || json.detail || message;
     } catch {
-      throw new Error(text || `HTTP ${res.status}`);
+      // Keep the response text when the error body is not JSON.
     }
+    throw new Error(message);
   }
 
   return await res.blob();
@@ -122,39 +128,117 @@ export interface StorageUrlResponse {
 }
 
 /** Same shape as Supabase `getPublicUrl` — avoids a round-trip when `VITE_SUPABASE_URL` is set. */
-function supabasePublicObjectUrl(bucket: string, objectPath: string): string | null {
-  const raw = import.meta.env.VITE_SUPABASE_URL;
-  if (!raw?.trim()) return null;
-  const base = raw.replace(/\/+$/, '');
-  const b = bucket.replace(/^\/+/, '').replace(/\/+$/, '');
-  const path = objectPath.replace(/^\/+/, '');
-  if (!b || !path) return null;
-  return `${base}/storage/v1/object/public/${b}/${path}`;
-}
-
+/** Resolve a public PDF through the backend catalog allowlist. */
 export function getPublicStorageUrl(
-  params: { bucket: string; path: string },
+  params: { resourceId: string },
   getToken: () => Promise<string | null>,
 ): Promise<StorageUrlResponse> {
-  const direct = supabasePublicObjectUrl(params.bucket, params.path);
-  if (direct) {
-    return Promise.resolve({
-      bucket: params.bucket,
-      path: params.path,
-      is_paid: false,
-      url: direct,
-      expires_in: null,
-    });
-  }
-
-  const encodedBucket = encodeURIComponent(params.bucket);
-  const encodedPath = encodeURIComponent(params.path);
-  return apiFetch<StorageUrlResponse>(`/storage/public-url?bucket=${encodedBucket}&path=${encodedPath}`, getToken);
+  return apiFetch<StorageUrlResponse>(
+    `/storage/public-url?resource_id=${encodeURIComponent(params.resourceId)}`,
+    getToken,
+  );
 }
 
 export interface MuxPlaybackTokenResponse {
   token: string;
   expiresAt: number;
+}
+
+export interface EntitlementsResponse {
+  courses: string[];
+}
+
+export interface RedemptionResponse {
+  courseId: string;
+  status: 'granted';
+}
+
+export interface CurrentUserResponse {
+  id: string;
+  clerkUserId: string;
+  email: string | null;
+  role: 'ADMIN' | 'CONSULTANT' | 'CLIENT';
+}
+
+export interface AdminAccessCode {
+  id: string;
+  courseId: string;
+  orderId: string | null;
+  redeemedByUserId: string | null;
+  redeemedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  createdByUserId: string | null;
+  revokedAt: string | null;
+  revokedByUserId: string | null;
+  revocationReason: string | null;
+  replacementForCodeId: string | null;
+}
+
+export interface IssuedAccessCode {
+  id: string;
+  code: string;
+}
+
+export function getCurrentUser(
+  getToken: () => Promise<string | null>,
+): Promise<CurrentUserResponse> {
+  return apiFetch<CurrentUserResponse>('/me', getToken);
+}
+
+export function getAdminAccessCodes(
+  getToken: () => Promise<string | null>,
+): Promise<AdminAccessCode[]> {
+  return apiFetch<AdminAccessCode[]>('/admin/access-codes', getToken);
+}
+
+export function createAdminAccessCode(
+  input: { courseId: string; orderId?: string; expiresAt?: string },
+  getToken: () => Promise<string | null>,
+): Promise<IssuedAccessCode> {
+  return apiFetch<IssuedAccessCode>('/admin/access-codes', getToken, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function revokeAdminAccessCode(
+  id: string,
+  reason: string,
+  getToken: () => Promise<string | null>,
+): Promise<null> {
+  return apiFetch<null>(`/admin/access-codes/${encodeURIComponent(id)}/revoke`, getToken, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function reissueAdminAccessCode(
+  id: string,
+  reason: string,
+  getToken: () => Promise<string | null>,
+): Promise<IssuedAccessCode> {
+  return apiFetch<IssuedAccessCode>(
+    `/admin/access-codes/${encodeURIComponent(id)}/reissue`,
+    getToken,
+    { method: 'POST', body: JSON.stringify({ reason }) },
+  );
+}
+
+export function getEntitlements(
+  getToken: () => Promise<string | null>,
+): Promise<EntitlementsResponse> {
+  return apiFetch<EntitlementsResponse>('/me/entitlements', getToken);
+}
+
+export function redeemAccessCode(
+  code: string,
+  getToken: () => Promise<string | null>,
+): Promise<RedemptionResponse> {
+  return apiFetch<RedemptionResponse>('/entitlements/redeem', getToken, {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
 }
 
 export function getMuxPlaybackToken(

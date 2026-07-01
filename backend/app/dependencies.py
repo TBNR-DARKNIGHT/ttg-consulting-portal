@@ -13,9 +13,11 @@ from supabase import Client
 
 from app.config import settings
 from app.models.schemas import ClerkUser
+from app.models.enums import UserRole
 from app.services.edxp_authz import EdxpAuthzError
 from app.services.edxp_authz import authorize as edxp_authorize
 from app.services.supabase import get_client as get_supabase_client
+from app.services.user_sync import UserSyncError, sync_authenticated_user
 
 logger = structlog.get_logger()
 
@@ -113,12 +115,13 @@ async def get_current_user(request: Request) -> ClerkUser:
         if not sub:
             raise HTTPException(status_code=401, detail="Token missing required 'sub' claim")
 
-        return ClerkUser(
+        clerk_user = ClerkUser(
             clerk_id=sub,
             email=payload.get("email"),
             first_name=payload.get("first_name"),
             last_name=payload.get("last_name"),
         )
+        return await sync_authenticated_user(clerk_user)
     except HTTPException:
         raise
     except jwt.ExpiredSignatureError:
@@ -128,6 +131,9 @@ async def get_current_user(request: Request) -> ClerkUser:
     except httpx.HTTPError:
         logger.exception("Failed to fetch JWKS")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except UserSyncError:
+        logger.exception("Authenticated Clerk user could not be synchronized")
+        raise HTTPException(status_code=503, detail="User profile unavailable")
     except ValidationError:
         logger.exception("JWT claims failed schema validation")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
@@ -153,6 +159,12 @@ def get_supabase_public() -> Client:
     or dev-only diagnostics). Paid/protected endpoints should depend on `get_supabase`.
     """
     return get_supabase_client()
+
+
+async def require_admin(user: ClerkUser = Depends(get_current_user)) -> ClerkUser:
+    if user.role is not UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Administrator access required")
+    return user
 
 
 def require_edxp_permission(action: str):

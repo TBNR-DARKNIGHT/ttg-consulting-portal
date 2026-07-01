@@ -101,7 +101,7 @@ function ClerkSignInView() {
   }
 
   if (isSignedIn) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/auth/complete" replace />;
   }
 
   return (
@@ -114,7 +114,7 @@ function ClerkSignInView() {
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <SignIn
           routing="hash"
-          fallbackRedirectUrl="/dashboard"
+          fallbackRedirectUrl="/auth/complete"
           signUpUrl="/auth/sign-up"
         />
       </div>

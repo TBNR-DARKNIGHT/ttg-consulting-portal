@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
+import { LockKeyhole } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useResourceProgress } from '@/hooks/use-resource-progress';
 import { useResources } from '@/hooks/use-resources';
+import { useEntitlements } from '@/hooks/use-entitlements';
 import { COURSES } from '@/lib/courses';
 import type { ContentTopic, Resource, ResourceProgress } from '@/types';
 
@@ -23,8 +25,9 @@ function courseCompletion(
 export function DashboardProgressOverview() {
   const { resources, isLoading: resourcesLoading, error: resourcesError } = useResources();
   const { progress, isLoading: progressLoading, error: progressError } = useResourceProgress();
+  const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
 
-  const loading = resourcesLoading || progressLoading;
+  const loading = resourcesLoading || progressLoading || entitlementsLoading;
   const error = resourcesError ?? progressError;
 
   const byCourse = useMemo(
@@ -57,16 +60,25 @@ export function DashboardProgressOverview() {
             <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Completed</span>
-              <span className="font-medium text-foreground">
-                {completed} / {total}
-              </span>
-            </div>
-            <Progress
-              value={pct}
-              className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
-            />
+            {!hasCourseAccess(course.id) ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <LockKeyhole className="size-4" aria-hidden />
+                Redeem your access code to unlock this course.
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Completed</span>
+                  <span className="font-medium text-foreground">
+                    {completed} / {total}
+                  </span>
+                </div>
+                <Progress
+                  value={pct}
+                  className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       ))}

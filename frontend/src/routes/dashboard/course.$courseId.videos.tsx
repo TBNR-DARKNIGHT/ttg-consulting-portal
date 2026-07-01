@@ -1,6 +1,8 @@
 import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { DashboardResourceGrid } from '@/components/dashboard/dashboard-resource-grid';
+import { LockedCourseAccess } from '@/components/dashboard/locked-course-access';
+import { useEntitlements } from '@/hooks/use-entitlements';
 import { getCourseById } from '@/lib/courses';
 
 export const Route = createFileRoute('/dashboard/course/$courseId/videos')({
@@ -10,6 +12,7 @@ export const Route = createFileRoute('/dashboard/course/$courseId/videos')({
 function CourseVideosPage() {
   const { courseId } = Route.useParams();
   const course = getCourseById(courseId);
+  const { hasCourseAccess, isLoading } = useEntitlements();
 
   if (!course) {
     return <Navigate to="/dashboard" replace />;
@@ -33,7 +36,11 @@ function CourseVideosPage() {
           </Button>
         </header>
 
-        <DashboardResourceGrid topics={course.topics} resourceTypes={['video']} />
+        {!isLoading && !hasCourseAccess(course.id) ? (
+          <LockedCourseAccess />
+        ) : (
+          <DashboardResourceGrid topics={course.topics} resourceTypes={['video']} />
+        )}
       </div>
     </main>
   );

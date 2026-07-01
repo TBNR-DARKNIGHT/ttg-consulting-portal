@@ -107,33 +107,53 @@ backend/tests/         # pytest + httpx async tests
 
 **Database**: PostgreSQL via Supabase
 
-**Core Tables:** `users`, `students`, `videos`, `content`, `user_content_access`
+**Deployed Core Tables:** `users`, `resources`, `course_entitlements`, `access_codes`,
+`admin_audit_log`
+
+**Planned/Legacy Tables:** `students`, `videos`, `content`
 
 **See**: [@docs/data/models.md](../data/models.md) for full schema with SQL
 
-**Row Level Security (RLS):** Enforced at database level — parents see only own children, consultants see assigned students, clients see provisioned content.
+**Row Level Security (RLS):** Defense in depth where policies are configured. The current FastAPI
+service-role client bypasses RLS, so every user/resource boundary is also enforced in backend code.
 
 ---
 
 ## Security Architecture
 
 **Authentication**: Clerk (managed service)
-- JWT-based, admin-provisioned (TTA) or self-registration (MapleBear)
+- JWT-based sign-up/sign-in; authenticated identities are synchronized to `public.users` on their first protected API request
 - 7-day session persistence
 - RS256 algorithm enforced (no algorithm confusion)
 - JWKS keys cached (1-hour TTL) with 10-second HTTP timeout to prevent worker starvation
 - Malformed JWKS responses, missing `sub` claims, and unexpected errors all produce clean 401 responses
+- A verified Clerk identity is resolved or created in `public.users` on authenticated API requests; Clerk profile fields are synchronized without overwriting application-managed role/status
+- After Clerk sign-in, `/auth/complete` loads `GET /api/v1/me` and routes `ADMIN` users to
+  `/admin`; all other roles go to `/dashboard`. This redirect is convenience only—the API remains
+  the authorization boundary.
 
 **Audience Verification**: Optional in development (`CLERK_AUDIENCE` unset skips `aud` check). Must be configured in staging/production to prevent cross-client token acceptance.
 
-**Supabase Service Role Key**: The current scaffold uses the Supabase service role key (bypasses RLS) for all authenticated requests. Each future endpoint **must** manually scope queries by `clerk_id`. Per-user Supabase JWTs for full RLS enforcement are planned for a later phase.
+**Supabase Service Role Key**: The current scaffold uses the Supabase service role key (bypasses RLS) for all authenticated requests. Each endpoint **must** resolve the verified Clerk JWT `sub` through `users.clerk_user_id` and scope queries to the resulting internal user UUID. Access-code creation and redemption are backend-only operations; clients never receive direct table access. Per-user Supabase JWTs for full RLS enforcement are planned for a later phase.
 
-**Authorization**: Role-based (PARENT, CLIENT, CONSULTANT, ADMIN)
+**Authorization**: Application-managed uppercase roles (`CLIENT`, `CONSULTANT`, `ADMIN`) plus
+course entitlements for paid content. Clerk authenticates the identity; Supabase `users.role`
+authorizes portal operations.
 - Enforced at API layer (FastAPI deps) + database layer (Supabase RLS)
+- `require_admin` reloads the synchronized Supabase role and protects every `/api/v1/admin/*`
+  operation. Hiding `/admin` in the SPA is not a security control.
+- Course 1 is implicit for authenticated users; Course 2 requires an active `course_entitlements` row
+- Paid PDFs and signed Mux tokens resolve the resource and course server-side before authorization
+- Access-code create, revoke, and reissue operations use service-role-only PostgreSQL functions;
+  reissue revokes the old unused code and inserts its replacement in one transaction.
+- Admin mutations append operational records to `admin_audit_log`.
 
 **Data Protection:**
 - HTTPS in transit, Supabase encryption at rest
 - Signed/expiring URLs for video/file access
+- Paid Mux assets must contain a signed playback ID and no public playback ID. Because a Mux asset
+  may have several playback IDs, adding a signed ID without deleting its public ID leaves the asset
+  publicly playable.
 - CORS restricted to single frontend origin (with credentials)
 - Auth header values excluded from request logs
 

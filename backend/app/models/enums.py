@@ -12,9 +12,9 @@ else:
 
 
 class UserRole(StrEnum):
-    ADMIN = "admin"
-    CONSULTANT = "consultant"
-    PARENT = "parent"
+    ADMIN = "ADMIN"
+    CONSULTANT = "CONSULTANT"
+    CLIENT = "CLIENT"
 
 
 class ResourceType(StrEnum):

@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useState } from 'react';
-import { FileText, Video } from 'lucide-react';
+import { FileText, LockKeyhole, Video } from 'lucide-react';
+import { useEntitlements } from '@/hooks/use-entitlements';
 import { COURSES, type CourseId } from '@/lib/courses';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +15,7 @@ function dashboardHomePath(pathname: string) {
 export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [overrideOpen, setOverrideOpen] = useState<Partial<Record<CourseId, boolean>>>({});
+  const { hasCourseAccess } = useEntitlements();
 
   const isOpen = (courseId: CourseId) => {
     if (pathname.includes(`/course/${courseId}/`)) return true;
@@ -32,6 +34,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
     <div className="flex flex-col gap-1 px-3 pb-2">
       {COURSES.map((course) => {
         const open = isOpen(course.id);
+        const locked = !hasCourseAccess(course.id);
         const resourcesActive = pathname === `/dashboard/course/${course.id}/resources`;
         const videosActive = pathname === `/dashboard/course/${course.id}/videos`;
 
@@ -47,6 +50,12 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                 {open ? CHEVRON_EXPANDED : CHEVRON_COLLAPSED}
               </span>
               <span className="min-w-0 flex-1 truncate">{course.shortLabel}</span>
+              {locked && (
+                <LockKeyhole
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                  aria-label="Locked"
+                />
+              )}
             </button>
 
             {open && (

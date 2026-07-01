@@ -42,7 +42,9 @@ Authorization: Bearer <clerk-jwt>
 
 ## Common Response Format
 
-All endpoints return an `ApiResponse[T]` envelope with `data` and `error` fields.
+Successful typed application endpoints use an `ApiResponse[T]` envelope with `data` and `error`
+fields. Streaming downloads return file bytes directly. FastAPI validation and `HTTPException`
+failures use the standard `{ "detail": ... }` body.
 
 ### Success Response
 ```json
@@ -52,7 +54,7 @@ All endpoints return an `ApiResponse[T]` envelope with `data` and `error` fields
 }
 ```
 
-### Error Response
+### Application Error Envelope
 ```json
 {
   "data": null,
@@ -68,12 +70,14 @@ All endpoints return an `ApiResponse[T]` envelope with `data` and `error` fields
 ## Status Codes
 
 - `200 OK` — Successful GET, PUT, PATCH
-- `201 Created` — Successful POST
+- `201 Created` — Successful resource-creation POST where configured (redemption returns `200`)
 - `204 No Content` — Successful DELETE
 - `400 Bad Request` — Invalid request data
 - `401 Unauthorized` — Missing or invalid JWT
 - `403 Forbidden` — Insufficient role/permissions
 - `404 Not Found` — Resource not found
+- `409 Conflict` — Code already redeemed or course already active
+- `410 Gone` — Redemption code expired
 - `422 Unprocessable Entity` — Pydantic validation error
 - `429 Too Many Requests` — Rate limit exceeded
 - `500 Internal Server Error` — Server error
@@ -84,22 +88,87 @@ All endpoints return an `ApiResponse[T]` envelope with `data` and `error` fields
 
 ### Authentication
 
+Authentication is a FastAPI dependency on protected `/api/v1` routes; there is no dedicated
+validation endpoint. The dependency validates the Clerk JWT, resolves or creates `public.users`,
+and makes both the Clerk subject and internal Supabase UUID available to downstream authorization.
+
 ```
-POST   /api/auth/validate          # Validate JWT, return user profile
+GET    /api/v1/me                    # Current synchronized identity and portal role
 ```
 
-**Response** (200):
+`GET /api/v1/me` returns `id`, `clerkUserId`, `email`, and the application-managed uppercase
+`role`. The SPA uses it after sign-in to route `ADMIN` users to `/admin` and other users to
+`/dashboard`. Clients must not use this redirect as authorization; protected endpoints perform
+their own server-side role check.
+
+### Administration
+
+All endpoints below require a verified Clerk JWT whose synchronized `public.users.role` is
+`ADMIN`:
+
+```
+GET    /api/v1/admin/access-codes
+POST   /api/v1/admin/access-codes
+POST   /api/v1/admin/access-codes/{code_id}/revoke
+POST   /api/v1/admin/access-codes/{code_id}/reissue
+```
+
+Creation accepts `courseId`, optional `orderId`, and optional ISO-8601 `expiresAt`. Revoke and
+reissue accept a required audit `reason`. Create and reissue return the plaintext code exactly
+once; only its SHA-256 hash is persisted.
+
+Revoke and reissue apply only to active, unredeemed codes. Reissue atomically revokes the old code,
+creates its replacement with the same course, order, and expiry, links the records, and writes an
+`admin_audit_log` entry. Revoking a redeemed user's entitlement is deliberately a separate
+operation and is not provided by these endpoints.
+
+### Course Entitlements
+
+```
+GET    /api/v1/me/entitlements       # List the current user's course access
+POST   /api/v1/entitlements/redeem   # Consume a transferable, single-use code
+```
+
+**Redemption request:**
+
 ```json
 {
-  "user_id": "uuid",
-  "email": "user@example.com",
-  "role": "CLIENT",
-  "first_name": "David",
-  "provisioned_content": ["content-id-1"]
+  "code": "TTA-7MXP-R4QK-93VN"
 }
 ```
 
-### Content (DSA Resources)
+The backend normalizes and hashes the submitted code, then atomically consumes the matching
+`access_codes` row and grants the corresponding `course_entitlements` row to the authenticated
+user. The purchaser's email is not checked. Plaintext codes are never stored or logged.
+
+Successful entitlement response:
+
+```json
+{
+  "data": {
+    "courses": ["course-1", "course-2"]
+  },
+  "error": null
+}
+```
+
+Successful redemption response:
+
+```json
+{
+  "data": {
+    "courseId": "course-2",
+    "status": "granted"
+  },
+  "error": null
+}
+```
+
+Redemption returns `400` for an invalid code, `409` for a consumed code or already-active
+entitlement, `410` for an expired code, and `503` when user synchronization or the entitlement
+service is unavailable.
+
+### Content (legacy/planned; not implemented)
 
 ```
 GET    /api/content                # List content (scoped to user's access)
@@ -108,7 +177,7 @@ GET    /api/content/:id            # Get specific content item
 ```
 
 **Query Parameters** (GET /api/content):
-- `topic` — Filter: `dsa-pathways`, `interview-prep`, `timelines`
+- `topic` — Earlier proposal; the implemented catalog uses `/api/v1/resources`
 - `type` — Filter: `video`, `article`, `download`
 
 **Response** (200):
@@ -128,14 +197,14 @@ GET    /api/content/:id            # Get specific content item
 }
 ```
 
-### Students (MapleBear)
+### Students (MapleBear; planned, not implemented)
 
 ```
 GET    /api/students               # List students (parent: own children, consultant: assigned)
 GET    /api/students/:id           # Get student details
 ```
 
-### Videos (MapleBear Recordings)
+### Videos (MapleBear Recordings; planned, not implemented)
 
 ```
 GET    /api/students/:id/videos    # List videos for a student
@@ -156,34 +225,29 @@ PUT    /api/videos/:id/feedback    # Add/edit feedback (consultant only)
 ```
 - Max 500 characters
 
-### Users (Admin)
+### Users
 
-```
-GET    /api/users                  # List users (admin only)
-GET    /api/users/me               # Get current user profile
-POST   /api/users/provision        # Provision content access (admin only)
-```
-
-**POST /api/users/provision**:
-```json
-{
-  "user_id": "uuid",
-  "content_ids": ["content-id-1", "content-id-2"]
-}
-```
+There is no general user-administration router. Authenticated users are synchronized internally by
+the Clerk dependency. Administrators are assigned by updating the application-managed
+`public.users.role`; Clerk Organizations are not the source of global portal administrator access.
 
 ### Storage (Supabase; implemented)
 
-These routes live under the same **`/api/v1`** prefix as health. The SPA typically resolves **public** bucket file URLs in the browser when **`VITE_SUPABASE_URL`** is set (same path Supabase uses for public objects); **`GET /storage/public-url`** remains available as a fallback.
+These routes live under the same **`/api/v1`** prefix as health. All four accept only a catalog
+`resource_id`; callers cannot supply a storage bucket or object path.
 
 ```
 GET    /api/v1/storage/public-url       # Public bucket: returns public URL JSON (no auth)
 GET    /api/v1/storage/public-download  # Public bucket: stream bytes (no auth)
-GET    /api/v1/storage/paid-url         # Paid bucket: signed URL JSON (Clerk JWT)
-GET    /api/v1/storage/paid-download    # Paid bucket: stream bytes (Clerk JWT)
+GET    /api/v1/storage/paid-url         # Paid PDF by resource_id; entitlement required
+GET    /api/v1/storage/paid-download    # Paid PDF by resource_id; entitlement required
 ```
 
-**Query parameters** (all of the above): `bucket`, `path` (object key inside the bucket, e.g. `docs/file.pdf`).
+**Query parameters**: `resource_id`. `paid-url` also accepts optional `expires_in`.
+
+The backend resolves `bucket` and `file_path` from the catalog. Public routes accept only public
+PDFs assigned to `resources-public`. Paid routes accept only paid PDFs assigned to
+`resources-paid` and require the resource's course entitlement.
 
 In **development** only, equivalent **`/api/v1/dev/storage/...`** helpers may be registered for smoke tests.
 
@@ -209,9 +273,13 @@ Course videos are delivered via **Mux** (transcoded + CDN). **PDFs** remain in S
 GET    /api/v1/playback/mux-token       # Mint Mux Video playback JWT (Clerk JWT)
 ```
 
+Paid storage routes accept `resource_id`, not a browser-supplied bucket or object path. The backend
+loads the catalog row, checks its course entitlement, and uses the server-owned storage location.
+Signed paid Mux playback tokens enforce the same course entitlement.
+
 **Query parameters**: `resource_id` (catalog id, e.g. `res-009`), optional `expires_in` (seconds, default 3600, min 60, max 86400).
 
-**Responses**: `200` with `{ "data": { "token": "...", "expiresAt": 1735689600 }, "error": null }` (camelCase JSON). Returns `400` if the resource is not a signed Mux video, `404` if unknown or not provisioned, `503` if signing keys are not configured on the server.
+**Responses**: `200` with `{ "data": { "token": "...", "expiresAt": 1735689600 }, "error": null }` (camelCase JSON). Returns `400` if the resource is not a signed Mux video, `403` when a paid course entitlement is absent, `404` if unknown or not provisioned, and `503` if signing keys or authorization dependencies are unavailable.
 
 Configure **`MUX_TOKEN_ID`** and **`MUX_TOKEN_SECRET`** (Mux dashboard → Settings → API Access Tokens) to sync playback IDs from Mux assets into the Supabase `resources` table:
 
@@ -222,6 +290,17 @@ cd backend && python -m app.scripts.sync_mux
 When uploading videos in Mux, set **Passthrough** to the portal resource id (e.g. `res-001`). Public catalog videos need a **public** playback policy; paid videos need **signed**.
 
 Configure **`MUX_SIGNING_KEY_ID`** and **`MUX_SIGNING_PRIVATE_KEY`** (Mux dashboard → Signing Keys; private key as PEM or base64 PEM) for signed playback JWTs.
+
+A paid asset is secure only when its referenced playback ID has policy `signed` **and the asset has
+no remaining public playback ID**. Mux permits multiple playback IDs on one asset. An
+unauthenticated request to a signed ID must not return a playable `200` manifest:
+
+```powershell
+curl.exe -o NUL -s -w "%{http_code}`n" "https://stream.mux.com/PLAYBACK_ID.m3u8"
+```
+
+See the paid-asset conversion procedure in the
+[Setup Guide](../getting-started/setup.md#convert-an-existing-paid-mux-asset-to-signed-playback).
 
 ### Health
 
@@ -245,7 +324,8 @@ GET    /api/v1/health              # Health check (no auth)
 
 ## Pagination
 
-**Query Parameters** (list endpoints):
+Pagination is planned but is not implemented by the current resource/entitlement endpoints.
+Proposed query parameters for future list endpoints:
 - `page` — Page number (default: 1)
 - `limit` — Items per page (default: 20, max: 100)
 
@@ -265,8 +345,8 @@ GET    /api/v1/health              # Health check (no auth)
 
 ## Rate Limiting
 
-- Authenticated: 100 requests/minute
-- Anonymous: 20 requests/minute
+Application-level rate limiting is not yet implemented. Redemption attempt limits by user/IP are a
+production requirement; platform/edge limits should be configured as an additional layer.
 
 ---
 
@@ -277,9 +357,11 @@ GET    /api/v1/health              # Health check (no auth)
 - Clerk JWT validated on every protected request (RS256 only, JWKS cached with 1h TTL)
 - JWKS fetch uses 10s HTTP timeout to prevent worker starvation
 - All auth errors (malformed JWKS, missing claims, unexpected exceptions) return clean 401 — no stack traces
-- Supabase service role key used (bypasses RLS) — endpoints must scope queries by `clerk_id`
+- Supabase service-role access bypasses RLS; protected queries resolve Clerk `sub` to internal
+  `users.id` and enforce user/course scope in FastAPI
+- Storage APIs accept catalog `resource_id` only and resolve allowlisted buckets/paths server-side
+- Paid PDFs and signed Mux playback require an active course entitlement
 - Input validation via Pydantic schemas
-- Signed/expiring URLs for file access
 
 ---
 

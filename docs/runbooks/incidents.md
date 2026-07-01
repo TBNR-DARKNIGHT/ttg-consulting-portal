@@ -234,13 +234,15 @@ This runbook provides procedures for responding to and resolving incidents in th
 
 ### Authentication Issues
 
-**Symptoms**: Users unable to log in, 401 errors on all protected endpoints
+**Symptoms**: Users unable to log in, 401 errors on protected endpoints, or `503 User profile unavailable`
 
 **Diagnosis**:
 - Check application logs for `"Failed to fetch JWKS"` (JWKS endpoint unreachable)
 - Check for `"Unexpected error during authentication"` (catch-all triggered — investigate root cause)
 - Check for `"Token missing required 'sub' claim"` in 401 responses (Clerk JWT template may need `sub`)
 - Verify `CLERK_JWKS_URL` and `CLERK_ISSUER` environment variables are set and correct
+- For user-sync `503` responses, verify `CLERK_SECRET_KEY`, Supabase service-role credentials, and
+  the unique `users.clerk_user_id` mapping
 - Verify Clerk dashboard status (https://status.clerk.com)
 
 **Common Causes**:
@@ -249,9 +251,11 @@ This runbook provides procedures for responding to and resolving incidents in th
 - JWKS cache expired and refresh failed — all new requests fail until Clerk recovers
 - `CLERK_AUDIENCE` mismatch in staging/production (token's `aud` doesn't match configured value)
 - Clerk JWT template missing `sub` claim (custom templates override defaults)
+- Missing/wrong `CLERK_SECRET_KEY` when a new user's session token omits email/profile claims
+- Supabase unavailable or a conflicting email/Clerk subject prevents local user synchronization
 
 **Resolution**:
-1. Verify `CLERK_JWKS_URL`, `CLERK_ISSUER`, and `CLERK_AUDIENCE` environment variables
+1. Verify `CLERK_JWKS_URL`, `CLERK_ISSUER`, `CLERK_AUDIENCE`, and backend-only `CLERK_SECRET_KEY`
 2. Check Clerk service status
 3. If JWKS fetch is timing out, check network connectivity from the backend host to Clerk
 4. If `CLERK_AUDIENCE` was recently changed, redeploy with the updated value
@@ -370,6 +374,33 @@ Thank you for your patience.
 - Response time > X ms → Send alert
 - Database connections > X% → Send alert
 - Disk space > X% → Send alert
+
+---
+
+## Paid Mux Asset Is Publicly Playable
+
+Treat an unauthenticated `200` response for a full paid video manifest as a content-access
+incident.
+
+### Confirm
+
+1. Find every paid video in Supabase `resources`.
+2. Confirm `mux_playback_signed = true` and record its Mux asset/playback IDs.
+3. Request `https://stream.mux.com/<playback-id>.m3u8` without a token.
+4. Inspect the Mux asset's complete Playback IDs list; a signed ID does not neutralize a separate
+   public ID on the same asset.
+
+### Contain and recover
+
+1. Add a signed playback ID in Mux if the asset does not already have one.
+2. Update/synchronize the Supabase resource to reference the signed ID.
+3. Verify entitled playback through `/api/v1/playback/mux-token`.
+4. Delete all public playback IDs from the paid asset.
+5. Probe the deleted IDs until none returns `200`.
+6. Review Mux delivery/data logs to estimate exposure and rotate playback IDs if warranted.
+
+Do not delete the only working public ID before the application references and successfully tests
+the signed ID unless immediate containment is more important than playback availability.
 
 ---
 

@@ -4,7 +4,7 @@ A unified platform for Think Teach Group's consulting services across TTA, Maple
 
 ## Features
 
-- **TTA Consulting Portal** — Admin-provisioned access to paid DSA preparation resources
+- **TTA Consulting Portal** — Clerk-authenticated access to free Course 1 resources and code-gated Course 2 resources
 - **MapleBear Parent Experience** — Video library with student recordings and consultant feedback
 - **DSA Resource Portal** — Free content hub with paid resource marketplace
 
@@ -55,13 +55,15 @@ Copy `.env.example` files and fill in values:
 
 **Frontend** (`.env.local`):
 - `VITE_CLERK_PUBLISHABLE_KEY`
-- `VITE_API_URL`
+- `VITE_API_BASE_URL`
 
 **Backend** (`.env`):
+- `CLERK_JWKS_URL`
+- `CLERK_ISSUER`
 - `CLERK_SECRET_KEY`
+- `CLERK_AUDIENCE` (required in staging/production)
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_KEY`
-- `DATABASE_URL`
 
 ## Documentation
 

@@ -31,7 +31,8 @@ export function ClerkAuthBridge({ children }: { children: ReactNode }) {
       isLoaded: Boolean(isLoaded),
       isSignedIn: Boolean(isSignedIn),
       user: clerkUserToPortalUser(user),
-      tier: 'paid',
+      // Real access is loaded from /me/entitlements; tier remains for demo compatibility only.
+      tier: 'free',
       getToken,
       signIn,
       signOut,

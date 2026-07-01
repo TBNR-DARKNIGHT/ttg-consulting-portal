@@ -9,6 +9,7 @@ import { apiFetchBlob, getMuxPlaybackToken, getPublicStorageUrl } from '@/lib/ap
 import { muxEnvKey } from '@/lib/mux';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
+import { useEntitlements } from '@/hooks/use-entitlements';
 
 export const Route = createFileRoute('/dashboard/resources/$resourceId')({
   component: ResourceDetailPage,
@@ -17,12 +18,19 @@ export const Route = createFileRoute('/dashboard/resources/$resourceId')({
 function ResourceDetailPage() {
   const { resourceId } = Route.useParams();
   const { resources } = useResources();
-  const { getToken, tier } = usePortalAuth();
+  const { getToken } = usePortalAuth();
+  const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
   const queryClient = useQueryClient();
 
   const resource = useMemo(() => resources.find((r) => r.id === resourceId) ?? null, [resources, resourceId]);
 
-  const canAccess = resource ? tier === 'paid' || resource.access !== 'paid' : false;
+  const resourceCourseId = resource
+    ? resource.courseId ?? getCourseIdForTopic(resource.topic)
+    : null;
+  const canAccess = resource
+    ? resource.access !== 'paid' ||
+      (resourceCourseId !== null && hasCourseAccess(resourceCourseId))
+    : false;
 
   const backToCourseList = useMemo(() => {
     if (!resource) {
@@ -45,7 +53,7 @@ function ResourceDetailPage() {
 
   const muxTokenQuery = useQuery({
     enabled: needsMuxToken,
-    queryKey: ['mux-playback-token', resourceId, tier],
+    queryKey: ['mux-playback-token', resourceId, canAccess],
     queryFn: async () => {
       if (!resource?.muxPlaybackId) {
         throw new Error('Missing Mux playback id');
@@ -69,28 +77,21 @@ function ResourceDetailPage() {
       if (!resource?.bucket || !resource.filePath) {
         throw new Error('Missing storage location for this resource');
       }
-      return getPublicStorageUrl({ bucket: resource.bucket, path: resource.filePath }, getToken);
+      return getPublicStorageUrl({ resourceId: resource.id }, getToken);
     },
   });
 
   const paidBlobQuery = useQuery({
     enabled: Boolean(resource && canAccess && resource.type === 'pdf' && resource.bucket && resource.filePath),
-    queryKey: ['resource-paid-blob', resourceId, tier],
+    queryKey: ['resource-paid-blob', resourceId, canAccess],
     queryFn: async () => {
-      if (!resource?.bucket || !resource.filePath) {
-        throw new Error('Missing storage location for this resource');
-      }
-
-      const encodedBucket = encodeURIComponent(resource.bucket);
-      const encodedPath = encodeURIComponent(resource.filePath);
-
-      if (resource.access !== 'paid') {
+      if (!resource || resource.access !== 'paid') {
         return null;
       }
-
-      const endpoint = `/storage/paid-download?bucket=${encodedBucket}&path=${encodedPath}`;
-
-      return apiFetchBlob(endpoint, getToken);
+      return apiFetchBlob(
+        `/storage/paid-download?resource_id=${encodeURIComponent(resource.id)}`,
+        getToken,
+      );
     },
   });
 
@@ -108,14 +109,12 @@ function ResourceDetailPage() {
 
   const backendDownloadUrl = useMemo(() => {
     if (!resource?.bucket || !resource.filePath) return null;
-    const encodedBucket = encodeURIComponent(resource.bucket);
-    const encodedPath = encodeURIComponent(resource.filePath);
     const path =
       resource.access === 'paid'
-        ? `/storage/paid-download?bucket=${encodedBucket}&path=${encodedPath}`
-        : `/storage/public-download?bucket=${encodedBucket}&path=${encodedPath}`;
+        ? null
+        : `/storage/public-download?resource_id=${encodeURIComponent(resource.id)}`;
     const base = import.meta.env.VITE_API_BASE_URL ?? '';
-    return base ? `${base}${path}` : null;
+    return base && path ? `${base}${path}` : null;
   }, [resource]);
 
   const muxEnvKeyValue = muxEnvKey();
@@ -135,7 +134,7 @@ function ResourceDetailPage() {
     );
   }
 
-  if (!canAccess) {
+  if (!entitlementsLoading && !canAccess) {
     return (
       <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
         <div className="mx-auto max-w-4xl space-y-6">
@@ -143,7 +142,7 @@ function ResourceDetailPage() {
             {resource.title}
           </h1>
           <p className="text-sm text-muted-foreground">
-            This resource is part of Course 2 (Paid). Sign in with the paid login to unlock it.
+            This resource is part of Course 2. Redeem your purchase code to unlock it.
           </p>
           <Button variant="outline" asChild>
             <Link to={backToCourseList.to} params={backToCourseList.params}>
@@ -207,7 +206,7 @@ function ResourceDetailPage() {
                   size="sm"
                   onClick={() =>
                     void queryClient.invalidateQueries({
-                      queryKey: ['mux-playback-token', resourceId, tier],
+                      queryKey: ['mux-playback-token', resourceId, canAccess],
                     })
                   }
                 >
@@ -225,7 +224,7 @@ function ResourceDetailPage() {
                 playsInline
                 onError={() => {
                   void queryClient.invalidateQueries({
-                    queryKey: ['mux-playback-token', resourceId, tier],
+                    queryKey: ['mux-playback-token', resourceId, canAccess],
                   });
                 }}
               />
@@ -287,8 +286,8 @@ function ResourceDetailPage() {
         <div className="rounded-xl border border-border bg-muted/20 p-4 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <span>
-              <span className="font-medium text-foreground">Debug</span> — tier:{' '}
-              <span className="font-mono">{tier}</span>
+              <span className="font-medium text-foreground">Debug</span> — access:{' '}
+              <span className="font-mono">{canAccess ? 'granted' : 'locked'}</span>
             </span>
             {isPdf && (
               <>

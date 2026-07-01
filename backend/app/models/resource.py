@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -13,6 +13,7 @@ class ResourceItem(BaseModel):
 
     id: str
     title: str
+    course_id: str | None = None
     type: str
     topic: str
     description: str
@@ -27,6 +28,14 @@ class ResourceItem(BaseModel):
     mux_playback_signed: bool = False
     created_at: datetime
     updated_at: datetime
+
+    @model_validator(mode="after")
+    def infer_course_id(self) -> "ResourceItem":
+        if self.course_id is None:
+            self.course_id = (
+                "course-2" if self.topic == "interview-preparation" else "course-1"
+            )
+        return self
 
 
 class ResourceProgressItem(BaseModel):

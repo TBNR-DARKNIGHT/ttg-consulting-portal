@@ -9,6 +9,7 @@ from app.config import settings
 from app.dependencies import get_current_user
 from app.models.schemas import ApiResponse, ClerkUser
 from app.routers.resources import find_resource
+from app.services.entitlements import EntitlementServiceError, has_course_access
 from app.services.mux_playback_token import mint_mux_video_playback_token
 
 logger = structlog.get_logger()
@@ -27,7 +28,7 @@ class MuxPlaybackTokenOut(BaseModel):
 async def mux_playback_token(
     resource_id: str = Query(..., description="Dashboard resource id, e.g. res-009"),
     expires_in: int = Query(3600, ge=60, le=86400, description="JWT lifetime in seconds"),
-    _user: ClerkUser = Depends(get_current_user),
+    user: ClerkUser = Depends(get_current_user),
 ) -> ApiResponse[MuxPlaybackTokenOut]:
     """
     Mint a Mux Video playback JWT for catalog entries that use **signed** playback IDs.
@@ -52,6 +53,18 @@ async def mux_playback_token(
             status_code=404,
             detail="Video playback is not provisioned for this resource",
         )
+
+    if resource.access == "paid":
+        if not resource.course_id:
+            raise HTTPException(status_code=500, detail="Resource course is not configured")
+        if user.internal_user_id is None:
+            raise HTTPException(status_code=503, detail="User profile unavailable")
+        try:
+            allowed = await has_course_access(user.internal_user_id, resource.course_id)
+        except EntitlementServiceError as exc:
+            raise HTTPException(status_code=503, detail="Course access unavailable") from exc
+        if not allowed:
+            raise HTTPException(status_code=403, detail="Course access required")
 
     kid = settings.mux_signing_key_id.strip()
     secret = settings.mux_signing_private_key.strip()

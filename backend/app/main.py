@@ -11,7 +11,17 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.middleware.logging import LoggingMiddleware, configure_logging
-from app.routers import dev_authz, dev_storage, health, playback, portal, resources, storage
+from app.routers import (
+    admin,
+    dev_authz,
+    dev_storage,
+    entitlements,
+    health,
+    playback,
+    portal,
+    resources,
+    storage,
+)
 from app.services.supabase import get_client
 
 
@@ -46,6 +56,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             missing.append("CLERK_JWKS_URL")
         if not settings.clerk_issuer.strip():
             missing.append("CLERK_ISSUER")
+        if not settings.clerk_secret_key.strip():
+            missing.append("CLERK_SECRET_KEY")
         if missing:
             logger.warning(
                 "Production storage/auth may be incomplete (paid downloads need Supabase + Clerk)",
@@ -75,6 +87,8 @@ app.add_middleware(
 app.add_middleware(LoggingMiddleware)
 
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
+app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+app.include_router(entitlements.router, prefix="/api/v1", tags=["entitlements"])
 app.include_router(resources.router, prefix="/api/v1", tags=["resources"])
 app.include_router(portal.router, prefix="/api/v1", tags=["portal"])
 app.include_router(playback.router, prefix="/api/v1", tags=["playback"])

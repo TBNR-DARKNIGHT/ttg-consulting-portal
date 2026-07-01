@@ -15,12 +15,15 @@ import { Route as GroupProgrammeRouteImport } from './routes/group-programme'
 import { Route as ConsultRouteImport } from './routes/consult'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardResourcesRouteImport } from './routes/dashboard/resources'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthCompleteRouteImport } from './routes/auth/complete'
 import { Route as DashboardResourcesResourceIdRouteImport } from './routes/dashboard/resources.$resourceId'
 import { Route as DashboardCourseCourseIdVideosRouteImport } from './routes/dashboard/course.$courseId.videos'
 import { Route as DashboardCourseCourseIdResourcesRouteImport } from './routes/dashboard/course.$courseId.resources'
@@ -55,6 +58,11 @@ const DashboardRouteRoute = DashboardRouteRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -64,6 +72,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
@@ -83,6 +96,11 @@ const AuthSignUpRoute = AuthSignUpRouteImport.update({
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCompleteRoute = AuthCompleteRouteImport.update({
+  id: '/auth/complete',
+  path: '/auth/complete',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardResourcesResourceIdRoute =
@@ -106,16 +124,19 @@ const DashboardCourseCourseIdResourcesRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/consult': typeof ConsultRoute
   '/group-programme': typeof GroupProgrammeRoute
   '/portal': typeof PortalRoute
   '/young-explorers': typeof YoungExplorersRoute
+  '/auth/complete': typeof AuthCompleteRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/dashboard/resources': typeof DashboardResourcesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/resources/$resourceId': typeof DashboardResourcesResourceIdRoute
   '/dashboard/course/$courseId/resources': typeof DashboardCourseCourseIdResourcesRoute
@@ -128,10 +149,12 @@ export interface FileRoutesByTo {
   '/group-programme': typeof GroupProgrammeRoute
   '/portal': typeof PortalRoute
   '/young-explorers': typeof YoungExplorersRoute
+  '/auth/complete': typeof AuthCompleteRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/dashboard/resources': typeof DashboardResourcesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/resources/$resourceId': typeof DashboardResourcesResourceIdRoute
   '/dashboard/course/$courseId/resources': typeof DashboardCourseCourseIdResourcesRoute
@@ -140,16 +163,19 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/consult': typeof ConsultRoute
   '/group-programme': typeof GroupProgrammeRoute
   '/portal': typeof PortalRoute
   '/young-explorers': typeof YoungExplorersRoute
+  '/auth/complete': typeof AuthCompleteRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/dashboard/resources': typeof DashboardResourcesRouteWithChildren
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/resources/$resourceId': typeof DashboardResourcesResourceIdRoute
   '/dashboard/course/$courseId/resources': typeof DashboardCourseCourseIdResourcesRoute
@@ -159,16 +185,19 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/dashboard'
     | '/about'
     | '/consult'
     | '/group-programme'
     | '/portal'
     | '/young-explorers'
+    | '/auth/complete'
     | '/auth/login'
     | '/auth/sign-up'
     | '/dashboard/resources'
     | '/dashboard/settings'
+    | '/admin/'
     | '/dashboard/'
     | '/dashboard/resources/$resourceId'
     | '/dashboard/course/$courseId/resources'
@@ -181,10 +210,12 @@ export interface FileRouteTypes {
     | '/group-programme'
     | '/portal'
     | '/young-explorers'
+    | '/auth/complete'
     | '/auth/login'
     | '/auth/sign-up'
     | '/dashboard/resources'
     | '/dashboard/settings'
+    | '/admin'
     | '/dashboard'
     | '/dashboard/resources/$resourceId'
     | '/dashboard/course/$courseId/resources'
@@ -192,16 +223,19 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/dashboard'
     | '/about'
     | '/consult'
     | '/group-programme'
     | '/portal'
     | '/young-explorers'
+    | '/auth/complete'
     | '/auth/login'
     | '/auth/sign-up'
     | '/dashboard/resources'
     | '/dashboard/settings'
+    | '/admin/'
     | '/dashboard/'
     | '/dashboard/resources/$resourceId'
     | '/dashboard/course/$courseId/resources'
@@ -210,12 +244,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   ConsultRoute: typeof ConsultRoute
   GroupProgrammeRoute: typeof GroupProgrammeRoute
   PortalRoute: typeof PortalRoute
   YoungExplorersRoute: typeof YoungExplorersRoute
+  AuthCompleteRoute: typeof AuthCompleteRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
 }
@@ -264,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -277,6 +320,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/dashboard/settings': {
       id: '/dashboard/settings'
@@ -306,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/complete': {
+      id: '/auth/complete'
+      path: '/auth/complete'
+      fullPath: '/auth/complete'
+      preLoaderRoute: typeof AuthCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/resources/$resourceId': {
       id: '/dashboard/resources/$resourceId'
       path: '/$resourceId'
@@ -329,6 +386,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
 
 interface DashboardResourcesRouteChildren {
   DashboardResourcesResourceIdRoute: typeof DashboardResourcesResourceIdRoute
@@ -363,12 +432,14 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   ConsultRoute: ConsultRoute,
   GroupProgrammeRoute: GroupProgrammeRoute,
   PortalRoute: PortalRoute,
   YoungExplorersRoute: YoungExplorersRoute,
+  AuthCompleteRoute: AuthCompleteRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignUpRoute: AuthSignUpRoute,
 }

@@ -63,6 +63,7 @@ def _row_to_resource(row: dict[str, Any]) -> ResourceItem:
         {
             "id": str(row["id"]),
             "title": row["title"],
+            "course_id": row.get("course_id"),
             "type": _normalize_type(row),
             "topic": _normalize_topic(row),
             "description": row.get("description") or "",
@@ -83,7 +84,13 @@ def _row_to_resource(row: dict[str, Any]) -> ResourceItem:
 
 def _fetch_from_supabase() -> list[ResourceItem]:
     client = get_client()
-    response = client.table("resources").select("*").order("sort_order").order("created_at").execute()
+    response = (
+        client.table("resources")
+        .select("*")
+        .order("sort_order")
+        .order("created_at")
+        .execute()
+    )
     rows = response.data or []
     return [_row_to_resource(row) for row in rows]
 

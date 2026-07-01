@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     clerk_jwks_url: str = ""
     clerk_issuer: str = ""
     clerk_audience: str = ""
+    clerk_secret_key: str = ""
+    clerk_api_url: str = "https://api.clerk.com/v1"
 
     # EdXP-Users (authorization)
     edxp_authz_url: str = ""

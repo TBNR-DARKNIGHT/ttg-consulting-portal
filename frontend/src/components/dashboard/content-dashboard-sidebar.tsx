@@ -1,6 +1,8 @@
+import { UserButton } from '@clerk/react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
 import { usePortalAuth } from '@/auth/auth-context';
+import { getAuthMode } from '@/auth/env';
 import { SiteBrandMark } from '@/components/layout/site-brand-mark';
 import { DashboardCourseSidebarSection } from '@/components/dashboard/dashboard-course-sidebar-section';
 import { Button } from '@/components/ui/button';
@@ -49,7 +51,10 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
 }
 
 export function ContentDashboardSidebar() {
-  const { signOut } = usePortalAuth();
+  const { signOut, user } = usePortalAuth();
+  const usesClerk = getAuthMode() === 'clerk';
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'Account';
 
   return (
     <aside className="hidden h-svh w-60 shrink-0 flex-col border-r border-border bg-white md:flex">
@@ -63,14 +68,26 @@ export function ContentDashboardSidebar() {
       </div>
 
       <div className="shrink-0 border-t border-border p-3">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-          onClick={() => void signOut()}
-        >
-          <LogOut className="size-4" aria-hidden />
-          Logout
-        </Button>
+        {usesClerk ? (
+          <div className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2">
+            <UserButton />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
+              {user?.email && displayName !== user.email && (
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            onClick={() => void signOut()}
+          >
+            <LogOut className="size-4" aria-hidden />
+            Logout
+          </Button>
+        )}
       </div>
     </aside>
   );

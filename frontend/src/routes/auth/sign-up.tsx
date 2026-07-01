@@ -21,7 +21,7 @@ function SignUpPage() {
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <SignUp
           routing="hash"
-          fallbackRedirectUrl="/dashboard"
+          fallbackRedirectUrl="/auth/complete"
           signInUrl="/auth/login"
         />
       </div>

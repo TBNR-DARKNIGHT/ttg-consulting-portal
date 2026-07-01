@@ -19,12 +19,12 @@ The education consulting market lacks centralized platforms combining service de
 ### Scope
 
 - **In scope (MVP)**:
-  - Phase 1: TTA Consulting Portal (auth, content dashboard, landing page, admin provisioning)
+  - Phase 1: TTA Consulting Portal (auth, content dashboard, landing page, transferable-code redemption)
   - Phase 2: MapleBear Parent Experience (video library, consultant feedback, upload interface)
   - Phase 3: DSA Resource Portal (free content hub, paid resource purchase flow)
 - **Out of scope**:
   - Macro Base Camp / University Consulting portals
-  - Automated payment integration (manual grants in MVP)
+  - Automated payment integration (manual access-code generation in MVP)
   - Multi-tier resource packages
   - Individual student consulting portals with personalized dashboards
   - Progress tracking with milestones/metrics
@@ -60,15 +60,15 @@ This PRD is a living document that will evolve during development:
 **I want** to see the portal's value proposition and available resources
 **So that** I understand what's offered before purchasing access
 
-**US-1.2: Post-Purchase Account Provisioning**
+**US-1.2: Post-Purchase Code Issuance**
 **As a** TTA admin
-**I want** to provision portal access after a purchase is confirmed in TTA Shop
+**I want** to issue a transferable single-use code after a purchase is confirmed in TTA Shop
 **So that** only paying customers can access premium content
 
-**US-1.3: First Login After Purchase**
-**As a** newly provisioned client
-**I want** to log in using the credentials I received by email
-**So that** I can access the DSA content I purchased
+**US-1.3: First Login and Redemption**
+**As a** purchaser or code recipient
+**I want** to authenticate with Clerk and redeem my code
+**So that** Course 2 is unlocked for my account
 
 **US-1.4: Returning User Login**
 **As a** returning client
@@ -130,7 +130,7 @@ This PRD is a living document that will evolve during development:
 
 ### Scenario: Returning User Login (US-1.4)
 ```gherkin
-Given a provisioned user with valid credentials
+Given a registered Clerk user with valid credentials
 When they enter their email and password on the Auth Page
 Then Clerk authenticates the user
 And FastAPI validates the session token
@@ -146,22 +146,50 @@ And the user remains on the Auth Page
 And a "Forgot Password" link is available triggering Clerk's reset flow
 ```
 
-### Scenario: First Login Password Change (US-1.3)
+### Scenario: First Authenticated Portal Request (US-1.3)
 ```gherkin
-Given a newly provisioned client logging in for the first time
-When they authenticate successfully
-Then they are prompted to change their password
-And after changing, they are redirected to the Content Dashboard
-And their session persists for 7 days unless they log out
+Given a user has authenticated successfully with Clerk
+When the frontend makes its first protected FastAPI request
+Then FastAPI validates the Clerk JWT
+And creates or resolves the matching public.users row by clerk_user_id
+And preserves server-managed role and status on later synchronizations
 ```
 
-### Scenario: Admin Provisions Access (US-1.2)
+### Scenario: Admin Issues Access Code (US-1.2)
 ```gherkin
 Given a purchase is confirmed in TTA Shop
-When the admin receives the purchase notification
-Then the admin creates the user account via Clerk admin panel
-And the new user receives an email with login credentials and portal link
-And the user cannot access content until provisioning is complete
+And the signed-in user's synchronized portal role is ADMIN
+When the admin creates a code from /admin with the shop order ID
+Then only the secure hash is stored in access_codes
+And the plaintext code is delivered once to the purchaser
+And an access_code.created audit record identifies the administrator
+```
+
+### Scenario: Admin Revokes or Reissues an Unused Access Code
+```gherkin
+Given an active access code was accidentally shared or lost
+And the code has not been redeemed
+When an ADMIN supplies a reason and chooses Revoke
+Then the old code can no longer be redeemed
+And the actor, reason, target, and timestamp are recorded in admin_audit_log
+When an ADMIN instead chooses Reissue
+Then revoking the old code and creating its linked replacement occur atomically
+And the replacement plaintext is displayed exactly once
+But a redeemed code cannot be revoked or reissued through this workflow
+```
+
+### Scenario: Redeem a Transferable Course 2 Access Code
+```gherkin
+Given a qualifying purchase has produced an unused Course 2 redemption code
+And an authenticated portal user possesses that code
+When the user submits the code for redemption
+Then the code is consumed exactly once
+And a lifetime Course 2 entitlement is granted to that user's synchronized internal user ID
+And the user can access Course 2 resources and videos
+And the purchaser's email address is not required to match the redeeming user's email address
+When any user subsequently submits the same code
+Then no new entitlement is granted
+And the original entitlement remains associated with the first redeeming user
 ```
 
 ### Scenario: Parent Views Video Library (US-2.3)
@@ -210,38 +238,54 @@ And Back returns them to the correct course Resources list
 
 ### Core Behavior
 
-**Authentication**: Clerk handles all auth (sign-up, sign-in, password reset, session management). No self-serve sign-up for TTA consulting portal — accounts are admin-provisioned only. MapleBear parents can self-register.
+**Authentication**: Clerk handles sign-up, sign-in, password reset, and session management. On the first protected API request, FastAPI synchronizes the verified Clerk identity into `public.users`; the backend creates the internal UUID and defaults a new portal user to role `CLIENT`, status `ACTIVE`.
 
 **Local demo / UX prototyping**: For stakeholder walkthroughs without Clerk or a running API, the React app supports **`VITE_AUTH_MODE=mock`** (development builds only): in-memory “sign in”, shared `usePortalAuth()` abstraction, and static resource/progress fixtures (no FastAPI calls). **`VITE_AUTH_MODE=public`** enables the **same** demo behaviour in **production builds** (e.g. static hosting on Vercel when Clerk is not configured yet); copy must state preview-only, no real accounts. Neither `mock` nor `public` replaces Clerk for staging acceptance, production users, or security review parity with Clerk.
 
-**Content Access**: Strictly scoped — users only see content their account is provisioned for. Videos play in-browser. PDFs and downloadable materials open in an **in-app resource detail view** (embedded viewer), not a separate browser tab by default. Resources remain accessible indefinitely (one-time purchase, lifetime access).
+**Content Access**: Course 1 is available to every authenticated user. Course 2 requires an active lifetime entitlement. Videos play in-browser. PDFs and downloadable materials open in an **in-app resource detail view** (embedded viewer), not a separate browser tab by default.
 
-**Paid file storage (Supabase)**: The `resources-paid` bucket remains **private** (not a public bucket). Authenticated users access objects only via backend endpoints (`/api/v1/storage/paid-download`, `/api/v1/storage/paid-url`) that validate **Clerk JWT** and use the **Supabase service role** server-side. Production deployments should configure `SUPABASE_SERVICE_KEY` and Clerk; the API may log a warning at startup if required keys are missing outside development.
+**File storage (Supabase)**: Browser callers send only a `resource_id`. FastAPI resolves the server-owned bucket/path from the catalog. Public PDF routes allow only public catalog PDFs in `resources-public`; paid routes additionally validate the Clerk JWT and Course 2 entitlement before reading the private `resources-paid` bucket with the service role.
 
 **Payment**: All payments processed through existing TTA Shop infrastructure. Portal does not handle payment directly.
+
+**Course access (Phase 1)**: Course 1 is available to every authenticated portal user. Course 2 requires an active lifetime entitlement associated with the synchronized internal user UUID.
+
+**Transferable redemption codes (Phase 1)**: After a qualifying one-time purchase through TTA Shop, the purchaser receives a high-entropy, single-use redemption code for Course 2. The code is transferable: any authenticated portal user who possesses it may redeem it, regardless of the purchaser's email address. The first successful redemption permanently associates the Course 2 entitlement with the redeeming Clerk user ID and atomically consumes the code. Subsequent redemption attempts must not transfer, duplicate, or replace the original entitlement. Redemption codes are stored only as secure hashes; plaintext codes must not be persisted in the portal database or application logs.
+
+**Portal administration**: Clerk authenticates administrators, while the uppercase `ADMIN` value
+in synchronized `public.users.role` authorizes global portal administration. After login the SPA
+routes administrators to `/admin`, but FastAPI independently enforces the role on every admin
+endpoint. Code create/revoke/reissue operations are audited. Revoking a redeemed entitlement is a
+separate, higher-impact workflow and is not part of unused-code recovery.
+
+**Paid Mux playback**: Every paid video must reference a signed Mux playback ID. The corresponding
+Mux asset must not retain any public playback ID, because an asset can have multiple playback IDs
+and any remaining public ID bypasses portal entitlement checks. Public preview clips use separate
+public assets or playback IDs.
 
 ### States & Transitions
 
 | State | Description | Transitions To |
 |-------|-------------|----------------|
-| Visitor | Unauthenticated user browsing public pages | Registered (MapleBear self-serve) or Provisioned (admin) |
-| Registered | MapleBear parent with unverified email | Active (after email verification) |
-| Provisioned | TTA client account created by admin | Active (after first login + password change) |
+| Visitor | Unauthenticated user browsing public pages | Registered |
+| Registered | Clerk user completing the configured verification flow | Active |
 | Active | Authenticated user with valid session | Logged Out, Suspended |
 | Logged Out | Session expired or user logged out | Active (re-login) |
 
 ### Business Rules
 
-1. TTA consulting accounts are admin-provisioned only — no self-serve registration
-2. MapleBear parent accounts support self-registration with email verification
-3. Sessions persist for 7 days unless user explicitly logs out
+1. Clerk owns account registration, verification, sign-in, password reset, and session policy
+2. A verified Clerk identity is synchronized into `public.users` on its first protected API request
+3. Course 1 is implicit for every authenticated portal user
 4. Password requirements: minimum 8 characters, at least one number and one letter
 5. Email verification required before account activation
 6. Parents can only access videos for their own child (strict access control)
 7. Consultant feedback is read-only for parents, editable by consultants
 8. Feedback text field supports up to 500 characters
-9. Admin grants access within 24 hours of purchase during business days
-10. Paid resources have lifetime access (one-time purchase)
+9. During MVP, an `ADMIN` generates and delivers one transferable code per confirmed purchase
+10. The first successful redemption atomically consumes the code and grants lifetime Course 2 access
+11. Only active, unredeemed codes may be revoked or reissued; every mutation requires an audit reason
+12. Paid Mux assets use signed-only playback IDs; no full paid asset may retain public playback
 
 ### Permissions
 
@@ -251,7 +295,7 @@ And Back returns them to the correct course Resources list
 | **MapleBear Parent** | View own child's video library and feedback |
 | **TTA Client** | Access purchased DSA content and resources |
 | **Consultant/Teacher** | Upload videos, add/edit feedback for assigned students |
-| **Admin** | Provision accounts, manage users, manage all content |
+| **Admin** | Issue/revoke access, manage users, manage all content |
 
 ---
 
@@ -309,25 +353,20 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 
 ### API Endpoints (Phase 1 — TTA Consulting)
 
-#### `POST /api/auth/validate`
-**Purpose**: Validate Clerk JWT and return user profile
-
-**Request**: Clerk JWT in Authorization header
-
-**Response** (200 OK):
-```json
-{
-  "user_id": "uuid",
-  "email": "string",
-  "role": "CLIENT | CONSULTANT | ADMIN",
-  "first_name": "string",
-  "provisioned_content": ["content-id-1", "content-id-2"]
-}
-```
+#### Authentication dependency
+**Purpose**: Every protected `/api/v1` endpoint validates the Clerk bearer token and synchronizes
+the verified Clerk subject to `public.users`. There is no separate `/api/auth/validate` route.
 
 **Errors**:
-- `401`: Invalid or expired token
-- `403`: Account not provisioned
+- `401`: Missing, invalid, or expired token
+- `503`: Clerk profile or local user synchronization unavailable
+
+#### `GET /api/v1/me/entitlements`
+**Purpose**: Return the authenticated user's course access. Course 1 is implicit.
+
+#### `POST /api/v1/entitlements/redeem`
+**Purpose**: Normalize and hash a submitted code, then atomically consume it and grant its course
+entitlement through the backend-only PostgreSQL RPC.
 
 #### `GET /api/content`
 **Purpose**: List content available to authenticated user
@@ -340,7 +379,7 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
       "id": "uuid",
       "title": "string",
       "type": "video | article | download",
-      "topic": "dsa-pathways | interview-prep | timelines",
+      "topic": "dsa-pathways | interview-preparation | timelines-deadlines",
       "completion_status": "not_started | in_progress | completed",
       "thumbnail_url": "string",
       "duration_seconds": 120
@@ -362,11 +401,12 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 
 ```typescript
 interface User {
-  id: string;                    // UUID (Clerk user ID)
+  id: string;                    // Internal Supabase UUID
+  clerkUserId: string;           // Clerk subject, e.g. user_...
   email: string;
   firstName: string;
   lastName: string;
-  role: 'PARENT' | 'CLIENT' | 'CONSULTANT' | 'ADMIN';
+  role: 'CLIENT' | 'CONSULTANT' | 'ADMIN';
   status: 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED';
   createdAt: string;             // ISO8601
   updatedAt: string;
@@ -398,7 +438,7 @@ interface Content {
   id: string;                    // UUID
   title: string;
   type: 'video' | 'article' | 'download';
-  topic: 'dsa-pathways' | 'interview-prep' | 'timelines';
+  topic: 'dsa-pathways' | 'interview-preparation' | 'timelines-deadlines';
   fileUrl: string;
   thumbnailUrl: string | null;
   durationSeconds: number | null;
@@ -431,7 +471,8 @@ interface UserContentAccess {
 | Event | Trigger | Payload | Consumers |
 |-------|---------|---------|-----------|
 | Purchase confirmed | TTA Shop payment success | Order details, customer email | Admin notification |
-| Account provisioned | Admin creates Clerk user | User ID, email, role | Welcome email with credentials |
+| Access code issued | Admin runs backend generator | Order ID, Course 2 | Purchaser receives plaintext code once |
+| Access code redeemed | Authenticated user submits unused code | Internal user ID, course ID | Atomic entitlement grant |
 | Video uploaded | Consultant uploads recording | Video ID, student ID | Parent notification (future) |
 
 ---
@@ -452,10 +493,8 @@ interface UserContentAccess {
   - Multi-column footer: resources/platform/company/contact + social links; privacy/terms in bottom row
 
 **2. Auth Page** (single entry point)
-- Email + password fields
-- "Sign In" primary CTA
-- "Forgot Password" secondary link
-- No self-serve sign-up option (admin-only account creation for TTA)
+- Clerk sign-in/sign-up components and configured verification methods
+- "Sign In" primary CTA and password-reset flow
 - TTA/consulting portal branding
 - Responsive across desktop and mobile
 - **Mock / public demo only**: a labelled prototype control (e.g. “Continue as test parent”) replaces real credentials; copy must state no real session (local **Demo mode** vs hosted **Preview** per `VITE_AUTH_MODE`)
@@ -464,11 +503,12 @@ interface UserContentAccess {
 - Personalized greeting ("Welcome back, [First Name]")
 - **Dashboard home**: Progress summary per course (e.g. completion counts / bars), not a duplicate course library
 - **Sidebar (desktop) / sheet (mobile)**: Primary navigation with **Dashboard**, expandable **Course 1** and **Course 2** sections (accordion), each offering **Resources** (PDFs and other file-backed materials for that course) and **Video**; **Account Settings**; **Logout** pinned to the bottom of the column
-- Course **Resources** and **Video** lists are filtered by course topic mapping (e.g. Course 1: pathways + timelines; Course 2: interview preparation)
+- Course **Resources** and **Video** lists use the catalog's explicit `course_id`; topic remains presentation metadata
 - Each list item shows: title, type, topic label, description preview, completion status where applicable
 - **PDFs**: Open via `/dashboard/resources/{resourceId}` with an in-app embedded viewer (public bucket URLs or paid streaming via API); no primary CTA to open PDFs in a new tab
 - Videos: listed under the course Video tab; playback UX as implemented (in-browser when a playable URL exists)
-- Access scoped to provisioned content only (Phase 1 demo catalog may treat signed-in users as having access to paid materials for UX testing)
+- Course 2 shows locked navigation, progress, lists, and detail states until `/me/entitlements` confirms access
+- **Account Settings → Course access** submits transferable codes and refreshes entitlement/resource queries immediately after redemption
 
 **4. MapleBear Parent Dashboard** (authenticated)
 - Child's name and programme displayed
@@ -501,9 +541,9 @@ interface UserContentAccess {
 ### Recommended Approach
 
 1. ~~**Scaffold frontend + backend**: Vite React app + FastAPI project with Docker setup~~ **Done** — Frontend scaffold complete (Vite, TanStack Router, TanStack Query, Tailwind CSS, shadcn/ui, typed API client, static mock data layer, ESLint). **Done** — Portal auth abstraction (`usePortalAuth`), `VITE_AUTH_MODE=mock` demo path (dev-only), routes `/auth/login`, `/auth/sign-up`, `/dashboard`, navbar/landing SPA links, TanStack Query keys scoped by mock vs live data source. **Done** — Root **`npm run dev`** using **`concurrently`** + **`run-script-os`** to start Vite and Uvicorn together for local full-stack development.
-2. **Integrate Clerk**: JWT validation middleware for FastAPI; production auth hardening. SPA shells: Clerk components on `/auth/login` and `/auth/sign-up`
-3. **Set up Supabase**: Database schema, storage buckets for videos/files
-4. **Build Phase 1** (TTA Consulting): ~~Landing page~~, ~~auth shell (Clerk + mock demo)~~, ~~dashboard shell (mock/API hooks)~~, admin provisioning — Landing page complete with navbar, hero, video samples carousel, community Q&A, social proof CTA, final features + CTA, stats, CTA, and redesigned multi-column footer; authenticated **content dashboard** includes course-scoped sidebar navigation, progress home, Resources/Video routes per course, in-app PDF detail view, paid storage gated via FastAPI + Clerk; demo catalog and API seeds aligned (e.g. single paid Course 2 PDF at `course-2/pdf/testpaid.pdf` in `resources-paid`)
+2. ~~**Integrate Clerk**: JWT validation, first-request local user synchronization, and Clerk SPA components~~ **Done**
+3. ~~**Set up Supabase**: Resources, users, course entitlements, access codes, storage buckets, and atomic redemption RPC~~ **Done**
+4. **Build Phase 1** (TTA Consulting): Landing, auth, dashboard, transferable code redemption, locked Course 2 UX, and server-side PDF/Mux entitlement enforcement are implemented. TTA Shop remains a manual admin code-generation workflow until webhook automation.
 5. **Build Phase 2** (MapleBear): Parent dashboard, video library, consultant upload
 6. **Build Phase 3** (DSA Resources): Public content hub, purchase flow integration
 
@@ -517,12 +557,12 @@ interface UserContentAccess {
   - `EDXP_INTERNAL_JWT_SECRET` (HS256 shared secret used to mint service tokens)
   - `EDXP_SERVICE_NAME` (JWT `sub`, defaults to `ttg-portal`)
 - In development, the backend may expose `POST /api/v1/dev/authz/authorize` to validate the EdXP integration wiring. This endpoint must remain development-only.
-- Supabase Row Level Security (RLS) policies enforce data access boundaries
-- Video URLs use signed/expiring links from Supabase Storage where applicable
-- **Paid resource files**: Served only through authenticated API routes; **`resources-paid`** must stay non-public; backend restricts paid download/signed-url calls to the configured paid bucket name to reduce arbitrary bucket access via query parameters
+- Supabase RLS provides defense in depth where policies are configured; FastAPI checks remain mandatory because the backend service-role client bypasses RLS
+- Paid Mux videos use signed playback IDs and short-lived playback JWTs
+- **Resource files**: Public and paid storage routes accept only `resource_id`, resolve bucket/path server-side, and enforce the expected public/paid bucket. Paid routes additionally require authentication and the matching course entitlement.
 - PII encrypted at rest in Supabase (database-level encryption)
 - CORS configured to allow only portal domain origins; preview origins must be explicitly constrained (e.g. anchored regex), particularly when browser credentials are permitted
-- Rate limiting on auth endpoints
+- Rate limiting on redemption and auth-sensitive endpoints is required before production
 
 ### Performance Optimization
 
@@ -542,16 +582,19 @@ interface UserContentAccess {
 ## 9. Testing Strategy
 
 ### Unit Tests
-- [ ] Clerk JWT validation middleware
-- [ ] Content access permission logic
+- [x] Clerk-to-Supabase user synchronization
+- [x] Entitlement lookup, code hashing, and RPC error mapping
+- [x] Paid PDF and signed Mux access denial
+- [x] Access-code generator stores only a hash
 - [ ] User role/permission checks
 - [ ] Video metadata validation
 - [ ] Feedback character limit enforcement
 - [ ] (Optional, when Vitest is added) Frontend `VITE_AUTH_MODE` / mock-vs-live data source helpers — case normalisation and alignment with `getAuthMode()` (`mock`, `public`, `clerk`)
 
 ### Integration Tests
-- [ ] Auth flow: Clerk JWT -> FastAPI validation -> user profile response
-- [ ] Content API: List content scoped to user's provisioned access
+- [x] Authenticated user sync: Clerk subject -> internal Supabase user
+- [x] Redemption: unused code -> consumed code + Course 2 entitlement
+- [x] Entitlement API and paid resource authorization
 - [ ] Video upload: Consultant uploads -> parent can view
 - [ ] Feedback CRUD: Consultant adds/edits, parent sees read-only
 
@@ -565,9 +608,9 @@ interface UserContentAccess {
 - [ ] **Hosted preview (public mode)**: With a production build using `VITE_AUTH_MODE=public` (e.g. on Vercel), confirm landing loads, `/auth/login` shows Preview copy and demo sign-in, `/dashboard` works without Clerk
 - [ ] **Dev demo (case normalisation)**: With `VITE_AUTH_MODE=Mock` (mixed case) and `VITE_API_BASE_URL` set, confirm dashboard still uses fixture data (no failing API calls)
 - [ ] **Clerk mode**: With valid Clerk publishable key, `/auth/login` shows Clerk sign-in; after sign-in, user reaches `/dashboard`; sign-out clears session and navbar returns to “Sign in”
-- [ ] **Backend storage smoke test (dev-only)**: With `ENVIRONMENT=development` and Supabase configured, confirm the API can produce a public URL for a public bucket path and a signed URL for a paid bucket path via dev-only endpoints under `/api/v1/dev/storage/*`. If dev bearer auth is enabled, confirm paid endpoints require `Authorization: Bearer <DEV_BEARER_TOKEN>`.
+- [ ] **Backend storage smoke test**: Confirm public routes accept a public PDF `resource_id`, reject a paid PDF ID, and reject legacy bucket/path parameters. Confirm paid routes require Clerk authentication plus the matching course entitlement.
 - [ ] **AC: Auth Page**: Login, failed login, forgot password all work
-- [ ] **AC: Content Dashboard**: Shows only provisioned content; sidebar course accordions, Resources/Video lists, progress home, in-app PDF detail, and legacy `/dashboard/resources` redirect do not break `/dashboard/resources/{id}`
+- [ ] **AC: Content Dashboard**: Course 1 is available to authenticated users; Course 2 displays locked navigation/list/detail states until redemption; in-app PDF detail and legacy `/dashboard/resources` redirect do not break `/dashboard/resources/{id}`
 - [ ] **AC: Video Library**: Parent sees only own child's videos
 - [ ] **AC: Upload**: Consultant uploads and feedback appears for parent
 - [ ] **AC: Public Page**: Free DSA content accessible without login
@@ -578,7 +621,7 @@ interface UserContentAccess {
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| Manual provisioning doesn't scale | M | H | Design admin panel for efficiency; automate in Phase 2 |
+| Manual code issuance doesn't scale | M | H | Use the documented generator for MVP; automate from a verified TTA Shop webhook |
 | Video storage costs grow quickly | H | M | Monitor Supabase storage usage; set file size limits; compress on upload |
 | Clerk pricing at scale | M | L | Evaluate usage tiers; Clerk free tier supports 10K MAU |
 | TTA Shop integration fragile (manual) | M | M | Document clear admin workflow; build webhook receiver for future automation |
@@ -642,6 +685,18 @@ interface UserContentAccess {
 ---
 
 ## Change Log
+
+### 2026-07-01 v1.8.0
+- Status: In Development
+- Changes:
+  - Replaced admin account/content provisioning with Clerk first-request user synchronization and transferable single-use Course 2 codes
+  - Documented `users`, `resources`, `course_entitlements`, `access_codes`, explicit `resources.course_id`, and the atomic `redeem_course_code` RPC
+  - Added entitlement APIs, manual admin code generation, locked Course 2 UX, and Account Settings redemption
+  - Added the dedicated `/admin` access-code create/revoke/reissue workflow, uppercase Supabase role authorization, and admin audit logging
+  - Documented server-side entitlement enforcement for paid PDFs and signed Mux playback
+  - Required signed-only playback IDs for full paid Mux assets and documented conversion, verification, and incident response
+  - Hardened public and paid storage contracts to accept only `resource_id` and resolve allowlisted bucket/path values server-side
+  - Updated setup, deployment, testing, incident response, API, architecture, and data-model guidance to match the implementation
 
 ### 2026-05-10 v1.7.0
 - Status: In Development

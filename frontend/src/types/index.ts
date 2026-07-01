@@ -10,6 +10,7 @@ export type ResourceAccess = 'public' | 'paid';
 export interface Resource {
   id: string;
   title: string;
+  courseId?: 'course-1' | 'course-2';
   type: ResourceType;
   topic: ContentTopic;
   description: string;

@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from uuid import uuid4
+
 import pytest
 from httpx import AsyncClient
 
 from app.dependencies import get_current_user
 from app.main import app
+from app.models.resource import ResourceItem
 from app.models.schemas import ClerkUser
+from app.routers import playback
 
 
 @pytest.mark.asyncio
@@ -49,3 +54,44 @@ async def test_mux_playback_token_unknown_resource(client: AsyncClient) -> None:
         app.dependency_overrides.pop(get_current_user, None)
 
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_paid_mux_playback_requires_course_entitlement(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime.now(UTC)
+    resource = ResourceItem(
+        id="paid-video",
+        title="Paid video",
+        course_id="course-2",
+        type="video",
+        topic="interview-preparation",
+        description="",
+        duration="",
+        access="paid",
+        mux_playback_id="signed-playback",
+        mux_playback_signed=True,
+        created_at=now,
+        updated_at=now,
+    )
+
+    async def user() -> ClerkUser:
+        return ClerkUser(clerk_id="user_free", internal_user_id=uuid4())
+
+    async def denied(_user_id, _course_id):
+        return False
+
+    app.dependency_overrides[get_current_user] = user
+    monkeypatch.setattr(playback, "find_resource", lambda _resource_id: resource)
+    monkeypatch.setattr(playback, "has_course_access", denied)
+    try:
+        response = await client.get(
+            "/api/v1/playback/mux-token",
+            params={"resource_id": "paid-video"},
+        )
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+    assert response.status_code == 403
