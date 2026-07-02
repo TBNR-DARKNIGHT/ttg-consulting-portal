@@ -11,7 +11,7 @@ export function PortalCommunitySection() {
           id="portal-community-heading"
           className="text-2xl font-semibold tracking-tight text-brand-dark md:text-3xl"
         >
-          Community and Live Q and A
+          Community And Live Q And A
         </h2>
         <p className="mt-2 text-sm font-medium uppercase tracking-wide text-brand-dark/60">
           (Coming Soon)

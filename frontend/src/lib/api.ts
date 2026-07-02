@@ -139,6 +139,16 @@ export function getPublicStorageUrl(
   );
 }
 
+export function getPdfThumbnailUrl(
+  resourceId: string,
+  getToken: () => Promise<string | null>,
+): Promise<StorageUrlResponse> {
+  return apiFetch<StorageUrlResponse>(
+    `/storage/thumbnail-url?resource_id=${encodeURIComponent(resourceId)}`,
+    getToken,
+  );
+}
+
 export interface MuxPlaybackTokenResponse {
   token: string;
   expiresAt: number;
@@ -225,6 +235,141 @@ export function reissueAdminAccessCode(
   );
 }
 
+export interface AdminResourceUpload {
+  resourceId: string;
+  type: 'pdf' | 'video';
+  status: string;
+  uploadUrl?: string;
+  uploadId?: string;
+}
+
+export interface AdminResourceMetadata {
+  title: string;
+  description: string;
+  courseId: string;
+  moduleId?: string;
+  moduleTitle?: string;
+  topic: string;
+}
+
+export interface AdminResourceUploadOptions {
+  courses: string[];
+  topicsByCourse: Record<string, string[]>;
+  modulesByCourse: Record<string, Array<{ id: string; title: string }>>;
+}
+
+export function getAdminResourceUploadOptions(
+  getToken: () => Promise<string | null>,
+): Promise<AdminResourceUploadOptions> {
+  return apiFetch<AdminResourceUploadOptions>('/admin/resources/options', getToken);
+}
+
+export function updateAdminResource(
+  resourceId: string,
+  input: { title: string; topic: string; description: string },
+  getToken: () => Promise<string | null>,
+): Promise<null> {
+  return apiFetch<null>(`/admin/resources/${encodeURIComponent(resourceId)}`, getToken, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteAdminResource(
+  resourceId: string,
+  getToken: () => Promise<string | null>,
+): Promise<null> {
+  return apiFetch<null>(`/admin/resources/${encodeURIComponent(resourceId)}`, getToken, {
+    method: 'DELETE',
+  });
+}
+
+export async function uploadAdminDocument(
+  file: File,
+  metadata: AdminResourceMetadata,
+  getToken: () => Promise<string | null>,
+): Promise<AdminResourceUpload> {
+  const form = new FormData();
+  form.set('file', file);
+  form.set('title', metadata.title);
+  form.set('description', metadata.description);
+  form.set('course_id', metadata.courseId);
+  if (metadata.moduleId) form.set('module_id', metadata.moduleId);
+  if (metadata.moduleTitle) form.set('module_title', metadata.moduleTitle);
+  form.set('topic', metadata.topic);
+  const token = await getToken();
+  const response = await fetch(buildApiUrl('/admin/resources/documents'), {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (!response.ok) {
+    const error = (await response.json().catch(() => ({}))) as { detail?: string };
+    throw new Error(error.detail || `Upload failed (${response.status})`);
+  }
+  return (await response.json()).data as AdminResourceUpload;
+}
+
+export function createAdminVideoUpload(
+  file: File,
+  metadata: AdminResourceMetadata,
+  getToken: () => Promise<string | null>,
+): Promise<AdminResourceUpload> {
+  return apiFetch<AdminResourceUpload>('/admin/resources/videos', getToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      ...metadata,
+      contentType: file.type || 'video/mp4',
+    }),
+  });
+}
+
+export function createAdminLinkUpload(
+  url: string,
+  resourceType: 'pdf' | 'video',
+  metadata: AdminResourceMetadata,
+  getToken: () => Promise<string | null>,
+): Promise<AdminResourceUpload> {
+  return apiFetch<AdminResourceUpload>('/admin/resources/links', getToken, {
+    method: 'POST',
+    body: JSON.stringify({ ...metadata, url, resourceType }),
+  });
+}
+
+export function putFileWithProgress(
+  url: string,
+  file: File,
+  onProgress: (percent: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('PUT', url);
+    request.setRequestHeader('Content-Type', file.type || 'video/mp4');
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) resolve();
+      else reject(new Error(`Mux upload failed (${request.status})`));
+    };
+    request.onerror = () => reject(new Error('The connection to Mux was interrupted'));
+    request.send(file);
+  });
+}
+
+export function completeAdminVideoUpload(
+  resourceId: string,
+  uploadId: string,
+  getToken: () => Promise<string | null>,
+): Promise<AdminResourceUpload> {
+  const query = new URLSearchParams({ upload_id: uploadId });
+  return apiFetch<AdminResourceUpload>(
+    `/admin/resources/videos/${encodeURIComponent(resourceId)}/complete?${query}`,
+    getToken,
+    { method: 'POST' },
+  );
+}
+
 export function getEntitlements(
   getToken: () => Promise<string | null>,
 ): Promise<EntitlementsResponse> {
@@ -250,6 +395,16 @@ export function getMuxPlaybackToken(
     q.set('expires_in', String(params.expiresIn));
   }
   return apiFetch<MuxPlaybackTokenResponse>(`/playback/mux-token?${q.toString()}`, getToken);
+}
+
+export function getMuxThumbnailToken(
+  resourceId: string,
+  getToken: () => Promise<string | null>,
+): Promise<MuxPlaybackTokenResponse> {
+  return apiFetch<MuxPlaybackTokenResponse>(
+    `/playback/mux-thumbnail-token?resource_id=${encodeURIComponent(resourceId)}`,
+    getToken,
+  );
 }
 
 export interface PortalPreview {

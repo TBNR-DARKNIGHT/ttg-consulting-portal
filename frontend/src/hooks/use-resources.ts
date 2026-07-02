@@ -17,6 +17,7 @@ export function useResources() {
       }
       return apiFetch<Resource[]>('/resources', getToken);
     },
+    refetchOnMount: 'always',
   });
 
   return { resources, isLoading, error };

@@ -12,8 +12,8 @@ from pydantic import ValidationError
 from supabase import Client
 
 from app.config import settings
-from app.models.schemas import ClerkUser
 from app.models.enums import UserRole
+from app.models.schemas import ClerkUser
 from app.services.edxp_authz import EdxpAuthzError
 from app.services.edxp_authz import authorize as edxp_authorize
 from app.services.supabase import get_client as get_supabase_client

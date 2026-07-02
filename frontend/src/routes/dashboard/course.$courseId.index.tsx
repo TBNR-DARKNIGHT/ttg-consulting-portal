@@ -1,23 +1,24 @@
 import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
 import { DashboardResourceGrid } from '@/components/dashboard/dashboard-resource-grid';
 import { LockedCourseAccess } from '@/components/dashboard/locked-course-access';
+import { Button } from '@/components/ui/button';
 import { useEntitlements } from '@/hooks/use-entitlements';
 import { COURSE_2_MODULES, getCourseById } from '@/lib/courses';
+import type { ResourceType } from '@/types';
 
-export const Route = createFileRoute('/dashboard/course/$courseId/videos')({
+const ALL_RESOURCE_TYPES: readonly ResourceType[] = ['video', 'pdf', 'article', 'module'];
+
+export const Route = createFileRoute('/dashboard/course/$courseId/')({
   validateSearch: (search: Record<string, unknown>): { module?: string } =>
     typeof search.module === 'string' ? { module: search.module } : {},
-  component: CourseVideosPage,
+  component: CourseOverviewPage,
 });
 
-function CourseVideosPage() {
+function CourseOverviewPage() {
   const { courseId } = Route.useParams();
   const { module: moduleId } = Route.useSearch();
   const course = getCourseById(courseId);
-  const selectedModule = moduleId
-    ? COURSE_2_MODULES.find((module) => module.id === moduleId)
-    : undefined;
+  const selectedModule = moduleId ? COURSE_2_MODULES.find((module) => module.id === moduleId) : undefined;
   const { hasCourseAccess, isLoading } = useEntitlements();
 
   if (!course) {
@@ -33,12 +34,9 @@ function CourseVideosPage() {
               {course.shortLabel}
             </p>
             <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-              Videos
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
               {course.title}
-              {selectedModule ? ` · ${selectedModule.title}` : ''}
-            </p>
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">All course content</p>
           </div>
           <Button variant="outline" asChild>
             <Link to="/dashboard">Dashboard</Link>
@@ -47,35 +45,44 @@ function CourseVideosPage() {
 
         {!isLoading && !hasCourseAccess(course.id) ? (
           <LockedCourseAccess />
-        ) : course.id !== 'course-2' || moduleId ? (
-          <DashboardResourceGrid
-            courseId={course.id}
-            topics={course.topics}
-            resourceTypes={['video']}
-            moduleId={course.id === 'course-2' ? (moduleId ?? null) : undefined}
-          />
+        ) : course.id === 'course-1' ? (
+          <DashboardResourceGrid courseId={course.id} topics={course.topics} resourceTypes={ALL_RESOURCE_TYPES} />
+        ) : selectedModule ? (
+          <section className="space-y-4">
+            <h2 className="font-serif text-xl font-semibold text-foreground">
+              {selectedModule.title}
+            </h2>
+            <DashboardResourceGrid
+              courseId={course.id}
+              topics={course.topics}
+              resourceTypes={ALL_RESOURCE_TYPES}
+              moduleId={selectedModule.id}
+            />
+          </section>
         ) : (
           <div className="space-y-10">
             <section className="space-y-4">
-              <h2 className="font-serif text-xl font-semibold text-foreground">
-                Course Videos
-              </h2>
+              <h2 className="font-serif text-xl font-semibold text-foreground">Course Resources</h2>
               <DashboardResourceGrid
                 courseId={course.id}
                 topics={course.topics}
-                resourceTypes={['video']}
+                resourceTypes={ALL_RESOURCE_TYPES}
                 moduleId={null}
               />
             </section>
+
             {COURSE_2_MODULES.map((module) => (
-              <section key={module.id} className="space-y-4 border-t border-border pt-8">
+              <section
+                key={module.id}
+                className="space-y-4 border-t border-border pt-8"
+              >
                 <h2 className="font-serif text-xl font-semibold text-foreground">
                   {module.title}
                 </h2>
-              <DashboardResourceGrid
-                courseId={course.id}
-                topics={course.topics}
-                  resourceTypes={['video']}
+                <DashboardResourceGrid
+                  courseId={course.id}
+                  topics={course.topics}
+                  resourceTypes={ALL_RESOURCE_TYPES}
                   moduleId={module.id}
                 />
               </section>

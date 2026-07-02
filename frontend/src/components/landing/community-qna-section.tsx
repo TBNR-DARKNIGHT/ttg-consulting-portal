@@ -52,7 +52,7 @@ export function CommunityQnaSection() {
           id={headingId}
           className="text-left text-brand-dark text-3xl md:text-[40px] font-bold tracking-[-0.02em]"
         >
-          Our Experts are here to help ....
+          Our Experts Are Here To Help ....
         </h2>
 
         <div className="mt-8 grid gap-5 md:mt-10 md:grid-cols-2">

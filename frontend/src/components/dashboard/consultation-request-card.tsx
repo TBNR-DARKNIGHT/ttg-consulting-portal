@@ -26,7 +26,7 @@ export function ConsultationRequestCard() {
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
-        <CardTitle className="font-serif text-xl">Book a 1-on-1 Consultation</CardTitle>
+        <CardTitle className="font-serif text-xl">Book A 1-On-1 Consultation</CardTitle>
         <CardDescription>
           Share your details and a consultant will reach out to schedule a session.
         </CardDescription>

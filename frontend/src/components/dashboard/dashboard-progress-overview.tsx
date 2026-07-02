@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { LockKeyhole } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useResourceProgress } from '@/hooks/use-resource-progress';
@@ -9,12 +10,15 @@ import { COURSES } from '@/lib/courses';
 import type { ContentTopic, Resource, ResourceProgress } from '@/types';
 
 function courseCompletion(
+  courseId: string,
   topics: readonly ContentTopic[],
   resources: Resource[],
   progress: ResourceProgress[],
 ) {
   const topicSet = new Set(topics);
-  const inCourse = resources.filter((r) => topicSet.has(r.topic));
+  const inCourse = resources.filter(
+    (r) => r.courseId === courseId || (!r.courseId && topicSet.has(r.topic)),
+  );
   const total = inCourse.length;
   const idSet = new Set(inCourse.map((r) => r.id));
   const completed = progress.filter((p) => p.completed && idSet.has(p.resourceId)).length;
@@ -34,7 +38,7 @@ export function DashboardProgressOverview() {
     () =>
       COURSES.map((course) => ({
         course,
-        ...courseCompletion(course.topics, resources, progress),
+        ...courseCompletion(course.id, course.topics, resources, progress),
       })),
     [resources, progress],
   );
@@ -54,33 +58,41 @@ export function DashboardProgressOverview() {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {byCourse.map(({ course, total, completed, pct }) => (
-        <Card key={course.id} className="border-border shadow-sm">
-          <CardHeader className="pb-2">
-            <CardDescription>{course.shortLabel}</CardDescription>
-            <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {!hasCourseAccess(course.id) ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <LockKeyhole className="size-4" aria-hidden />
-                Redeem your access code to unlock this course.
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Completed</span>
-                  <span className="font-medium text-foreground">
-                    {completed} / {total}
-                  </span>
-                </div>
-                <Progress
-                  value={pct}
-                  className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div key={course.id}>
+          <Link
+            to="/dashboard/course/$courseId"
+            params={{ courseId: course.id }}
+            className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Card className="h-full border-border shadow-sm transition-colors hover:border-brand-indigo/40 hover:bg-muted/20">
+              <CardHeader className="pb-2">
+                <CardDescription>{course.shortLabel}</CardDescription>
+                <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {!hasCourseAccess(course.id) ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <LockKeyhole className="size-4" aria-hidden />
+                    Redeem your access code to unlock this course.
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Completed</span>
+                      <span className="font-medium text-foreground">
+                        {completed} / {total}
+                      </span>
+                    </div>
+                    <Progress
+                      value={pct}
+                      className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
       ))}
     </div>
   );

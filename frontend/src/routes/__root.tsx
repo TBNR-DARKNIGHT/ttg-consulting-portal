@@ -23,7 +23,13 @@ function RootLayout() {
   return (
     <>
       <Outlet />
-      <Toaster position="bottom-right" richColors />
+      <Toaster
+        position="bottom-right"
+        richColors
+        duration={5000}
+        swipeDirections={[]}
+        toastOptions={{ className: 'pointer-events-none select-none' }}
+      />
     </>
   );
 }

@@ -6,7 +6,7 @@ export function FinalFeaturesCtaSection() {
     <section className="w-full bg-brand-indigo">
       <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22 text-center">
         <h2 className="text-white text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
-          Ready to Begin?
+          Ready To Begin?
         </h2>
         <p className="mt-5 text-white/90 text-base md:text-lg leading-relaxed max-w-[760px] mx-auto">
           Join families who use the Beyond Grades framework to approach DSA with strategy rather

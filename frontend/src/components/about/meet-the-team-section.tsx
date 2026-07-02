@@ -109,7 +109,7 @@ export function MeetTheTeamSection() {
           id="meet-the-team-heading"
           className="text-center text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem] md:leading-tight"
         >
-          We Built This Because We Saw What Was Missing From the Inside.
+          We Built This Because We Saw What Was Missing From The Inside.
         </h2>
         <div className="mx-auto mt-4 max-w-4xl space-y-4 text-center text-base leading-relaxed text-brand-dark/75">
           <p>
@@ -195,7 +195,7 @@ export function MeetTheTeamSection() {
 
         <div className="mx-auto mt-12 max-w-4xl rounded-2xl border border-brand-grey bg-white px-6 py-8 text-center">
           <h3 className="text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
-            Ready to Work With Us?
+            Ready To Work With Us?
           </h3>
           <p className="mt-4 text-base leading-relaxed text-brand-dark/75">
             Explore our three ways to engage: at your own pace, in a cohort, or one-on-one with

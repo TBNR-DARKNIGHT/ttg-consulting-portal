@@ -1,16 +1,24 @@
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from pydantic import ValidationError
 
 from app.dependencies import get_current_user, require_admin
 from app.models.admin import (
     AccessCodeActionIn,
     AccessCodeOut,
     CreateAccessCodeIn,
+    CreateLinkUploadIn,
+    CreateVideoUploadIn,
     CurrentUserOut,
     IssuedAccessCodeOut,
+    ResourceMetadataUpdateIn,
+    ResourceUploadMetadata,
+    ResourceUploadOptionsOut,
+    ResourceUploadOut,
 )
 from app.models.schemas import ApiResponse, ClerkUser
 from app.services.admin_access_codes import (
@@ -22,7 +30,21 @@ from app.services.admin_access_codes import (
     reissue_access_code,
     revoke_access_code,
 )
+from app.services.admin_resource_uploads import (
+    ResourceUploadError,
+    begin_video_upload,
+    complete_video_upload,
+    delete_resource,
+    ingest_link,
+    list_upload_options,
+    update_resource_metadata,
+    upload_pdf,
+)
 
+from app.services.external_files import ExternalFileError
+from app.services.mux_client import MuxClientError
+
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -114,3 +136,202 @@ async def reissue_code(
     except AdminAccessCodeError as exc:
         raise HTTPException(status_code=503, detail="Unable to reissue code") from exc
 
+
+@router.get(
+    "/admin/resources/options",
+    response_model=ApiResponse[ResourceUploadOptionsOut],
+)
+async def get_resource_upload_options(
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[ResourceUploadOptionsOut]:
+    try:
+        courses, topics_by_course, modules_by_course = list_upload_options()
+        return ApiResponse(
+            data=ResourceUploadOptionsOut(
+                courses=courses,
+                topics_by_course=topics_by_course,
+                modules_by_course=modules_by_course,
+            )
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to load resource options") from exc
+
+
+@router.patch("/admin/resources/{resource_id}", response_model=ApiResponse[None])
+async def update_resource(
+    resource_id: str,
+    body: ResourceMetadataUpdateIn,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[None]:
+    try:
+        update_resource_metadata(
+            resource_id,
+            title=body.title,
+            topic=body.topic,
+            description=body.description,
+        )
+        return ApiResponse(data=None)
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Unable to update resource metadata")
+        raise HTTPException(status_code=503, detail="Unable to update resource") from exc
+
+
+@router.delete("/admin/resources/{resource_id}", response_model=ApiResponse[None])
+async def remove_resource(
+    resource_id: str,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[None]:
+    try:
+        delete_resource(resource_id)
+        return ApiResponse(data=None)
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except MuxClientError as exc:
+        logger.exception("Unable to delete resource from Mux")
+        raise HTTPException(status_code=503, detail="Unable to delete video from Mux") from exc
+    except Exception as exc:
+        logger.exception("Unable to delete resource")
+        raise HTTPException(status_code=503, detail="Unable to delete resource") from exc
+
+
+@router.post(
+    "/admin/resources/documents",
+    response_model=ApiResponse[ResourceUploadOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_document(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    description: str = Form(""),
+    course_id: str = Form(...),
+    module_id: str | None = Form(None),
+    module_title: str | None = Form(None),
+    topic: str = Form(...),
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[ResourceUploadOut]:
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="PDF must be 50 MB or smaller")
+    try:
+        metadata = ResourceUploadMetadata(
+            title=title,
+            description=description,
+            course_id=course_id,
+            module_id=module_id or None,
+            module_title=module_title or None,
+            topic=topic,
+        )
+        resource_id = upload_pdf(
+            filename=file.filename or "",
+            content_type=file.content_type,
+            content=content,
+            metadata=metadata,
+        )
+        return ApiResponse(
+            data=ResourceUploadOut(resource_id=resource_id, type="pdf", status="ready")
+        )
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Invalid resource metadata") from exc
+    except Exception as exc:
+        logger.exception("Unable to upload PDF document")
+        raise HTTPException(status_code=503, detail="Unable to upload document") from exc
+
+
+@router.post(
+    "/admin/resources/videos",
+    response_model=ApiResponse[ResourceUploadOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_video_upload(
+    body: CreateVideoUploadIn,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[ResourceUploadOut]:
+    if not body.content_type.startswith("video/"):
+        raise HTTPException(status_code=400, detail="A video file is required")
+    try:
+        resource_id, upload_id, upload_url = begin_video_upload(body)
+        return ApiResponse(
+            data=ResourceUploadOut(
+                resource_id=resource_id,
+                type="video",
+                status="waiting",
+                upload_id=upload_id,
+                upload_url=upload_url,
+            )
+        )
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except MuxClientError as exc:
+        logger.exception("Unable to create Mux direct upload")
+        message = str(exc)
+        if "must be set" in message:
+            detail = (
+                "Mux is not configured. Set MUX_TOKEN_ID and MUX_TOKEN_SECRET "
+                "in backend/.env, then restart the backend."
+            )
+        elif "Free plan is limited to 10 assets" in message:
+            detail = (
+                "Your Mux Free plan has reached its 10-asset limit. "
+                "Delete unused Mux assets or upgrade the plan before uploading."
+            )
+        else:
+            detail = "Mux upload is unavailable"
+        raise HTTPException(status_code=503, detail=detail) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to create video upload") from exc
+
+
+@router.post(
+    "/admin/resources/links",
+    response_model=ApiResponse[ResourceUploadOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_link_upload(
+    body: CreateLinkUploadIn,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[ResourceUploadOut]:
+    try:
+        resource_id, upload_status = ingest_link(
+            url=str(body.url),
+            resource_type=body.resource_type,
+            metadata=body,
+        )
+        return ApiResponse(
+            data=ResourceUploadOut(
+                resource_id=resource_id,
+                type=body.resource_type,
+                status=upload_status,
+            )
+        )
+    except (ExternalFileError, ResourceUploadError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except MuxClientError as exc:
+        raise HTTPException(status_code=503, detail="Mux link import is unavailable") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to import linked resource") from exc
+
+
+@router.post(
+    "/admin/resources/videos/{resource_id}/complete",
+    response_model=ApiResponse[ResourceUploadOut],
+)
+async def finish_video_upload(
+    resource_id: UUID,
+    upload_id: str,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[ResourceUploadOut]:
+    try:
+        upload_status = complete_video_upload(resource_id, upload_id)
+        return ApiResponse(
+            data=ResourceUploadOut(
+                resource_id=resource_id, type="video", status=upload_status
+            )
+        )
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except MuxClientError as exc:
+        raise HTTPException(status_code=503, detail="Mux processing is unavailable") from exc

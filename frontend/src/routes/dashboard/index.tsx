@@ -18,10 +18,10 @@ function DashboardHomePage() {
     <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
       <div className="mx-auto max-w-3xl space-y-8">
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-          Welcome back, {first} {wave}
+          Welcome Back, {first} {wave}
         </h1>
         <section className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Your progress</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Your Progress</h2>
           <DashboardProgressOverview />
         </section>
       </div>

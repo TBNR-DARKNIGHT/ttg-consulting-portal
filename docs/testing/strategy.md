@@ -234,6 +234,7 @@ GitHub Actions pipeline runs on every PR:
 
 ## Related Documentation
 
+- [Admin resource upload checklist](admin-resource-uploads.md)
 - [Contributing Guidelines](../getting-started/contributing.md)
 - [Development Workflow](../getting-started/development.md)
 - [PRD Overview](../prd/overview.md)

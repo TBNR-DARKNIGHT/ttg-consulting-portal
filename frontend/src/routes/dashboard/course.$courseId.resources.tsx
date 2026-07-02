@@ -6,11 +6,14 @@ import { useEntitlements } from '@/hooks/use-entitlements';
 import { getCourseById } from '@/lib/courses';
 
 export const Route = createFileRoute('/dashboard/course/$courseId/resources')({
+  validateSearch: (search: Record<string, unknown>): { module?: string } =>
+    typeof search.module === 'string' ? { module: search.module } : {},
   component: CourseResourcesPage,
 });
 
 function CourseResourcesPage() {
   const { courseId } = Route.useParams();
+  const { module: moduleId } = Route.useSearch();
   const course = getCourseById(courseId);
   const { hasCourseAccess, isLoading } = useEntitlements();
 
@@ -20,7 +23,7 @@ function CourseResourcesPage() {
 
   return (
     <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -32,14 +35,19 @@ function CourseResourcesPage() {
             <p className="mt-2 text-sm text-muted-foreground">{course.title}</p>
           </div>
           <Button variant="outline" asChild>
-            <Link to="/">Home</Link>
+            <Link to="/dashboard">Dashboard</Link>
           </Button>
         </header>
 
         {!isLoading && !hasCourseAccess(course.id) ? (
           <LockedCourseAccess />
         ) : (
-          <DashboardResourceGrid topics={course.topics} resourceTypes={['pdf']} />
+          <DashboardResourceGrid
+            courseId={course.id}
+            topics={course.topics}
+            resourceTypes={['pdf']}
+            moduleId={course.id === 'course-2' ? (moduleId ?? null) : undefined}
+          />
         )}
       </div>
     </main>

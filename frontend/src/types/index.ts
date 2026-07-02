@@ -1,9 +1,6 @@
 export type ResourceType = 'video' | 'pdf' | 'article' | 'module';
 
-export type ContentTopic =
-  | 'dsa-pathways'
-  | 'interview-preparation'
-  | 'timelines-deadlines';
+export type ContentTopic = string;
 
 export type ResourceAccess = 'public' | 'paid';
 
@@ -11,6 +8,7 @@ export interface Resource {
   id: string;
   title: string;
   courseId?: 'course-1' | 'course-2';
+  moduleId?: string;
   type: ResourceType;
   topic: ContentTopic;
   description: string;

@@ -12,11 +12,25 @@ import { getCourseIdForTopic } from '@/lib/courses';
 import { useEntitlements } from '@/hooks/use-entitlements';
 
 export const Route = createFileRoute('/dashboard/resources/$resourceId')({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    from?: 'overview' | 'resources' | 'videos';
+    courseId?: string;
+    module?: string;
+  } => ({
+    ...(search.from === 'overview' || search.from === 'resources' || search.from === 'videos'
+      ? { from: search.from }
+      : {}),
+    ...(typeof search.courseId === 'string' ? { courseId: search.courseId } : {}),
+    ...(typeof search.module === 'string' ? { module: search.module } : {}),
+  }),
   component: ResourceDetailPage,
 });
 
 function ResourceDetailPage() {
   const { resourceId } = Route.useParams();
+  const origin = Route.useSearch();
   const { resources } = useResources();
   const { getToken } = usePortalAuth();
   const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
@@ -33,15 +47,26 @@ function ResourceDetailPage() {
     : false;
 
   const backToCourseList = useMemo(() => {
-    if (!resource) {
-      return { to: '/dashboard/course/$courseId/resources' as const, params: { courseId: 'course-1' as const } };
+    if (!resource && !origin.courseId) {
+      return {
+        to: '/dashboard/course/$courseId/resources' as const,
+        params: { courseId: 'course-1' as const },
+        search: {},
+      };
     }
-    const courseId = getCourseIdForTopic(resource.topic);
-    if (resource.type === 'video') {
-      return { to: '/dashboard/course/$courseId/videos' as const, params: { courseId } };
+    const courseId =
+      origin.courseId ??
+      (resource ? resource.courseId ?? getCourseIdForTopic(resource.topic) : 'course-1');
+    const moduleId = origin.module ?? resource?.moduleId;
+    const search = moduleId ? { module: moduleId } : {};
+    if (origin.from === 'overview') {
+      return { to: '/dashboard/course/$courseId' as const, params: { courseId }, search };
     }
-    return { to: '/dashboard/course/$courseId/resources' as const, params: { courseId } };
-  }, [resource]);
+    if (origin.from === 'videos' || (!origin.from && resource?.type === 'video')) {
+      return { to: '/dashboard/course/$courseId/videos' as const, params: { courseId }, search };
+    }
+    return { to: '/dashboard/course/$courseId/resources' as const, params: { courseId }, search };
+  }, [origin, resource]);
 
   const needsMuxToken = Boolean(
     resource &&
@@ -125,7 +150,11 @@ function ResourceDetailPage() {
         <div className="mx-auto max-w-4xl space-y-6">
           <p className="text-sm text-muted-foreground">Resource not found.</p>
           <Button variant="outline" asChild>
-            <Link to={backToCourseList.to} params={backToCourseList.params}>
+            <Link
+              to={backToCourseList.to}
+              params={backToCourseList.params}
+              search={backToCourseList.search}
+            >
               Back to course list
             </Link>
           </Button>
@@ -145,7 +174,11 @@ function ResourceDetailPage() {
             This resource is part of Course 2. Redeem your purchase code to unlock it.
           </p>
           <Button variant="outline" asChild>
-            <Link to={backToCourseList.to} params={backToCourseList.params}>
+            <Link
+              to={backToCourseList.to}
+              params={backToCourseList.params}
+              search={backToCourseList.search}
+            >
               Back to course list
             </Link>
           </Button>
@@ -175,7 +208,11 @@ function ResourceDetailPage() {
           </div>
           <div className="flex shrink-0 gap-2">
             <Button variant="outline" asChild>
-              <Link to={backToCourseList.to} params={backToCourseList.params}>
+              <Link
+                to={backToCourseList.to}
+                params={backToCourseList.params}
+                search={backToCourseList.search}
+              >
                 Back
               </Link>
             </Button>

@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
 import { Copy, KeyRound, RefreshCw, ShieldX } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -17,10 +16,6 @@ import {
   type IssuedAccessCode,
 } from '@/lib/api';
 
-export const Route = createFileRoute('/admin/')({
-  component: AdminHomePage,
-});
-
 function codeStatus(code: AdminAccessCode) {
   if (code.revokedAt) return 'Revoked';
   if (code.redeemedAt) return 'Redeemed';
@@ -28,7 +23,7 @@ function codeStatus(code: AdminAccessCode) {
   return 'Active';
 }
 
-function AdminHomePage() {
+export function AdminHomePage() {
   const { getToken } = usePortalAuth();
   const queryClient = useQueryClient();
   const [orderId, setOrderId] = useState('');
@@ -95,9 +90,9 @@ function AdminHomePage() {
   };
 
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-6 py-8">
+    <main className="mx-auto w-full max-w-[69rem] space-y-8 px-6 py-8 md:px-10 md:py-10">
       <div>
-        <h1 className="font-serif text-3xl font-semibold">Access code administration</h1>
+        <h1 className="font-serif text-3xl font-semibold">Access Code Administration</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Create, revoke, and replace single-use Course 2 codes.
         </p>
@@ -106,7 +101,7 @@ function AdminHomePage() {
       <div className="grid gap-6 lg:grid-cols-[22rem_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Create access code</CardTitle>
+            <CardTitle>Create Access Code</CardTitle>
             <CardDescription>The plaintext code is shown only once.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -148,7 +143,7 @@ function AdminHomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent codes</CardTitle>
+            <CardTitle>Recent Codes</CardTitle>
             <CardDescription>Up to 200 most recently created codes.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

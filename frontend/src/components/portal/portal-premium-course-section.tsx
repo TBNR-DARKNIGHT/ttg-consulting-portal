@@ -18,6 +18,9 @@ import { TTA_SHOP_URL } from '@/lib/tta-shop';
 
 const PREVIEW_SLOT_COUNT = 3;
 
+const PARENT_OVERVIEW_GUIDE_URL =
+  'https://ikyirsacgxlyovmxskij.supabase.co/storage/v1/object/public/public-assets/resources/Course%20Overview%20Parents.pdf';
+
 
 
 export function PortalPremiumCourseSection() {
@@ -146,6 +149,20 @@ export function PortalPremiumCourseSection() {
 
         })}
 
+      </div>
+
+      <p className="mt-8 max-w-3xl text-base leading-relaxed text-brand-dark/80 md:text-lg">
+        Want to know exactly what your child will learn? Download our Parent Overview Guide — a
+        complete walkthrough of the four modules, how the course works, and how you can support your
+        child through it.
+      </p>
+
+      <div className="mt-6">
+        <Button asChild size="lg" variant="outline">
+          <a href={PARENT_OVERVIEW_GUIDE_URL} download="Course Overview Parents.pdf">
+            Download the Parent Overview Guide
+          </a>
+        </Button>
       </div>
 
 

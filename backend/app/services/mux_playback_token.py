@@ -49,3 +49,21 @@ def mint_mux_video_playback_token(
     else:
         token_s = str(token)
     return token_s, exp
+
+
+def mint_mux_thumbnail_token(
+    *,
+    playback_id: str,
+    signing_key_id: str,
+    private_key_material: str,
+    expires_in_seconds: int,
+) -> tuple[str, int]:
+    """RS256 JWT for a Mux signed thumbnail (`aud` = `t`)."""
+    now = int(time.time())
+    exp = now + max(60, min(expires_in_seconds, 86400))
+    key = _load_rsa_private_key(private_key_material)
+    payload: dict[str, Any] = {"sub": playback_id, "aud": "t", "exp": exp}
+    headers = {"kid": signing_key_id, "typ": "JWT"}
+    token = jwt.encode(payload, key, algorithm="RS256", headers=headers)
+    token_s = token.decode("utf-8") if isinstance(token, bytes) else str(token)
+    return token_s, exp

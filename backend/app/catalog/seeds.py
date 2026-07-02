@@ -4,7 +4,7 @@ from typing import Any
 
 # Demo catalog — used when Supabase is unconfigured or the resources table is empty.
 # PDF object keys: resources-public/course-1/* (free), resources-paid/course-2/* (paid).
-# Demo seeds below use placeholder filenames; production rows come from your Supabase `resources` table.
+# Demo seeds use placeholder filenames; production rows come from the Supabase `resources` table.
 # Video mux_playback_id values are populated by Mux sync (passthrough = resource id).
 RESOURCE_SEEDS: list[dict[str, Any]] = [
     {
@@ -25,6 +25,8 @@ RESOURCE_SEEDS: list[dict[str, Any]] = [
     {
         "id": "res-002",
         "title": "Interview body language tips",
+        "course_id": "course-2",
+        "module_id": "module-1",
         "type": "video",
         "topic": "interview-preparation",
         "access": "public",
@@ -83,6 +85,8 @@ RESOURCE_SEEDS: list[dict[str, Any]] = [
     {
         "id": "res-007",
         "title": "Parent guide to DSA interviews",
+        "course_id": "course-2",
+        "module_id": "module-2",
         "type": "pdf",
         "topic": "interview-preparation",
         "access": "paid",
@@ -113,6 +117,8 @@ RESOURCE_SEEDS: list[dict[str, Any]] = [
     {
         "id": "res-009",
         "title": "Advanced DSA interview workshop",
+        "course_id": "course-2",
+        "module_id": "module-4",
         "type": "video",
         "topic": "interview-preparation",
         "access": "paid",

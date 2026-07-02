@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import structlog
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 log = structlog.get_logger(__name__)
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
@@ -11,7 +14,7 @@ class Settings(BaseSettings):
     # This matches the frontend convention and prevents "credentials not configured"
     # when developers only populate `.env.local`.
     model_config = SettingsConfigDict(
-        env_file=(".env.local", ".env"),
+        env_file=(BACKEND_DIR / ".env.local", BACKEND_DIR / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

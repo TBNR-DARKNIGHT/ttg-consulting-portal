@@ -36,7 +36,7 @@ function YoungExplorersPage() {
           <h1
             className={`font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-5xl ${YOUNG_EXPLORERS_IMAGE ? 'mt-6 md:mt-8' : 'mt-3'}`}
           >
-            The Foundation of Every Confident Communicator Is Built Early.
+            The Foundation Of Every Confident Communicator Is Built Early.
           </h1>
           <p className="mt-5 text-base leading-relaxed text-brand-dark/80 md:text-lg">
             Young Explorers is a public speaking and personal expression programme for Primary 1 to
@@ -67,7 +67,7 @@ function YoungExplorersPage() {
         </div>
 
         <section className="mt-8 rounded-2xl border border-brand-grey bg-white p-6">
-          <h2 className="text-2xl font-semibold text-brand-dark">What Your Child Builds Over the Year</h2>
+          <h2 className="text-2xl font-semibold text-brand-dark">What Your Child Builds Over The Year</h2>
           <ul className="mt-4 grid gap-2 text-brand-dark/80">
             <li>- Voice projection, eye contact, and purposeful body language.</li>
             <li>- Storytelling structure and clearer organization of ideas.</li>
@@ -78,7 +78,7 @@ function YoungExplorersPage() {
         </section>
 
         <section className="mt-8 rounded-2xl border border-brand-grey bg-white p-6">
-          <h2 className="text-2xl font-semibold text-brand-dark">How to Enrol</h2>
+          <h2 className="text-2xl font-semibold text-brand-dark">How To Enrol</h2>
           <p className="mt-3 text-brand-dark/75 leading-relaxed">
             Young Explorers runs at{' '}
             <span className="font-medium text-brand-dark">MapleBear Student Care (Eunos)</span>

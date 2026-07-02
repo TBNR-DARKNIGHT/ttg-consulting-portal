@@ -7,10 +7,12 @@ from pydantic import BaseModel
 from supabase import Client
 
 from app.dependencies import get_current_user, get_supabase, get_supabase_public
+from app.models.enums import UserRole
 from app.models.resource import ResourceItem
 from app.models.schemas import ApiResponse, ClerkUser
 from app.routers.resources import find_resource
 from app.services.entitlements import EntitlementServiceError, has_course_access
+from app.services.admin_resource_uploads import pdf_thumbnail_path
 
 logger = structlog.get_logger()
 
@@ -49,6 +51,8 @@ async def _get_authorized_paid_pdf(resource_id: str, user: ClerkUser) -> Resourc
     if not resource.bucket or not resource.file_path or not resource.course_id:
         raise HTTPException(status_code=404, detail="Paid PDF is not provisioned")
     _require_paid_bucket(resource.bucket)
+    if user.role is UserRole.ADMIN:
+        return resource
     if user.internal_user_id is None:
         raise HTTPException(status_code=503, detail="User profile unavailable")
     try:
@@ -129,6 +133,51 @@ async def storage_paid_url(
             is_paid=True,
             url=url,
             expires_in=expires_in,
+        )
+    )
+
+
+@router.get("/storage/thumbnail-url", response_model=ApiResponse[StorageUrlResponse])
+async def storage_thumbnail_url(
+    resource_id: str = Query(..., description="PDF resource id"),
+    expires_in: int = 900,
+    user: ClerkUser = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase),
+) -> ApiResponse[StorageUrlResponse]:
+    resource = find_resource(resource_id)
+    if not resource or resource.type != "pdf":
+        raise HTTPException(status_code=404, detail="PDF resource not found")
+    if not resource.file_path or not resource.bucket:
+        raise HTTPException(status_code=404, detail="PDF thumbnail is not provisioned")
+
+    if resource.access == "paid":
+        resource = await _get_authorized_paid_pdf(resource_id, user)
+    elif resource.bucket != PUBLIC_STORAGE_BUCKET:
+        raise HTTPException(status_code=400, detail="Invalid public storage bucket")
+
+    path = pdf_thumbnail_path(resource.file_path)
+    if resource.access == "paid":
+        result = supabase.storage.from_(resource.bucket).create_signed_url(path, expires_in)
+        if isinstance(result, dict):
+            url = result.get("signedURL") or result.get("signedUrl") or result.get("signed_url")
+        else:
+            url = str(result)
+    else:
+        result = supabase.storage.from_(resource.bucket).get_public_url(path)
+        if isinstance(result, dict):
+            url = result.get("publicUrl") or result.get("publicURL") or result.get("public_url")
+        else:
+            url = str(result)
+    if not url:
+        raise ValueError("Failed to create thumbnail URL")
+
+    return ApiResponse(
+        data=StorageUrlResponse(
+            bucket=resource.bucket,
+            path=path,
+            is_paid=resource.access == "paid",
+            url=url,
+            expires_in=expires_in if resource.access == "paid" else None,
         )
     )
 

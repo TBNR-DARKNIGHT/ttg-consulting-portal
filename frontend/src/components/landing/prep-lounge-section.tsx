@@ -45,7 +45,7 @@ export function PrepLoungeSection() {
             ) : null}
 
             <h2 className="text-brand-dark text-4xl md:text-[52px] font-bold leading-[1.05] tracking-[-0.02em] mb-6">
-              The Comprehensive DSA & Portfolio Ecosystem
+              The Comprehensive DSA &amp; Portfolio Ecosystem
             </h2>
 
             <ul className="grid gap-3 mb-7">

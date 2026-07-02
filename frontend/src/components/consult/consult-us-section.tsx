@@ -24,7 +24,7 @@ export function ConsultUsSection() {
           ) : null}
 
           <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-4xl">
-            Clarity on Your Child&apos;s DSA Journey. In a Single Conversation.
+            Clarity On Your Child&apos;s DSA Journey. In A Single Conversation.
           </h1>
 
           <div className="mt-5 space-y-4 text-base leading-relaxed text-brand-dark/80">
@@ -36,7 +36,7 @@ export function ConsultUsSection() {
           </div>
 
           <div className="mt-8 grid gap-4 rounded-2xl border border-brand-grey bg-brand-grey/20 p-6">
-            <h2 className="text-xl font-semibold text-brand-dark">What to Expect</h2>
+            <h2 className="text-xl font-semibold text-brand-dark">What To Expect</h2>
             <p className="text-brand-dark/75">
               A focused 1-on-1 session with a member of our team. We cover five areas:
             </p>
@@ -50,7 +50,7 @@ export function ConsultUsSection() {
                 </p>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-brand-dark">Identifying the Right Domain</h3>
+                <h3 className="text-base font-semibold text-brand-dark">Identifying The Right Domain</h3>
                 <p className="mt-1">
                   We help you determine which areas genuinely fit your child&apos;s profile and what
                   specific schools look for, so you invest your time and effort in a direction that
@@ -122,7 +122,7 @@ export function ConsultUsSection() {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-brand-dark">Begin With a Conversation.</h3>
+              <h3 className="text-xl font-semibold text-brand-dark">Begin With A Conversation.</h3>
               <p className="mt-3 text-brand-dark/75 leading-relaxed">
                 One honest conversation can change how your family approaches the entire DSA journey.
               </p>

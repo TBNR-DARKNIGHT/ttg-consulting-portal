@@ -18,6 +18,11 @@ build/
 .env.local
 .env.*.local
 
+# Local OAuth credentials and one-off import state
+client_secret*.json
+token_drive*.json
+*_sync_log.json
+
 # IDE / Editor
 .vscode/
 .idea/

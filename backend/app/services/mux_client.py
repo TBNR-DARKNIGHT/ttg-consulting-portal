@@ -25,6 +25,14 @@ class MuxAsset:
     playback_ids: list[MuxPlaybackId]
 
 
+@dataclass(frozen=True)
+class MuxDirectUpload:
+    id: str
+    url: str
+    status: str
+    asset_id: str | None
+
+
 class MuxClientError(Exception):
     pass
 
@@ -98,19 +106,29 @@ class MuxClient:
             raise MuxClientError("MUX_TOKEN_ID and MUX_TOKEN_SECRET must be set")
         return self._token_id, self._token_secret
 
-    def _request(self, method: str, path: str, *, params: dict[str, Any] | None = None) -> Any:
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+    ) -> Any:
         url = f"{MUX_API_BASE}{path}"
         with httpx.Client(timeout=self._timeout) as client:
             response = client.request(
                 method,
                 url,
                 params=params,
+                json=json,
                 auth=self._auth(),
             )
         if response.status_code >= 400:
             raise MuxClientError(
                 f"Mux API {method} {path} failed ({response.status_code}): {response.text}"
             )
+        if response.status_code == 204 or not response.content:
+            return {}
         return response.json()
 
     def get_asset(self, asset_id: str) -> MuxAsset:
@@ -143,3 +161,64 @@ class MuxClient:
                 break
             page += 1
         return assets
+
+    def create_direct_upload(
+        self, *, passthrough: str, title: str, signed: bool
+    ) -> MuxDirectUpload:
+        payload = self._request(
+            "POST",
+            "/video/v1/uploads",
+            json={
+                "cors_origin": settings.frontend_url,
+                "new_asset_settings": {
+                    "passthrough": passthrough,
+                    "meta": {"title": title},
+                    "playback_policies": ["signed" if signed else "public"],
+                },
+            },
+        )
+        return self._parse_direct_upload(payload)
+
+    def create_asset_from_url(
+        self, *, url: str, passthrough: str, title: str, signed: bool
+    ) -> MuxAsset:
+        payload = self._request(
+            "POST",
+            "/video/v1/assets",
+            json={
+                "inputs": [{"url": url}],
+                "passthrough": passthrough,
+                "meta": {"title": title},
+                "playback_policies": ["signed" if signed else "public"],
+            },
+        )
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(data, dict):
+            raise MuxClientError("Unexpected Mux asset response")
+        return _parse_asset(data)
+
+    def get_direct_upload(self, upload_id: str) -> MuxDirectUpload:
+        payload = self._request("GET", f"/video/v1/uploads/{upload_id}")
+        return self._parse_direct_upload(payload)
+
+    def update_asset_title(self, asset_id: str, title: str) -> None:
+        self._request(
+            "PATCH",
+            f"/video/v1/assets/{asset_id}",
+            json={"meta": {"title": title}},
+        )
+
+    def delete_asset(self, asset_id: str) -> None:
+        self._request("DELETE", f"/video/v1/assets/{asset_id}")
+
+    @staticmethod
+    def _parse_direct_upload(payload: Any) -> MuxDirectUpload:
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(data, dict):
+            raise MuxClientError("Unexpected Mux direct upload response")
+        return MuxDirectUpload(
+            id=str(data.get("id") or ""),
+            url=str(data.get("url") or ""),
+            status=str(data.get("status") or "").lower(),
+            asset_id=str(data["asset_id"]) if data.get("asset_id") else None,
+        )

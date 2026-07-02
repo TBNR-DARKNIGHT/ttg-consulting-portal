@@ -1,24 +1,37 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { usePortalAuth } from '@/auth/auth-context';
 import { getAuthMode, usesDemoAuthProvider } from '@/auth/env';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useEntitlements, useRedeemAccessCode } from '@/hooks/use-entitlements';
 import { TTA_SHOP_URL } from '@/lib/tta-shop';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { AdminHomePage } from '@/components/admin/access-code-administration';
+import { AdminResourcesPage } from '@/components/admin/resource-uploader';
 
 export const Route = createFileRoute('/dashboard/settings')({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tool?: 'access-codes' | 'upload-resources' } => {
+    const tool = search.tool;
+    return tool === 'access-codes' || tool === 'upload-resources' ? { tool } : {};
+  },
   component: DashboardSettingsPage,
 });
 
 function DashboardSettingsPage() {
-  const { user } = usePortalAuth();
   const { courses, hasCourseAccess, isLoading } = useEntitlements();
   const redeem = useRedeemAccessCode();
+  const currentUser = useCurrentUser();
+  const { tool } = Route.useSearch();
   const [code, setCode] = useState('');
   const demoMode = usesDemoAuthProvider(getAuthMode());
+  const isAdmin = currentUser.data?.role === 'ADMIN';
+
+  if (isAdmin && tool === 'access-codes') return <AdminHomePage />;
+  if (isAdmin && tool === 'upload-resources') return <AdminResourcesPage />;
 
   const submitCode = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,23 +51,10 @@ function DashboardSettingsPage() {
 
   return (
     <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto w-full max-w-5xl space-y-8">
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-          Account Settings
+          Settings
         </h1>
-        <Card className="border-border shadow-sm">
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>Details from your signed-in account.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              <span className="font-medium text-foreground">Email: </span>
-              <span className="text-muted-foreground">{user?.email ?? '—'}</span>
-            </p>
-          </CardContent>
-        </Card>
-
         <Card id="course-access" className="scroll-mt-6 border-border shadow-sm">
           <CardHeader>
             <CardTitle>Course Access</CardTitle>

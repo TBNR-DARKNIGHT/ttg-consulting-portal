@@ -38,7 +38,7 @@ export function StartOptionsSection() {
     <section className="w-full bg-white">
       <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22">
         <h2 className="text-brand-dark text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
-          How Would You Like to Begin?
+          How Would You Like To Begin?
         </h2>
         <p className="mt-4 text-brand-dark/75 text-base md:text-lg leading-relaxed max-w-[720px]">
           Every family&apos;s journey looks different. Choose the path that fits where you are right
@@ -80,7 +80,7 @@ export function StartOptionsSection() {
 
         <div className="mt-12 rounded-2xl border border-brand-grey bg-brand-cream/60 px-6 py-7 md:mt-14 md:px-8 md:py-9">
           <h3 className="text-brand-dark text-2xl font-bold tracking-[-0.01em] md:text-3xl">
-            A Note for Think Teach Academy Families
+            A Note For Think Teach Academy Families
           </h3>
           <div className="mt-4 space-y-4 text-brand-dark/80 leading-relaxed">
             <p>

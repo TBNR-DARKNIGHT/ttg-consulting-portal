@@ -45,7 +45,7 @@ function MockLoginView({ mode }: { mode: 'mock' | 'public' }) {
         <div className="w-full max-w-3xl">
           <div className="mb-8 text-center">
             <p className="text-xs uppercase tracking-[0.2em] font-medium text-brand-indigo mb-3">{badge}</p>
-            <h1 className="font-serif text-2xl font-bold text-brand-dark mb-2">Sign in</h1>
+            <h1 className="font-serif text-2xl font-bold text-brand-dark mb-2">Sign In</h1>
             <p className="text-sm text-brand-dark/70">{blurb}</p>
           </div>
 

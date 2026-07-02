@@ -22,15 +22,18 @@ def is_supabase_configured() -> bool:
 def _normalize_topic(row: dict[str, Any]) -> str:
     topic = str(row.get("topic") or "").strip()
     if topic:
-        return topic
-    category = str(row.get("category") or "").strip()
-    if category in {"dsa-pathways", "interview-preparation", "timelines-deadlines"}:
-        return category
-    if category == "course-1":
-        return "dsa-pathways"
-    if category == "course-2":
-        return "interview-preparation"
-    return "dsa-pathways"
+        legacy_topics = {
+            "dsa-pathways": "DSA Pathways",
+            "interview-preparation": "Interview Preparation",
+            "timelines-deadlines": "Timelines & Deadlines",
+        }
+        return legacy_topics.get(topic, topic)
+    course_id = str(row.get("course_id") or "").strip()
+    if course_id == "course-1":
+        return "DSA Pathways"
+    if course_id == "course-2":
+        return "Interview Preparation"
+    return "DSA Pathways"
 
 
 def _normalize_access(row: dict[str, Any]) -> str:
@@ -64,6 +67,7 @@ def _row_to_resource(row: dict[str, Any]) -> ResourceItem:
             "id": str(row["id"]),
             "title": row["title"],
             "course_id": row.get("course_id"),
+            "module_id": row.get("module_id"),
             "type": _normalize_type(row),
             "topic": _normalize_topic(row),
             "description": row.get("description") or "",
@@ -87,7 +91,6 @@ def _fetch_from_supabase() -> list[ResourceItem]:
     response = (
         client.table("resources")
         .select("*")
-        .order("sort_order")
         .order("created_at")
         .execute()
     )

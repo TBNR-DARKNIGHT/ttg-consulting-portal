@@ -10,7 +10,7 @@ export function YoungExplorersTeaserSection() {
       <div className="mx-auto max-w-[1200px] px-6 pb-18 pt-8 md:pb-22 md:pt-10">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-10">
           <h2 className="text-brand-dark text-3xl font-bold leading-[1.08] tracking-[-0.02em] md:text-[44px] lg:col-start-1 lg:row-start-1">
-            Building Confident Communicators From the Start.
+            Building Confident Communicators From The Start.
           </h2>
 
           <div className="flex min-w-0 justify-center self-stretch lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:items-center lg:justify-center">

@@ -37,7 +37,7 @@ export function BuiltBySection() {
     <section className="w-full bg-brand-grey/20">
       <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22">
         <h2 className="text-center text-brand-dark text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
-          Built by People Who Have Been There
+          Built By People Who Have Been There
         </h2>
         <div className="mt-5 flex flex-col gap-8">
           <div className="order-3 mx-auto max-w-[920px] space-y-4 text-left text-base leading-relaxed text-brand-dark/75 md:order-2 md:text-lg">

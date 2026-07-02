@@ -29,7 +29,7 @@ export function PortalFreeResourcesSection() {
         id="portal-free-resources-heading"
         className="text-2xl font-semibold tracking-tight text-brand-dark md:text-3xl"
       >
-        Free on Signup: DSA 101
+        Free On Signup: DSA 101
       </h2>
       <p className="mt-3 max-w-2xl text-base leading-relaxed text-brand-dark/75 md:text-lg">
         Three resources, available the moment you create your account.

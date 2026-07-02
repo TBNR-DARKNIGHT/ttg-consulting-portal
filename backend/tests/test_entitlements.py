@@ -10,6 +10,7 @@ from postgrest.exceptions import APIError
 
 from app.dependencies import get_current_user
 from app.main import app
+from app.models.enums import UserRole
 from app.models.schemas import ClerkUser
 from app.routers import entitlements as entitlement_router
 from app.services.entitlements import (
@@ -139,6 +140,28 @@ async def test_entitlements_endpoint_returns_courses(
 
     app.dependency_overrides[get_current_user] = user
     monkeypatch.setattr(entitlement_router, "list_entitlements", courses)
+    try:
+        response = await client.get("/api/v1/me/entitlements")
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+    assert response.status_code == 200
+    assert response.json()["data"]["courses"] == ["course-1", "course-2"]
+
+
+@pytest.mark.asyncio
+async def test_admin_entitlements_include_every_course_without_database_rows(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def admin_user() -> ClerkUser:
+        return ClerkUser(clerk_id="admin_test", role=UserRole.ADMIN)
+
+    async def should_not_load_entitlements(_user_id):
+        pytest.fail("Admin access should not depend on course entitlement rows")
+
+    app.dependency_overrides[get_current_user] = admin_user
+    monkeypatch.setattr(entitlement_router, "list_entitlements", should_not_load_entitlements)
     try:
         response = await client.get("/api/v1/me/entitlements")
     finally:

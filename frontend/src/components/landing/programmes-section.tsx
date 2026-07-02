@@ -36,7 +36,7 @@ export function ProgrammesSection() {
         Our programmes
       </p>
       <h2 className="font-serif text-3xl md:text-[32px] font-bold text-brand-dark mb-10">
-        Consulting across every stage
+        Consulting Across Every Stage
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

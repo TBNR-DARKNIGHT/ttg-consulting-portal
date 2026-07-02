@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies import get_current_user
 from app.models.entitlement import EntitlementsOut, RedeemCodeIn, RedemptionOut
+from app.models.enums import UserRole
 from app.models.schemas import ApiResponse, ClerkUser
 from app.services.entitlements import (
     AlreadyEntitledError,
@@ -29,6 +30,8 @@ def _internal_user_id(user: ClerkUser):
 async def get_my_entitlements(
     user: ClerkUser = Depends(get_current_user),
 ) -> ApiResponse[EntitlementsOut]:
+    if user.role is UserRole.ADMIN:
+        return ApiResponse(data=EntitlementsOut(courses=["course-1", "course-2"]))
     try:
         courses = await list_entitlements(_internal_user_id(user))
     except EntitlementServiceError as exc:

@@ -262,6 +262,34 @@ GET    /api/v1/resources/progress       # Demo progress (Clerk JWT)
 
 Video rows include `muxPlaybackId` and `muxPlaybackSigned` after Mux sync. PDF rows include `bucket` and `filePath` for Supabase Storage.
 
+### Admin resource uploads (implemented)
+
+All upload endpoints require an authenticated `ADMIN`.
+
+```text
+POST /api/v1/admin/resources/documents
+POST /api/v1/admin/resources/videos
+POST /api/v1/admin/resources/links
+POST /api/v1/admin/resources/videos/{resource_id}/complete?upload_id=...
+```
+
+Document uploads accept multipart form data, store PDFs in the course's existing Supabase bucket,
+and insert or update the matching `resources` row. Video creation inserts the resource row and
+returns a short-lived Mux direct-upload URL, so video bytes travel from the browser to Mux rather
+than through FastAPI. The completion endpoint attaches the Mux asset and playback IDs to the row.
+
+Course 1 uses `resources-public` and public Mux playback. Course 2 and newly created courses use
+`resources-paid` and signed Mux playback. The server derives these destinations from course
+metadata; callers cannot choose an arbitrary bucket or playback policy.
+
+The link endpoint accepts public HTTPS PDF or video URLs. Google Drive sharing URLs are converted
+to download URLs and must be shared with anyone who has the link. Linked PDFs are downloaded,
+size-limited, content-verified, and stored in Supabase; linked videos are imported by Mux directly.
+Private-network and local URLs are rejected.
+
+The uploader uses the same backend `SUPABASE_*`, `MUX_*`, and `FRONTEND_URL` settings as the rest of
+the application. It has no separate environment file, Google Drive credentials, or local sync log.
+
 ### Playback (Mux Video; implemented)
 
 Course videos are delivered via **Mux** (transcoded + CDN). **PDFs** remain in Supabase Storage (`resources-public` / `resources-paid`) using the routes above.

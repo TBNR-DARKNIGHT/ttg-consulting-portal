@@ -9,6 +9,7 @@ from httpx import AsyncClient
 
 from app.dependencies import get_current_user, get_supabase, get_supabase_public
 from app.main import app
+from app.models.enums import UserRole
 from app.models.resource import ResourceItem
 from app.models.schemas import ClerkUser
 from app.routers import storage
@@ -94,6 +95,34 @@ async def test_redeemed_user_receives_paid_content(
     app.dependency_overrides[get_supabase] = lambda: SimpleNamespace(storage=FakeStorage())
     monkeypatch.setattr(storage, "find_resource", lambda _resource_id: paid_pdf())
     monkeypatch.setattr(storage, "has_course_access", allowed)
+    try:
+        response = await client.get(
+            "/api/v1/storage/paid-download",
+            params={"resource_id": "paid-pdf"},
+        )
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+        app.dependency_overrides.pop(get_supabase, None)
+
+    assert response.status_code == 200
+    assert response.content == b"%PDF-test"
+
+
+@pytest.mark.asyncio
+async def test_admin_receives_paid_content_without_entitlement(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def admin_user() -> ClerkUser:
+        return ClerkUser(clerk_id="admin_test", role=UserRole.ADMIN)
+
+    async def should_not_check_entitlement(_user_id, _course_id):
+        pytest.fail("Admin access should bypass course entitlement checks")
+
+    app.dependency_overrides[get_current_user] = admin_user
+    app.dependency_overrides[get_supabase] = lambda: SimpleNamespace(storage=FakeStorage())
+    monkeypatch.setattr(storage, "find_resource", lambda _resource_id: paid_pdf())
+    monkeypatch.setattr(storage, "has_course_access", should_not_check_entitlement)
     try:
         response = await client.get(
             "/api/v1/storage/paid-download",

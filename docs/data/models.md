@@ -140,10 +140,10 @@ Portal course catalog — videos (Mux), PDFs (Supabase Storage paths), and artic
 CREATE TABLE resources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
-  course_id TEXT NOT NULL CHECK (course_id IN ('course-1', 'course-2')),
+  course_id TEXT NOT NULL,
+  module_id TEXT,
   type TEXT,
   topic TEXT,
-  category TEXT,
   description TEXT,
   duration TEXT,
   is_paid BOOLEAN DEFAULT FALSE,
@@ -152,7 +152,6 @@ CREATE TABLE resources (
   mux_asset_id TEXT,
   mux_playback_id TEXT,
   mux_playback_signed BOOLEAN DEFAULT FALSE,
-  sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
@@ -164,6 +163,9 @@ CREATE TABLE resources (
 
 Course membership is stored explicitly in `course_id` so backend entitlement checks do not depend
 on topic mappings or storage-path naming conventions.
+
+Course 2 module metadata is stored in `course_modules`. The composite foreign key from
+`resources(course_id, module_id)` ensures that an optional module belongs to the resource's course.
 
 ### Content (legacy doc schema)
 

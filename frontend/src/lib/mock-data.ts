@@ -1,9 +1,9 @@
 import type { Resource, ResourceProgress, ContentTopic } from '@/types';
 
-export const TOPIC_LABELS: Record<ContentTopic, string> = {
-  'dsa-pathways': 'DSA pathways',
-  'interview-preparation': 'Interview preparation',
-  'timelines-deadlines': 'Timelines & deadlines',
+export const TOPIC_LABELS: Partial<Record<ContentTopic, string>> = {
+  'DSA Pathways': 'DSA Pathways',
+  'Interview Preparation': 'Interview Preparation',
+  'Timelines & Deadlines': 'Timelines & Deadlines',
 };
 
 /** Mirrors backend seed catalog; video muxPlaybackId is set after Mux sync in live mode. */
@@ -12,7 +12,7 @@ export const mockResources: Resource[] = [
     id: 'res-001',
     title: 'DSA pathways overview',
     type: 'video',
-    topic: 'dsa-pathways',
+    topic: 'DSA Pathways',
     access: 'public',
     description:
       'A comprehensive overview of Direct School Admission pathways, covering eligibility criteria, school options, and strategic planning for your child\u2019s application.',
@@ -23,8 +23,10 @@ export const mockResources: Resource[] = [
   {
     id: 'res-002',
     title: 'Interview body language tips',
+    courseId: 'course-2',
+    moduleId: 'module-1',
     type: 'video',
-    topic: 'interview-preparation',
+    topic: 'Interview Preparation',
     access: 'public',
     description:
       'Learn how to present confidently in DSA interviews with practical body language techniques that help students make a strong first impression.',
@@ -36,7 +38,7 @@ export const mockResources: Resource[] = [
     id: 'res-003',
     title: 'Portfolio building workbook',
     type: 'pdf',
-    topic: 'dsa-pathways',
+    topic: 'DSA Pathways',
     access: 'public',
     bucket: 'resources-public',
     filePath: 'course-1/pdf/testpublic.pdf',
@@ -50,7 +52,7 @@ export const mockResources: Resource[] = [
     id: 'res-004',
     title: 'Timeline & key deadlines 2026',
     type: 'article',
-    topic: 'timelines-deadlines',
+    topic: 'Timelines & Deadlines',
     access: 'public',
     description:
       'A complete calendar of DSA application windows, school-specific deadlines, and important dates for the 2026 admissions cycle.',
@@ -62,7 +64,7 @@ export const mockResources: Resource[] = [
     id: 'res-006',
     title: 'School selection strategy',
     type: 'video',
-    topic: 'dsa-pathways',
+    topic: 'DSA Pathways',
     access: 'public',
     description:
       'How to shortlist schools based on your child\u2019s strengths, the school\u2019s talent areas, and realistic acceptance rates.',
@@ -73,8 +75,10 @@ export const mockResources: Resource[] = [
   {
     id: 'res-007',
     title: 'Parent guide to DSA interviews',
+    courseId: 'course-2',
+    moduleId: 'module-2',
     type: 'pdf',
-    topic: 'interview-preparation',
+    topic: 'Interview Preparation',
     access: 'paid',
     bucket: 'resources-paid',
     filePath: 'course-2/pdf/testpaid.pdf',
@@ -88,7 +92,7 @@ export const mockResources: Resource[] = [
     id: 'res-008',
     title: 'Understanding talent areas',
     type: 'article',
-    topic: 'dsa-pathways',
+    topic: 'DSA Pathways',
     access: 'public',
     description:
       'An in-depth look at the various talent areas recognised under DSA, how schools evaluate applicants, and how to position your child effectively.',
@@ -99,8 +103,10 @@ export const mockResources: Resource[] = [
   {
     id: 'res-009',
     title: 'Advanced DSA interview workshop',
+    courseId: 'course-2',
+    moduleId: 'module-4',
     type: 'video',
-    topic: 'interview-preparation',
+    topic: 'Interview Preparation',
     access: 'paid',
     description:
       'A deeper workshop on interview structure, follow-up questions, and how to reflect your child\u2019s authentic strengths under pressure.',

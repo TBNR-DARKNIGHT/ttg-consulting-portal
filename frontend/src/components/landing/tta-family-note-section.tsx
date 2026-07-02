@@ -4,7 +4,7 @@ export function TtaFamilyNoteSection() {
       <div className="mx-auto max-w-[1200px] px-6 py-14 md:py-18">
         <div className="rounded-2xl border border-brand-grey bg-white px-6 py-7 md:px-8 md:py-9">
           <h2 className="text-brand-dark text-2xl md:text-3xl font-bold tracking-[-0.01em]">
-            A Note for Think Teach Academy Families
+            A Note For Think Teach Academy Families
           </h2>
 
           <div className="mt-4 space-y-4 text-brand-dark/80 leading-relaxed">

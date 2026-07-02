@@ -3,6 +3,19 @@ import type { ContentTopic } from '@/types';
 export const COURSE_IDS = ['course-1', 'course-2'] as const;
 export type CourseId = (typeof COURSE_IDS)[number];
 
+export const COURSE_2_MODULES = [
+  { id: 'module-1', title: 'Module 1: The Research Edge' },
+  { id: 'module-2', title: 'Module 2: The "Why Us" Answer' },
+  { id: 'module-3', title: 'Module 3: Your Story Bank' },
+  { id: 'module-4', title: 'Module 4: Closing Strong' },
+] as const;
+
+export type CourseModuleId = (typeof COURSE_2_MODULES)[number]['id'];
+
+export function getCourse2ModuleById(id: string) {
+  return COURSE_2_MODULES.find((module) => module.id === id);
+}
+
 export interface CourseDefinition {
   id: CourseId;
   title: string;
@@ -13,15 +26,15 @@ export interface CourseDefinition {
 export const COURSES: readonly CourseDefinition[] = [
   {
     id: 'course-1',
-    title: 'DSA Pathways & Overview',
+    title: 'Online Seminar',
     shortLabel: 'Course 1',
-    topics: ['dsa-pathways', 'timelines-deadlines'] as const,
+    topics: ['DSA Pathways', 'Timelines & Deadlines'] as const,
   },
   {
     id: 'course-2',
-    title: 'DSA Interview Preparation',
+    title: 'Ace Your DSA Interview',
     shortLabel: 'Course 2',
-    topics: ['interview-preparation'] as const,
+    topics: ['Interview Preparation'] as const,
   },
 ] as const;
 

@@ -23,7 +23,7 @@ function PortalPage() {
       <Navbar />
       <main className="mx-auto max-w-[1000px] px-6 pt-4 pb-16 md:py-24">
         <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-5xl">
-          Everything You Need to Navigate DSA, In One Place.
+          Everything You Need To Navigate DSA, In One Place.
         </h1>
 
         {PORTAL_HEADER_IMAGE ? (

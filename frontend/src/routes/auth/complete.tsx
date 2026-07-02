@@ -33,6 +33,5 @@ function CompleteSignInPage() {
       </div>
     );
   }
-  return <Navigate to={currentUser.data?.role === 'ADMIN' ? '/admin' : '/dashboard'} replace />;
+  return <Navigate to="/dashboard" replace />;
 }
-

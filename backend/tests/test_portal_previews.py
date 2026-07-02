@@ -72,7 +72,9 @@ def test_list_portal_course_previews_omits_signed_playback(monkeypatch: pytest.M
     assert previews[0].mux_playback_id == "public-playback"
 
 
-def test_list_portal_course_previews_omits_missing_playback(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_list_portal_course_previews_omits_missing_playback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def _fake_resources() -> list[ResourceItem]:
         return [
             ResourceItem.model_validate(

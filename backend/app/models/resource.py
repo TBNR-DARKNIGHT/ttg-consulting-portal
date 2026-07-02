@@ -14,6 +14,7 @@ class ResourceItem(BaseModel):
     id: str
     title: str
     course_id: str | None = None
+    module_id: str | None = None
     type: str
     topic: str
     description: str
