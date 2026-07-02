@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { publicStorageUrl } from '@/lib/public-assets';
-import { TTA_SHOP_URL } from '@/lib/tta-shop';
 
 const EXECUTIVE_CONSULTING_IMAGE = publicStorageUrl('landing/executive_counsulting.jpg');
 const PERSONALIZED_NEXT_STEPS_IMAGE = publicStorageUrl('landing/personalized_next_steps.jpg');
+const CONTACT_EMAIL = 'mailto:beyondgrades@thinkteachacademy.com';
 
 export function ConsultUsSection() {
   return (
@@ -89,8 +89,8 @@ export function ConsultUsSection() {
             </div>
             <div className="mt-2">
               <Button asChild>
-                <a href="https://wa.me/6597692396" target="_blank" rel="noopener noreferrer">
-                  Book Your Initial Consultation
+                <a href={CONTACT_EMAIL}>
+                  Start the Conversation
                 </a>
               </Button>
             </div>
@@ -128,17 +128,8 @@ export function ConsultUsSection() {
               </p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Button asChild>
-                  <a href="https://wa.me/6597692396" target="_blank" rel="noopener noreferrer">
-                    Book Your Initial Consultation
-                  </a>
-                </Button>
-                <Button asChild variant="outline">
-                  <a
-                    href="https://wa.me/6597692396?text=Hi%20Beyond%20Grades%2C%20"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Send Us a Message
+                  <a href={CONTACT_EMAIL}>
+                    Start the Conversation
                   </a>
                 </Button>
               </div>
@@ -151,9 +142,7 @@ export function ConsultUsSection() {
               April and May.
             </p>
             <a
-              href={TTA_SHOP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={CONTACT_EMAIL}
               className="mt-1 inline-block text-brand-indigo underline underline-offset-4"
             >
               Join the 2027 Waitlist

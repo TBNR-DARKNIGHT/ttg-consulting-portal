@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 type YoutubeShortsVideoCardProps = {
@@ -15,6 +15,33 @@ export function YoutubeShortsVideoCard({
   className,
 }: YoutubeShortsVideoCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const videoContainer = videoContainerRef.current;
+
+    if (!videoContainer) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) {
+          return;
+        }
+
+        setIsInView((wasInView) =>
+          wasInView ? entry.intersectionRatio > 0.05 : entry.intersectionRatio >= 0.35,
+        );
+      },
+      { threshold: [0.05, 0.35] },
+    );
+
+    observer.observe(videoContainer);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!isExpanded) {
@@ -36,6 +63,8 @@ export function YoutubeShortsVideoCard({
     };
   }, [isExpanded]);
   const iframeBaseSrc = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&vq=hd1080`;
+  const inlineIframeSrc =
+    isInView && !isExpanded ? `${iframeBaseSrc}&autoplay=1&mute=1` : iframeBaseSrc;
 
   return (
     <>
@@ -56,6 +85,7 @@ export function YoutubeShortsVideoCard({
         <div className="p-5 lg:p-4">
           <div className="mx-auto flex w-full justify-center">
             <div
+              ref={videoContainerRef}
               role="button"
               tabIndex={0}
               onClick={() => setIsExpanded(true)}
@@ -75,7 +105,7 @@ export function YoutubeShortsVideoCard({
               />
               <iframe
                 className="absolute inset-0 z-0 h-full w-full"
-                src={iframeBaseSrc}
+                src={inlineIframeSrc}
                 title={title}
                 loading="lazy"
                 referrerPolicy="strict-origin-when-cross-origin"

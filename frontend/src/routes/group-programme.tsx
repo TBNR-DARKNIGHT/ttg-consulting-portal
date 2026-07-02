@@ -3,10 +3,10 @@ import { Footer } from '@/components/layout/footer';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { publicStorageUrl } from '@/lib/public-assets';
-import { TTA_SHOP_URL } from '@/lib/tta-shop';
 
 const GROUP_PROG_HEADER_IMAGE = publicStorageUrl('group-prog/header.jpg');
 const GROUP_PROG_SUB_HEADER_IMAGE = publicStorageUrl('group-prog/sub_header.jpg');
+const WAITLIST_EMAIL = 'mailto:beyondgrades@thinkteachacademy.com';
 
 export const Route = createFileRoute('/group-programme')({
   component: GroupProgrammePage,
@@ -85,7 +85,7 @@ function GroupProgrammePage() {
             for 2027, join our waitlist below.
           </p>
           <Button asChild className="mt-5">
-            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
+            <a href={WAITLIST_EMAIL}>
               Join the 2027 Waitlist
             </a>
           </Button>
@@ -104,7 +104,7 @@ function GroupProgrammePage() {
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
+              <a href={WAITLIST_EMAIL}>
                 Join the 2027 Waitlist
               </a>
             </Button>
