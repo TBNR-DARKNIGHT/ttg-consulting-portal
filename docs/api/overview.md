@@ -111,7 +111,46 @@ GET    /api/v1/admin/access-codes
 POST   /api/v1/admin/access-codes
 POST   /api/v1/admin/access-codes/{code_id}/revoke
 POST   /api/v1/admin/access-codes/{code_id}/reissue
+POST   /api/v1/integrations/woocommerce/access-code
 ```
+
+### WooCommerce purchase fulfilment
+
+`POST /api/v1/integrations/woocommerce/access-code` is a server-to-server endpoint for
+Zapier. It requires the `X-Webhook-Secret` header to exactly match the backend-only
+`ZAPIER_WEBHOOK_SECRET` environment variable.
+
+Request:
+
+```json
+{
+  "orderId": "12345",
+  "courseId": "course-2"
+}
+```
+
+The endpoint derives a stable high-entropy code from the secret, course, and normalized
+WooCommerce order ID, stores only its SHA-256 hash, and returns the plaintext code to the
+caller. Repeating the request for the same order returns the same code and Supabase row,
+making Zapier retries idempotent. Changing `ZAPIER_WEBHOOK_SECRET` means codes for previously
+processed orders can no longer be reproduced, so rotate it only with an operational plan.
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "7d28e44b-fcec-4c38-a08c-d450fbc798d1",
+    "code": "TTA-2345-6789-ABCD-EFGH-JKLM-NPQR",
+    "orderId": "12345"
+  },
+  "error": null
+}
+```
+
+Never configure Zapier with `SUPABASE_SERVICE_KEY`; only give it the dedicated webhook
+secret. Customer email delivery and line-item filtering remain the responsibility of
+WooCommerce and Zapier; the backend only needs the order ID and target course.
 
 Creation accepts `courseId`, optional `orderId`, and optional ISO-8601 `expiresAt`. Revoke and
 reissue accept a required audit `reason`. Create and reissue return the plaintext code exactly

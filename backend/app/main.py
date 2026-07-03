@@ -17,10 +17,12 @@ from app.routers import (
     dev_storage,
     entitlements,
     health,
+    integrations,
     playback,
     portal,
     resources,
     storage,
+    webhooks,
 )
 from app.services.supabase import get_client
 
@@ -58,6 +60,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             missing.append("CLERK_ISSUER")
         if not settings.clerk_secret_key.strip():
             missing.append("CLERK_SECRET_KEY")
+        if not settings.zapier_webhook_secret.strip():
+            missing.append("ZAPIER_WEBHOOK_SECRET")
         if missing:
             logger.warning(
                 "Production storage/auth may be incomplete (paid downloads need Supabase + Clerk)",
@@ -89,6 +93,8 @@ app.add_middleware(LoggingMiddleware)
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 app.include_router(entitlements.router, prefix="/api/v1", tags=["entitlements"])
+app.include_router(integrations.router, prefix="/api/v1", tags=["integrations"])
+app.include_router(webhooks.router, prefix="/api/v1", tags=["webhooks"])
 app.include_router(resources.router, prefix="/api/v1", tags=["resources"])
 app.include_router(portal.router, prefix="/api/v1", tags=["portal"])
 app.include_router(playback.router, prefix="/api/v1", tags=["playback"])

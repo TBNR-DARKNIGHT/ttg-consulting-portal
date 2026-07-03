@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     clerk_audience: str = ""
     clerk_secret_key: str = ""
     clerk_api_url: str = "https://api.clerk.com/v1"
+    clerk_webhook_signing_secret: str = ""
+
+    # Google Sheets user reporting (server-side only).
+    google_sheets_spreadsheet_id: str = ""
+    google_sheets_users_tab: str = "Users"
+    google_service_account_json: str = ""
 
     # EdXP-Users (authorization)
     edxp_authz_url: str = ""
@@ -42,6 +48,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     environment: str = "development"
     app_version: str = "0.1.0"
+
+    # Server-to-server authentication for Zapier purchase fulfilment.
+    zapier_webhook_secret: str = ""
 
     # Development-only auth bypass (for local testing without Clerk)
     allow_dev_bearer_auth: bool = False

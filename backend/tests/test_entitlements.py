@@ -184,8 +184,18 @@ async def test_redeem_endpoint_returns_granted_course(
     async def redeem(_user_id, _code):
         return "course-2"
 
+    synced_rows = []
+
+    async def sync_row(row):
+        synced_rows.append(row)
+
+    async def courses(_user_id):
+        return ["course-1", "course-2"]
+
     app.dependency_overrides[get_current_user] = user
     monkeypatch.setattr(entitlement_router, "redeem_code", redeem)
+    monkeypatch.setattr(entitlement_router, "list_entitlements", courses)
+    monkeypatch.setattr(entitlement_router, "upsert_user_row", sync_row)
     try:
         response = await client.post(
             "/api/v1/entitlements/redeem",
@@ -196,6 +206,8 @@ async def test_redeem_endpoint_returns_granted_course(
 
     assert response.status_code == 200
     assert response.json()["data"] == {"courseId": "course-2", "status": "granted"}
+    assert len(synced_rows) == 1
+    assert synced_rows[0].has_course_2_access is True
 
 
 @pytest.mark.parametrize(
