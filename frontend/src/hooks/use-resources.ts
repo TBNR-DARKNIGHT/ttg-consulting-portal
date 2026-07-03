@@ -15,7 +15,9 @@ export function useResources() {
       if (shouldUseMockApiData()) {
         return Promise.resolve(mockResources);
       }
-      return apiFetch<Resource[]>('/resources', getToken);
+      // Resource metadata can be changed from the admin dialog. Do not allow the
+      // browser's HTTP cache to return the pre-edit catalog after a refetch.
+      return apiFetch<Resource[]>('/resources', getToken, { cache: 'no-store' });
     },
     refetchOnMount: 'always',
   });

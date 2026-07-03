@@ -148,6 +148,18 @@ function AdminResourceEditButton({ resource }: { resource: Resource }) {
         getToken,
       ),
     onSuccess: async () => {
+      const updatedMetadata = {
+        title: title.trim(),
+        topic: topic.trim(),
+        description: description.trim(),
+      };
+      queryClient.setQueriesData<Resource[]>(
+        { queryKey: ['resources'] },
+        (resources) =>
+          resources?.map((item) =>
+            item.id === resource.id ? { ...item, ...updatedMetadata } : item,
+          ),
+      );
       await queryClient.invalidateQueries({ queryKey: ['resources'] });
       toast.success('Resource updated');
       setOpen(false);
@@ -329,7 +341,14 @@ export function DashboardResourceGrid({
         .sort((a, b) => {
           const typeOrder: Partial<Record<ResourceType, number>> = { pdf: 0, video: 1 };
           const typeDifference = (typeOrder[a.type] ?? 2) - (typeOrder[b.type] ?? 2);
-          return typeDifference || a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+          const topicDifference = a.topic.localeCompare(b.topic, undefined, {
+            sensitivity: 'base',
+          });
+          return (
+            typeDifference ||
+            topicDifference ||
+            a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
+          );
         }),
     [resources, courseId, topicSet, typeSet, moduleId],
   );
