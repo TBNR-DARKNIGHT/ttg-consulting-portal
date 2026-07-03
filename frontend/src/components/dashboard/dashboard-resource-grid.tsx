@@ -425,7 +425,7 @@ export function DashboardResourceGrid({
                   </span>
                 </div>
               )}
-              <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">
+              <p className="line-clamp-4 text-sm text-muted-foreground">
                 {resource.description}
               </p>
               <div className="mb-4 text-xs text-muted-foreground">{resource.duration}</div>
