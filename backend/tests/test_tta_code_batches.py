@@ -100,6 +100,26 @@ async def test_delete_revoked_access_codes_returns_deleted_count() -> None:
     assert count == 3
 
 
+@pytest.mark.asyncio
+async def test_reset_tta_order_numbering_returns_next_order_id() -> None:
+    class FakeClient:
+        def rpc(self, name, params):
+            assert name == "admin_reset_tta_order_numbering"
+            assert params["p_reason"] == "Start a new allocation cycle"
+            return self
+
+        def execute(self):
+            return SimpleNamespace(data="TTA-STUDENT-0001")
+
+    next_order_id = await admin_access_codes.reset_tta_order_numbering(
+        actor_user_id=uuid4(),
+        reason="Start a new allocation cycle",
+        client=FakeClient(),  # type: ignore[arg-type]
+    )
+
+    assert next_order_id == "TTA-STUDENT-0001"
+
+
 @pytest.mark.parametrize("quantity", [0, 501])
 @pytest.mark.asyncio
 async def test_create_tta_code_batch_rejects_invalid_quantity(quantity: int) -> None:

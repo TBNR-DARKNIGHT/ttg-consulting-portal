@@ -26,6 +26,7 @@ import {
   deleteRevokedAdminAccessCodes,
   getAdminAccessCodes,
   reissueAdminAccessCode,
+  resetTtaOrderNumbering,
   revokeAllActiveAdminAccessCodes,
   revokeAdminAccessCode,
   type AdminAccessCode,
@@ -142,6 +143,16 @@ export function AdminHomePage() {
       ),
   });
 
+  const resetTtaNumbering = useMutation({
+    mutationFn: (reason: string) => resetTtaOrderNumbering(reason, getToken),
+    onSuccess: (result) =>
+      toast.success(`TTA numbering reset; next ID is ${result.nextOrderId}`),
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? error.message : "Numbering reset failed",
+      ),
+  });
+
   const reissueCode = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       reissueAdminAccessCode(id, reason, getToken),
@@ -185,6 +196,19 @@ export function AdminHomePage() {
     const reason = window.prompt("Reason for deleting revoked code records:");
     if (!reason || reason.trim().length < 3) return;
     deleteRevokedCodes.mutate(reason.trim());
+  };
+
+  const confirmResetTtaNumbering = () => {
+    if (
+      !window.confirm(
+        "Reset TTA order numbering so the next generated ID is TTA-STUDENT-0001?",
+      )
+    ) {
+      return;
+    }
+    const reason = window.prompt("Reason for resetting TTA numbering:");
+    if (!reason || reason.trim().length < 3) return;
+    resetTtaNumbering.mutate(reason.trim());
   };
 
   const submit = (event: FormEvent) => {
@@ -311,6 +335,18 @@ export function AdminHomePage() {
                   {createTtaCodes.isPending
                     ? "Generating codes…"
                     : "Generate codes for TTA students"}
+                </Button>
+                <Button
+                  className="w-full"
+                  type="button"
+                  variant="outline"
+                  disabled={resetTtaNumbering.isPending}
+                  onClick={confirmResetTtaNumbering}
+                >
+                  <RefreshCw className="mr-2 size-4" />
+                  {resetTtaNumbering.isPending
+                    ? "Resetting numbering…"
+                    : "Reset TTA order numbering"}
                 </Button>
               </form>
             </CardContent>

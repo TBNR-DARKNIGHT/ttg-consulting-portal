@@ -65,6 +65,10 @@ class DeleteRevokedAccessCodesOut(AdminModel):
     deleted_count: int
 
 
+class ResetTtaOrderNumberingOut(AdminModel):
+    next_order_id: str
+
+
 class ResourceUploadMetadata(AdminModel):
     title: str = Field(min_length=1, max_length=300)
     description: str = Field(default="", max_length=2000)

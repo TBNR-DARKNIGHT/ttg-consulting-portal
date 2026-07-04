@@ -29,11 +29,17 @@ class CodeNotReissuableError(AdminAccessCodeError):
     pass
 
 
+class ActiveTtaCodesExistError(AdminAccessCodeError):
+    pass
+
+
 def _rpc_error(exc: APIError) -> AdminAccessCodeError:
     if exc.message == "CODE_NOT_REVOCABLE":
         return CodeNotRevocableError(exc.message)
     if exc.message == "CODE_NOT_REISSUABLE":
         return CodeNotReissuableError(exc.message)
+    if exc.message == "ACTIVE_TTA_CODES_EXIST":
+        return ActiveTtaCodesExistError(exc.message)
     return AdminAccessCodeError(exc.message)
 
 
@@ -181,6 +187,34 @@ async def delete_revoked_access_codes(
             actor_user_id=str(actor_user_id),
         )
         raise AdminAccessCodeError("Unable to delete revoked access codes") from exc
+
+
+async def reset_tta_order_numbering(
+    *,
+    actor_user_id: UUID,
+    reason: str,
+    client: Client | None = None,
+) -> str:
+    db = client or get_client()
+    try:
+        response = await asyncio.to_thread(
+            lambda: db.rpc(
+                "admin_reset_tta_order_numbering",
+                {
+                    "p_reason": reason,
+                    "p_actor_user_id": str(actor_user_id),
+                },
+            ).execute()
+        )
+        return str(response.data)
+    except APIError as exc:
+        raise _rpc_error(exc) from exc
+    except Exception as exc:
+        logger.exception(
+            "Failed to reset TTA order numbering",
+            actor_user_id=str(actor_user_id),
+        )
+        raise AdminAccessCodeError("Unable to reset TTA order numbering") from exc
 
 
 async def revoke_access_code(

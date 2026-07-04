@@ -19,6 +19,7 @@ from app.models.admin import (
     CurrentUserOut,
     DeleteRevokedAccessCodesOut,
     IssuedAccessCodeOut,
+    ResetTtaOrderNumberingOut,
     ResourceMetadataUpdateIn,
     ResourceUploadMetadata,
     ResourceUploadOptionsOut,
@@ -27,6 +28,7 @@ from app.models.admin import (
 )
 from app.models.schemas import ApiResponse, ClerkUser
 from app.services.admin_access_codes import (
+    ActiveTtaCodesExistError,
     AdminAccessCodeError,
     CodeNotReissuableError,
     CodeNotRevocableError,
@@ -35,6 +37,7 @@ from app.services.admin_access_codes import (
     delete_revoked_access_codes,
     list_access_codes,
     reissue_access_code,
+    reset_tta_order_numbering,
     revoke_access_code,
     revoke_all_active_access_codes,
 )
@@ -183,6 +186,36 @@ async def delete_revoked_codes(
         raise HTTPException(
             status_code=503,
             detail="Unable to delete revoked access codes",
+        ) from exc
+
+
+@router.post(
+    "/admin/access-codes/reset-tta-numbering",
+    response_model=ApiResponse[ResetTtaOrderNumberingOut],
+)
+async def reset_tta_numbering(
+    body: AccessCodeActionIn,
+    user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[ResetTtaOrderNumberingOut]:
+    try:
+        next_order_id = await reset_tta_order_numbering(
+            actor_user_id=_user_id(user),
+            reason=body.reason,
+        )
+        return ApiResponse(
+            data=ResetTtaOrderNumberingOut(next_order_id=next_order_id)
+        )
+    except ActiveTtaCodesExistError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Revoke all active TTA codes before resetting the numbering"
+            ),
+        ) from exc
+    except AdminAccessCodeError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to reset TTA order numbering",
         ) from exc
 
 

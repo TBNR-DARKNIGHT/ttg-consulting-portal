@@ -277,6 +277,20 @@ export function deleteRevokedAdminAccessCodes(
   );
 }
 
+export function resetTtaOrderNumbering(
+  reason: string,
+  getToken: () => Promise<string | null>,
+): Promise<{ nextOrderId: string }> {
+  return apiFetch<{ nextOrderId: string }>(
+    "/admin/access-codes/reset-tta-numbering",
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    },
+  );
+}
+
 export function reissueAdminAccessCode(
   id: string,
   reason: string,
