@@ -1,5 +1,27 @@
 # Google Sheets user reporting
 
+## TTA Codes worksheet
+
+The admin access-code page can generate batches of Course 2 codes for existing
+Think Teach Academy students. The backend creates a `TTA Codes` worksheet in the
+same configured spreadsheet when the first batch is generated.
+
+The worksheet headers are:
+
+| Header | Purpose |
+| --- | --- |
+| Issue Status | Starts as `AVAILABLE`; CS changes it to `ISSUED` |
+| Issue Date | Date the code was supplied by CS |
+| Access Code | Plaintext single-use code sent to the parent |
+| Redemption Status | Starts as `UNREDEEMED` |
+| Redemption Date | Reserved for the redemption timestamp |
+| Access Code ID | Supabase identifier used to reconcile the row |
+| Notes | Optional CS notes |
+
+The Google Sheet contains the only retained plaintext copy. Supabase stores the
+secure hash and remains the source of truth for whether a code can be redeemed.
+Restrict access to this worksheet to staff who are authorized to issue codes.
+
 The FastAPI backend writes the `Users` worksheet directly. Zapier is not involved
 in this worksheet; it continues to handle WooCommerce orders and access-code
 creation separately.
@@ -40,8 +62,8 @@ columns without updating `backend/app/services/google_sheets.py`.
 1. Sign in to the Google account that should own the report.
 2. Open [Google Sheets](https://sheets.google.com) and create a blank spreadsheet.
 3. Give it a recognizable name, such as `Beyond Grades Reporting`.
-4. Rename one worksheet tab to exactly `Users`.
-5. Leave the tab empty; the backend creates the headers.
+4. The backend creates the `Users` and `TTA Codes` tabs when first needed.
+5. If you create either tab yourself, leave it empty so the backend can add its headers.
 6. Copy the spreadsheet ID from its URL.
 
 For example:
@@ -160,6 +182,7 @@ Open `backend/.env` and add:
 ```dotenv
 GOOGLE_SHEETS_SPREADSHEET_ID=1AbCDefGhijkLmNopQRstuVWxyz
 GOOGLE_SHEETS_USERS_TAB=Users
+GOOGLE_SHEETS_TTA_CODES_TAB=TTA Codes
 GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"...",...}
 ```
 
@@ -168,6 +191,28 @@ abbreviated example literally.
 
 The settings are declared in `backend/app/config.py`. The `.env.local` file takes
 precedence over `backend/.env`.
+
+## Moving to a different spreadsheet
+
+1. Share the new document with the service-account `client_email` as an Editor.
+2. Replace `GOOGLE_SHEETS_SPREADSHEET_ID` in the backend environment with the ID
+   between `/d/` and `/edit` in the new document URL.
+3. Set `GOOGLE_SHEETS_USERS_TAB` and `GOOGLE_SHEETS_TTA_CODES_TAB` if you want
+   names other than `Users` and `TTA Codes`.
+4. Update the same variables in the deployed backend and redeploy it.
+
+The backend will create the two portal-owned tabs and their headers. It does not
+write WooCommerce order rows. Zapier owns that workflow, so change the target
+worksheet in Zapier to `Beyond Grades Portal Courses`.
+
+That worksheet should use this order:
+
+| Date | Name of Parent | Mobile | Email | Class Details | Course ID | Child's Name | Sch & Level | Address | Shop Coupon Code | Amount | Follow up? |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+Add `Course ID` immediately after `Class Details`, then update the Zapier action
+field mapping. The portal purchase webhook expects the stable course value
+`course-2`; the backend does not infer it from the class-details text.
 
 Install the backend dependencies if this has not already been done:
 

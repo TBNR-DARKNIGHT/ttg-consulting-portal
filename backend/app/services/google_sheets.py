@@ -25,6 +25,15 @@ USER_HEADERS = [
     "Account Status",
     "Course 2 Access",
 ]
+TTA_CODE_HEADERS = [
+    "Issue Status",
+    "Issue Date",
+    "Access Code",
+    "Redemption Status",
+    "Redemption Date",
+    "Access Code ID",
+    "Notes",
+]
 
 
 class GoogleSheetsError(RuntimeError):
@@ -53,6 +62,10 @@ def _quoted_tab_name() -> str:
     return "'" + settings.google_sheets_users_tab.replace("'", "''") + "'"
 
 
+def _quoted_tta_codes_tab_name() -> str:
+    return "'" + settings.google_sheets_tta_codes_tab.replace("'", "''") + "'"
+
+
 def _service() -> Any:
     try:
         service_account_info = json.loads(settings.google_service_account_json)
@@ -66,6 +79,7 @@ def _service() -> Any:
 
 
 def _read_rows(service: Any) -> list[list[Any]]:
+    _ensure_tab(service, settings.google_sheets_users_tab)
     result = (
         service.spreadsheets()
         .values()
@@ -79,8 +93,128 @@ def _read_rows(service: Any) -> list[list[Any]]:
     return values if isinstance(values, list) else []
 
 
+def _ensure_tab(service: Any, tab_name: str) -> None:
+    spreadsheet = (
+        service.spreadsheets()
+        .get(
+            spreadsheetId=settings.google_sheets_spreadsheet_id,
+            fields="sheets.properties.title",
+        )
+        .execute()
+    )
+    titles = {
+        sheet.get("properties", {}).get("title")
+        for sheet in spreadsheet.get("sheets", [])
+    }
+    if tab_name not in titles:
+        service.spreadsheets().batchUpdate(
+            spreadsheetId=settings.google_sheets_spreadsheet_id,
+            body={"requests": [{"addSheet": {"properties": {"title": tab_name}}}]},
+        ).execute()
+
+
+def _append_tta_code_rows(codes: list[tuple[str, str]]) -> None:
+    service = _service()
+    _ensure_tab(service, settings.google_sheets_tta_codes_tab)
+    tab = _quoted_tta_codes_tab_name()
+    existing = (
+        service.spreadsheets()
+        .values()
+        .get(
+            spreadsheetId=settings.google_sheets_spreadsheet_id,
+            range=f"{tab}!A:J",
+        )
+        .execute()
+        .get("values", [])
+    )
+    if not existing:
+        service.spreadsheets().values().update(
+            spreadsheetId=settings.google_sheets_spreadsheet_id,
+            range=f"{tab}!A1:G1",
+            valueInputOption="RAW",
+            body={"values": [TTA_CODE_HEADERS]},
+        ).execute()
+    elif existing[0] != TTA_CODE_HEADERS:
+        previous_headers = existing[0]
+        if previous_headers[:7] == [
+            "Status",
+            "Issue Status",
+            "Access Code",
+            "Redemption Status",
+            "Redemption Date",
+            "Access Code ID",
+            "Notes",
+        ]:
+            migrated_rows = [
+                [
+                    row[1] if len(row) > 1 else "",
+                    "",
+                    row[2] if len(row) > 2 else "",
+                    row[3] if len(row) > 3 else "",
+                    row[4] if len(row) > 4 else "",
+                    row[5] if len(row) > 5 else "",
+                    row[6] if len(row) > 6 else "",
+                ]
+                for row in existing[1:]
+            ]
+        elif previous_headers[:10] == [
+            "Access Code",
+            "Batch Label",
+            "CS Status",
+            "Issued To",
+            "Issued By",
+            "Issued At",
+            "Portal Status",
+            "Redeemed At",
+            "Notes",
+            "Access Code ID",
+        ]:
+            migrated_rows = [
+                [
+                    row[2] if len(row) > 2 else "",
+                    row[5] if len(row) > 5 else "",
+                    row[0] if row else "",
+                    row[6] if len(row) > 6 else "",
+                    row[7] if len(row) > 7 else "",
+                    row[9] if len(row) > 9 else "",
+                    row[8] if len(row) > 8 else "",
+                ]
+                for row in existing[1:]
+            ]
+        else:
+            raise GoogleSheetsError(
+                "TTA Codes headers do not match a supported layout"
+            )
+        service.spreadsheets().values().update(
+            spreadsheetId=settings.google_sheets_spreadsheet_id,
+            range=f"{tab}!A1:G{len(migrated_rows) + 1}",
+            valueInputOption="RAW",
+            body={"values": [TTA_CODE_HEADERS, *migrated_rows]},
+        ).execute()
+        if len(previous_headers) > 7:
+            service.spreadsheets().values().clear(
+                spreadsheetId=settings.google_sheets_spreadsheet_id,
+                range=f"{tab}!H:J",
+                body={},
+            ).execute()
+    values = [
+        ["AVAILABLE", "", plaintext, "UNREDEEMED", "", code_id, ""]
+        for code_id, plaintext in codes
+    ]
+    if not values:
+        return
+    service.spreadsheets().values().append(
+        spreadsheetId=settings.google_sheets_spreadsheet_id,
+        range=f"{tab}!A:G",
+        valueInputOption="RAW",
+        insertDataOption="INSERT_ROWS",
+        body={"values": values},
+    ).execute()
+
+
 def _write_user_row(row: UserSheetRow) -> None:
     service = _service()
+    _ensure_tab(service, settings.google_sheets_users_tab)
     rows = _read_rows(service)
     tab = _quoted_tab_name()
 
@@ -137,6 +271,7 @@ def _write_user_row(row: UserSheetRow) -> None:
 
 def _mark_user_deleted(clerk_user_id: str) -> None:
     service = _service()
+    _ensure_tab(service, settings.google_sheets_users_tab)
     rows = _read_rows(service)
     tab = _quoted_tab_name()
 
@@ -220,3 +355,20 @@ async def mark_user_deleted(clerk_user_id: str) -> None:
     except Exception as exc:
         logger.exception("Google Sheets user deletion sync failed", clerk_user_id=clerk_user_id)
         raise GoogleSheetsError("Unable to update the user spreadsheet") from exc
+
+
+async def append_tta_code_rows(
+    codes: list[tuple[str, str]],
+) -> None:
+    if not is_user_sheet_configured():
+        raise GoogleSheetsError("Google Sheets is not configured")
+    try:
+        await asyncio.to_thread(_append_tta_code_rows, codes)
+    except GoogleSheetsError:
+        raise
+    except HttpError as exc:
+        logger.exception("Google Sheets API rejected TTA code export")
+        raise GoogleSheetsError("Google Sheets rejected the TTA code export") from exc
+    except Exception as exc:
+        logger.exception("Google Sheets TTA code export failed")
+        raise GoogleSheetsError("Unable to export TTA codes") from exc

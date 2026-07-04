@@ -1,10 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '');
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "");
 
 function buildApiUrl(path: string): string {
   if (!API_BASE) {
-    throw new Error('VITE_API_BASE_URL is not configured');
+    throw new Error("VITE_API_BASE_URL is not configured");
   }
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_BASE}${normalizedPath}`;
 }
 
@@ -12,13 +12,16 @@ export function hasApiBaseUrl(): boolean {
   return Boolean(API_BASE?.trim());
 }
 
-export async function apiFetchPublic<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetchPublic<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   const url = buildApiUrl(path);
 
   const res = await fetch(url, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     },
   });
@@ -30,12 +33,14 @@ export async function apiFetchPublic<T>(path: string, options: RequestInit = {})
       error?: { message?: string };
     };
     const detail =
-      typeof error.detail === 'string'
+      typeof error.detail === "string"
         ? error.detail
         : Array.isArray(error.detail)
-          ? error.detail.map(String).join(', ')
+          ? error.detail.map(String).join(", ")
           : undefined;
-    throw new Error(error.error?.message || error.message || detail || `HTTP ${res.status}`);
+    throw new Error(
+      error.error?.message || error.message || detail || `HTTP ${res.status}`,
+    );
   }
 
   const json = await res.json();
@@ -49,14 +54,14 @@ export async function apiFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   if (!API_BASE) {
-    throw new Error('VITE_API_BASE_URL is not configured');
+    throw new Error("VITE_API_BASE_URL is not configured");
   }
 
   const token = await getToken();
   const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
@@ -69,12 +74,14 @@ export async function apiFetch<T>(
       error?: { message?: string };
     };
     const detail =
-      typeof error.detail === 'string'
+      typeof error.detail === "string"
         ? error.detail
         : Array.isArray(error.detail)
-          ? error.detail.map(String).join(', ')
+          ? error.detail.map(String).join(", ")
           : undefined;
-    throw new Error(error.error?.message || error.message || detail || `HTTP ${res.status}`);
+    throw new Error(
+      error.error?.message || error.message || detail || `HTTP ${res.status}`,
+    );
   }
 
   const json = await res.json();
@@ -88,7 +95,7 @@ export async function apiFetchBlob(
   options: RequestInit = {},
 ): Promise<Blob> {
   if (!API_BASE) {
-    throw new Error('VITE_API_BASE_URL is not configured');
+    throw new Error("VITE_API_BASE_URL is not configured");
   }
 
   const token = await getToken();
@@ -101,7 +108,7 @@ export async function apiFetchBlob(
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
+    const text = await res.text().catch(() => "");
     let message = text || `HTTP ${res.status}`;
     try {
       const json = JSON.parse(text) as {
@@ -160,14 +167,14 @@ export interface EntitlementsResponse {
 
 export interface RedemptionResponse {
   courseId: string;
-  status: 'granted';
+  status: "granted";
 }
 
 export interface CurrentUserResponse {
   id: string;
   clerkUserId: string;
   email: string | null;
-  role: 'ADMIN' | 'CONSULTANT' | 'CLIENT';
+  role: "ADMIN" | "CONSULTANT" | "CLIENT";
 }
 
 export interface AdminAccessCode {
@@ -190,25 +197,40 @@ export interface IssuedAccessCode {
   code: string;
 }
 
+export interface TtaCodeBatch {
+  quantity: number;
+  sheetTab: string;
+}
+
 export function getCurrentUser(
   getToken: () => Promise<string | null>,
 ): Promise<CurrentUserResponse> {
-  return apiFetch<CurrentUserResponse>('/me', getToken);
+  return apiFetch<CurrentUserResponse>("/me", getToken);
 }
 
 export function getAdminAccessCodes(
   getToken: () => Promise<string | null>,
 ): Promise<AdminAccessCode[]> {
-  return apiFetch<AdminAccessCode[]>('/admin/access-codes', getToken);
+  return apiFetch<AdminAccessCode[]>("/admin/access-codes", getToken);
 }
 
 export function createAdminAccessCode(
   input: { courseId: string; orderId?: string; expiresAt?: string },
   getToken: () => Promise<string | null>,
 ): Promise<IssuedAccessCode> {
-  return apiFetch<IssuedAccessCode>('/admin/access-codes', getToken, {
-    method: 'POST',
+  return apiFetch<IssuedAccessCode>("/admin/access-codes", getToken, {
+    method: "POST",
     body: JSON.stringify(input),
+  });
+}
+
+export function createTtaCodeBatch(
+  quantity: number,
+  getToken: () => Promise<string | null>,
+): Promise<TtaCodeBatch> {
+  return apiFetch<TtaCodeBatch>("/admin/access-codes/tta-batch", getToken, {
+    method: "POST",
+    body: JSON.stringify({ quantity }),
   });
 }
 
@@ -217,10 +239,42 @@ export function revokeAdminAccessCode(
   reason: string,
   getToken: () => Promise<string | null>,
 ): Promise<null> {
-  return apiFetch<null>(`/admin/access-codes/${encodeURIComponent(id)}/revoke`, getToken, {
-    method: 'POST',
-    body: JSON.stringify({ reason }),
-  });
+  return apiFetch<null>(
+    `/admin/access-codes/${encodeURIComponent(id)}/revoke`,
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    },
+  );
+}
+
+export function revokeAllActiveAdminAccessCodes(
+  reason: string,
+  getToken: () => Promise<string | null>,
+): Promise<{ revokedCount: number }> {
+  return apiFetch<{ revokedCount: number }>(
+    "/admin/access-codes/revoke-all-active",
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    },
+  );
+}
+
+export function deleteRevokedAdminAccessCodes(
+  reason: string,
+  getToken: () => Promise<string | null>,
+): Promise<{ deletedCount: number }> {
+  return apiFetch<{ deletedCount: number }>(
+    "/admin/access-codes/delete-revoked",
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    },
+  );
 }
 
 export function reissueAdminAccessCode(
@@ -231,13 +285,13 @@ export function reissueAdminAccessCode(
   return apiFetch<IssuedAccessCode>(
     `/admin/access-codes/${encodeURIComponent(id)}/reissue`,
     getToken,
-    { method: 'POST', body: JSON.stringify({ reason }) },
+    { method: "POST", body: JSON.stringify({ reason }) },
   );
 }
 
 export interface AdminResourceUpload {
   resourceId: string;
-  type: 'pdf' | 'video';
+  type: "pdf" | "video";
   status: string;
   uploadUrl?: string;
   uploadId?: string;
@@ -261,7 +315,10 @@ export interface AdminResourceUploadOptions {
 export function getAdminResourceUploadOptions(
   getToken: () => Promise<string | null>,
 ): Promise<AdminResourceUploadOptions> {
-  return apiFetch<AdminResourceUploadOptions>('/admin/resources/options', getToken);
+  return apiFetch<AdminResourceUploadOptions>(
+    "/admin/resources/options",
+    getToken,
+  );
 }
 
 export function updateAdminResource(
@@ -269,19 +326,27 @@ export function updateAdminResource(
   input: { title: string; topic: string; description: string },
   getToken: () => Promise<string | null>,
 ): Promise<null> {
-  return apiFetch<null>(`/admin/resources/${encodeURIComponent(resourceId)}`, getToken, {
-    method: 'PATCH',
-    body: JSON.stringify(input),
-  });
+  return apiFetch<null>(
+    `/admin/resources/${encodeURIComponent(resourceId)}`,
+    getToken,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export function deleteAdminResource(
   resourceId: string,
   getToken: () => Promise<string | null>,
 ): Promise<null> {
-  return apiFetch<null>(`/admin/resources/${encodeURIComponent(resourceId)}`, getToken, {
-    method: 'DELETE',
-  });
+  return apiFetch<null>(
+    `/admin/resources/${encodeURIComponent(resourceId)}`,
+    getToken,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 export async function uploadAdminDocument(
@@ -290,21 +355,23 @@ export async function uploadAdminDocument(
   getToken: () => Promise<string | null>,
 ): Promise<AdminResourceUpload> {
   const form = new FormData();
-  form.set('file', file);
-  form.set('title', metadata.title);
-  form.set('description', metadata.description);
-  form.set('course_id', metadata.courseId);
-  if (metadata.moduleId) form.set('module_id', metadata.moduleId);
-  if (metadata.moduleTitle) form.set('module_title', metadata.moduleTitle);
-  form.set('topic', metadata.topic);
+  form.set("file", file);
+  form.set("title", metadata.title);
+  form.set("description", metadata.description);
+  form.set("course_id", metadata.courseId);
+  if (metadata.moduleId) form.set("module_id", metadata.moduleId);
+  if (metadata.moduleTitle) form.set("module_title", metadata.moduleTitle);
+  form.set("topic", metadata.topic);
   const token = await getToken();
-  const response = await fetch(buildApiUrl('/admin/resources/documents'), {
-    method: 'POST',
+  const response = await fetch(buildApiUrl("/admin/resources/documents"), {
+    method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,
   });
   if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { detail?: string };
+    const error = (await response.json().catch(() => ({}))) as {
+      detail?: string;
+    };
     throw new Error(error.detail || `Upload failed (${response.status})`);
   }
   return (await response.json()).data as AdminResourceUpload;
@@ -315,23 +382,23 @@ export function createAdminVideoUpload(
   metadata: AdminResourceMetadata,
   getToken: () => Promise<string | null>,
 ): Promise<AdminResourceUpload> {
-  return apiFetch<AdminResourceUpload>('/admin/resources/videos', getToken, {
-    method: 'POST',
+  return apiFetch<AdminResourceUpload>("/admin/resources/videos", getToken, {
+    method: "POST",
     body: JSON.stringify({
       ...metadata,
-      contentType: file.type || 'video/mp4',
+      contentType: file.type || "video/mp4",
     }),
   });
 }
 
 export function createAdminLinkUpload(
   url: string,
-  resourceType: 'pdf' | 'video',
+  resourceType: "pdf" | "video",
   metadata: AdminResourceMetadata,
   getToken: () => Promise<string | null>,
 ): Promise<AdminResourceUpload> {
-  return apiFetch<AdminResourceUpload>('/admin/resources/links', getToken, {
-    method: 'POST',
+  return apiFetch<AdminResourceUpload>("/admin/resources/links", getToken, {
+    method: "POST",
     body: JSON.stringify({ ...metadata, url, resourceType }),
   });
 }
@@ -343,16 +410,18 @@ export function putFileWithProgress(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open('PUT', url);
-    request.setRequestHeader('Content-Type', file.type || 'video/mp4');
+    request.open("PUT", url);
+    request.setRequestHeader("Content-Type", file.type || "video/mp4");
     request.upload.onprogress = (event) => {
-      if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
+      if (event.lengthComputable)
+        onProgress(Math.round((event.loaded / event.total) * 100));
     };
     request.onload = () => {
       if (request.status >= 200 && request.status < 300) resolve();
       else reject(new Error(`Mux upload failed (${request.status})`));
     };
-    request.onerror = () => reject(new Error('The connection to Mux was interrupted'));
+    request.onerror = () =>
+      reject(new Error("The connection to Mux was interrupted"));
     request.send(file);
   });
 }
@@ -366,22 +435,22 @@ export function completeAdminVideoUpload(
   return apiFetch<AdminResourceUpload>(
     `/admin/resources/videos/${encodeURIComponent(resourceId)}/complete?${query}`,
     getToken,
-    { method: 'POST' },
+    { method: "POST" },
   );
 }
 
 export function getEntitlements(
   getToken: () => Promise<string | null>,
 ): Promise<EntitlementsResponse> {
-  return apiFetch<EntitlementsResponse>('/me/entitlements', getToken);
+  return apiFetch<EntitlementsResponse>("/me/entitlements", getToken);
 }
 
 export function redeemAccessCode(
   code: string,
   getToken: () => Promise<string | null>,
 ): Promise<RedemptionResponse> {
-  return apiFetch<RedemptionResponse>('/entitlements/redeem', getToken, {
-    method: 'POST',
+  return apiFetch<RedemptionResponse>("/entitlements/redeem", getToken, {
+    method: "POST",
     body: JSON.stringify({ code }),
   });
 }
@@ -392,9 +461,12 @@ export function getMuxPlaybackToken(
 ): Promise<MuxPlaybackTokenResponse> {
   const q = new URLSearchParams({ resource_id: params.resourceId });
   if (params.expiresIn != null) {
-    q.set('expires_in', String(params.expiresIn));
+    q.set("expires_in", String(params.expiresIn));
   }
-  return apiFetch<MuxPlaybackTokenResponse>(`/playback/mux-token?${q.toString()}`, getToken);
+  return apiFetch<MuxPlaybackTokenResponse>(
+    `/playback/mux-token?${q.toString()}`,
+    getToken,
+  );
 }
 
 export function getMuxThumbnailToken(
@@ -415,5 +487,5 @@ export interface PortalPreview {
 }
 
 export function getPortalCoursePreviews(): Promise<PortalPreview[]> {
-  return apiFetchPublic<PortalPreview[]>('/portal/course-previews');
+  return apiFetchPublic<PortalPreview[]>("/portal/course-previews");
 }

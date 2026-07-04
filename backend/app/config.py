@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     # Google Sheets user reporting (server-side only).
     google_sheets_spreadsheet_id: str = ""
     google_sheets_users_tab: str = "Users"
+    google_sheets_tta_codes_tab: str = "TTA Codes"
     google_service_account_json: str = ""
 
     # EdXP-Users (authorization)

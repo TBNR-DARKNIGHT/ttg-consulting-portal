@@ -6,19 +6,24 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import ValidationError
 
+from app.config import settings
 from app.dependencies import get_current_user, require_admin
 from app.models.admin import (
     AccessCodeActionIn,
     AccessCodeOut,
+    BulkRevokeAccessCodesOut,
     CreateAccessCodeIn,
     CreateLinkUploadIn,
+    CreateTtaCodeBatchIn,
     CreateVideoUploadIn,
     CurrentUserOut,
+    DeleteRevokedAccessCodesOut,
     IssuedAccessCodeOut,
     ResourceMetadataUpdateIn,
     ResourceUploadMetadata,
     ResourceUploadOptionsOut,
     ResourceUploadOut,
+    TtaCodeBatchOut,
 )
 from app.models.schemas import ApiResponse, ClerkUser
 from app.services.admin_access_codes import (
@@ -26,9 +31,12 @@ from app.services.admin_access_codes import (
     CodeNotReissuableError,
     CodeNotRevocableError,
     create_access_code,
+    create_tta_code_batch,
+    delete_revoked_access_codes,
     list_access_codes,
     reissue_access_code,
     revoke_access_code,
+    revoke_all_active_access_codes,
 )
 from app.services.admin_resource_uploads import (
     ResourceUploadError,
@@ -40,8 +48,8 @@ from app.services.admin_resource_uploads import (
     update_resource_metadata,
     upload_pdf,
 )
-
 from app.services.external_files import ExternalFileError
+from app.services.google_sheets import GoogleSheetsError
 from app.services.mux_client import MuxClientError
 
 logger = logging.getLogger(__name__)
@@ -98,6 +106,84 @@ async def issue_access_code(
         return ApiResponse(data=IssuedAccessCodeOut(id=code_id, code=plaintext))
     except AdminAccessCodeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post(
+    "/admin/access-codes/tta-batch",
+    response_model=ApiResponse[TtaCodeBatchOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def issue_tta_code_batch(
+    body: CreateTtaCodeBatchIn,
+    user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[TtaCodeBatchOut]:
+    try:
+        quantity = await create_tta_code_batch(
+            actor_user_id=_user_id(user),
+            quantity=body.quantity,
+        )
+        return ApiResponse(
+            data=TtaCodeBatchOut(
+                quantity=quantity,
+                sheet_tab=settings.google_sheets_tta_codes_tab,
+            )
+        )
+    except GoogleSheetsError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Codes were created in Supabase, but Google Sheets export failed. "
+                "Do not generate another batch until an administrator checks the code records."
+            ),
+        ) from exc
+    except AdminAccessCodeError as exc:
+        raise HTTPException(status_code=503, detail="Unable to create TTA codes") from exc
+
+
+@router.post(
+    "/admin/access-codes/revoke-all-active",
+    response_model=ApiResponse[BulkRevokeAccessCodesOut],
+)
+async def revoke_all_active_codes(
+    body: AccessCodeActionIn,
+    user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[BulkRevokeAccessCodesOut]:
+    try:
+        count = await revoke_all_active_access_codes(
+            actor_user_id=_user_id(user),
+            reason=body.reason,
+        )
+        return ApiResponse(
+            data=BulkRevokeAccessCodesOut(revoked_count=count)
+        )
+    except AdminAccessCodeError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to revoke active access codes",
+        ) from exc
+
+
+@router.post(
+    "/admin/access-codes/delete-revoked",
+    response_model=ApiResponse[DeleteRevokedAccessCodesOut],
+)
+async def delete_revoked_codes(
+    body: AccessCodeActionIn,
+    user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[DeleteRevokedAccessCodesOut]:
+    try:
+        count = await delete_revoked_access_codes(
+            actor_user_id=_user_id(user),
+            reason=body.reason,
+        )
+        return ApiResponse(
+            data=DeleteRevokedAccessCodesOut(deleted_count=count)
+        )
+    except AdminAccessCodeError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to delete revoked access codes",
+        ) from exc
 
 
 @router.post("/admin/access-codes/{code_id}/revoke", response_model=ApiResponse[None])

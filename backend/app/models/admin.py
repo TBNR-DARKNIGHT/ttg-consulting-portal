@@ -48,6 +48,23 @@ class IssuedAccessCodeOut(AdminModel):
     code: str
 
 
+class CreateTtaCodeBatchIn(AdminModel):
+    quantity: int = Field(ge=1, le=500)
+
+
+class TtaCodeBatchOut(AdminModel):
+    quantity: int
+    sheet_tab: str
+
+
+class BulkRevokeAccessCodesOut(AdminModel):
+    revoked_count: int
+
+
+class DeleteRevokedAccessCodesOut(AdminModel):
+    deleted_count: int
+
+
 class ResourceUploadMetadata(AdminModel):
     title: str = Field(min_length=1, max_length=300)
     description: str = Field(default="", max_length=2000)

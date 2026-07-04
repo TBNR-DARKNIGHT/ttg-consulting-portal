@@ -11,6 +11,7 @@ from supabase import Client
 
 from app.scripts.create_access_code import SUPPORTED_COURSES, generate_code
 from app.services.entitlements import hash_redemption_code
+from app.services.google_sheets import append_tta_code_rows
 from app.services.supabase import get_client
 
 logger = structlog.get_logger()
@@ -87,6 +88,101 @@ async def create_access_code(
         raise AdminAccessCodeError("Unable to create access code") from exc
 
 
+async def create_tta_code_batch(
+    *,
+    actor_user_id: UUID,
+    quantity: int,
+    client: Client | None = None,
+) -> int:
+    if quantity < 1 or quantity > 500:
+        raise AdminAccessCodeError("Quantity must be between 1 and 500")
+    plaintext_codes = [generate_code() for _ in range(quantity)]
+    db = client or get_client()
+    try:
+        response = await asyncio.to_thread(
+            lambda: db.rpc(
+                "admin_create_access_code_batch",
+                {
+                    "p_code_hashes": [
+                        hash_redemption_code(code) for code in plaintext_codes
+                    ],
+                    "p_course_id": "course-2",
+                    "p_actor_user_id": str(actor_user_id),
+                },
+            ).execute()
+        )
+        rows = sorted(response.data or [], key=lambda row: int(row["code_index"]))
+        if len(rows) != quantity:
+            raise AdminAccessCodeError("Access-code batch returned an unexpected result")
+        issued = [
+            (str(row["code_id"]), plaintext_codes[index])
+            for index, row in enumerate(rows)
+        ]
+    except AdminAccessCodeError:
+        raise
+    except Exception as exc:
+        logger.exception(
+            "Failed to create TTA access-code batch",
+            actor_user_id=str(actor_user_id),
+            quantity=quantity,
+        )
+        raise AdminAccessCodeError("Unable to create TTA access-code batch") from exc
+    await append_tta_code_rows(issued)
+    return len(issued)
+
+
+async def revoke_all_active_access_codes(
+    *,
+    actor_user_id: UUID,
+    reason: str,
+    client: Client | None = None,
+) -> int:
+    db = client or get_client()
+    try:
+        response = await asyncio.to_thread(
+            lambda: db.rpc(
+                "admin_revoke_all_active_access_codes",
+                {
+                    "p_reason": reason,
+                    "p_actor_user_id": str(actor_user_id),
+                },
+            ).execute()
+        )
+        return len(response.data or [])
+    except Exception as exc:
+        logger.exception(
+            "Failed to revoke all active access codes",
+            actor_user_id=str(actor_user_id),
+        )
+        raise AdminAccessCodeError("Unable to revoke active access codes") from exc
+
+
+async def delete_revoked_access_codes(
+    *,
+    actor_user_id: UUID,
+    reason: str,
+    client: Client | None = None,
+) -> int:
+    db = client or get_client()
+    try:
+        response = await asyncio.to_thread(
+            lambda: db.rpc(
+                "admin_delete_revoked_access_codes",
+                {
+                    "p_reason": reason,
+                    "p_actor_user_id": str(actor_user_id),
+                },
+            ).execute()
+        )
+        return len(response.data or [])
+    except Exception as exc:
+        logger.exception(
+            "Failed to delete revoked access codes",
+            actor_user_id=str(actor_user_id),
+        )
+        raise AdminAccessCodeError("Unable to delete revoked access codes") from exc
+
+
 async def revoke_access_code(
     code_id: UUID,
     *,
@@ -140,4 +236,3 @@ async def reissue_access_code(
     except Exception as exc:
         logger.exception("Failed to reissue access code", code_id=str(code_id))
         raise AdminAccessCodeError("Unable to reissue access code") from exc
-
