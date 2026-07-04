@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ImageOff, LockKeyhole, Pencil, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePortalAuth } from '@/auth/auth-context';
@@ -37,6 +37,35 @@ function titleCase(value: string) {
 
 function resourceTypeLabel(type: ResourceType) {
   return type === 'pdf' ? 'PDF' : titleCase(type);
+}
+
+function AdaptiveResourceTitle({ children }: { children: ReactNode }) {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const title = titleRef.current;
+    const cardContent = title?.closest<HTMLElement>('[data-resource-card-content]');
+    if (!title || !cardContent) return;
+
+    const updateTitleLines = () => {
+      const lineHeight = Number.parseFloat(window.getComputedStyle(title).lineHeight);
+      cardContent.dataset.titleLines =
+        Number.isFinite(lineHeight) && title.getBoundingClientRect().height > lineHeight * 1.5
+          ? 'two'
+          : 'one';
+    };
+
+    updateTitleLines();
+    const observer = new ResizeObserver(updateTitleLines);
+    observer.observe(title);
+    return () => observer.disconnect();
+  }, [children]);
+
+  return (
+    <h2 ref={titleRef} className="min-w-0 font-semibold leading-snug text-foreground">
+      {children}
+    </h2>
+  );
 }
 
 function ResourceVideoThumbnail({
@@ -414,16 +443,20 @@ export function DashboardResourceGrid({
                 <div className="aspect-video bg-muted/20" aria-hidden />
               )}
             </Link>
-            <div className="flex h-64 flex-none flex-col gap-2 overflow-hidden border-t border-border p-5">
+            <div
+              data-resource-card-content
+              data-title-lines="one"
+              className="group/content flex h-64 flex-none flex-col gap-2 overflow-hidden border-t border-border p-5"
+            >
               <div className="flex min-w-0 items-start justify-between gap-3">
-                <h2 className="min-w-0 font-semibold leading-snug text-foreground">
+                <AdaptiveResourceTitle>
                   <Link
                     {...resourceLink}
                     className="line-clamp-2 rounded-sm [overflow-wrap:anywhere] hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {resource.title}
                   </Link>
-                </h2>
+                </AdaptiveResourceTitle>
                 <div className="flex shrink-0 items-center gap-2">
                   {locked && (
                     <LockKeyhole
@@ -445,7 +478,7 @@ export function DashboardResourceGrid({
                 </div>
               )}
               <div className="min-h-0 flex-1 overflow-hidden">
-                <p className="line-clamp-6 text-sm text-muted-foreground">
+                <p className="line-clamp-6 text-sm text-muted-foreground group-data-[title-lines=two]/content:line-clamp-5">
                   {resource.description}
                 </p>
               </div>
