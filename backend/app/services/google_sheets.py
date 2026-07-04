@@ -232,7 +232,7 @@ def _append_tta_code_rows(codes: list[tuple[str, str]]) -> None:
         spreadsheetId=settings.google_sheets_spreadsheet_id,
         range=f"{tab}!A:H",
         valueInputOption="RAW",
-        insertDataOption="INSERT_ROWS",
+        insertDataOption="OVERWRITE",
         body={"values": values},
     ).execute()
 
