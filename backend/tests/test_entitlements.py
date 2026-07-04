@@ -189,6 +189,11 @@ async def test_redeem_endpoint_returns_granted_course(
     async def sync_row(row):
         synced_rows.append(row)
 
+    redeemed_codes = []
+
+    async def sync_redeemed_code(code, clerk_user_id):
+        redeemed_codes.append((code, clerk_user_id))
+
     async def courses(_user_id):
         return ["course-1", "course-2"]
 
@@ -196,6 +201,11 @@ async def test_redeem_endpoint_returns_granted_course(
     monkeypatch.setattr(entitlement_router, "redeem_code", redeem)
     monkeypatch.setattr(entitlement_router, "list_entitlements", courses)
     monkeypatch.setattr(entitlement_router, "upsert_user_row", sync_row)
+    monkeypatch.setattr(
+        entitlement_router,
+        "mark_tta_code_redeemed",
+        sync_redeemed_code,
+    )
     try:
         response = await client.post(
             "/api/v1/entitlements/redeem",
@@ -208,6 +218,7 @@ async def test_redeem_endpoint_returns_granted_course(
     assert response.json()["data"] == {"courseId": "course-2", "status": "granted"}
     assert len(synced_rows) == 1
     assert synced_rows[0].has_course_2_access is True
+    assert redeemed_codes == [("TTA-ABCD-1234-EFGH", "user_test")]
 
 
 @pytest.mark.parametrize(

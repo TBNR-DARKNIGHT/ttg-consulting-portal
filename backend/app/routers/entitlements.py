@@ -17,7 +17,12 @@ from app.services.entitlements import (
     list_entitlements,
     redeem_code,
 )
-from app.services.google_sheets import GoogleSheetsError, UserSheetRow, upsert_user_row
+from app.services.google_sheets import (
+    GoogleSheetsError,
+    UserSheetRow,
+    mark_tta_code_redeemed,
+    upsert_user_row,
+)
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -78,6 +83,15 @@ async def redeem_entitlement(
         # a successfully consumed one-time code appear to have failed.
         logger.exception(
             "Course access granted but Google Sheets user sync failed",
+            clerk_user_id=user.clerk_id,
+            course_id=course_id,
+        )
+
+    try:
+        await mark_tta_code_redeemed(body.code, user.clerk_id)
+    except GoogleSheetsError:
+        logger.exception(
+            "Course access granted but Google Sheets TTA code sync failed",
             clerk_user_id=user.clerk_id,
             course_id=course_id,
         )
