@@ -64,6 +64,12 @@ class Settings(BaseSettings):
     mux_signing_key_id: str = ""
     mux_signing_private_key: str = ""
 
+    # Public Mux clips shown on the portal marketing page. These are deliberately
+    # separate from Supabase course resources.
+    portal_preview_1_mux_playback_id: str = ""
+    portal_preview_2_mux_playback_id: str = ""
+    portal_preview_3_mux_playback_id: str = ""
+
     @property
     def is_development(self) -> bool:
         return self.environment == "development"
