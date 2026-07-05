@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Menu } from 'lucide-react';
 import {
+  DashboardAccountControl,
   ContentDashboardNavLinks,
   ContentDashboardSidebar,
 } from '@/components/dashboard/content-dashboard-sidebar';
@@ -14,11 +15,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { usePortalAuth } from '@/auth/auth-context';
 
 export function ContentDashboardShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { signOut } = usePortalAuth();
 
   return (
     <div className="flex min-h-screen bg-white text-foreground">
@@ -52,16 +51,7 @@ export function ContentDashboardShell({ children }: { children: ReactNode }) {
                 <ContentDashboardNavLinks onNavigate={() => setOpen(false)} />
               </div>
               <div className="mt-auto shrink-0 border-t border-border p-3">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-                  onClick={() => {
-                    setOpen(false);
-                    void signOut();
-                  }}
-                >
-                  Sign out
-                </Button>
+                <DashboardAccountControl />
               </div>
             </SheetContent>
           </Sheet>
