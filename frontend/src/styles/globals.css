@@ -1,6 +1,6 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -17,6 +17,13 @@
     /* Fonts */
     --beyond-font-serif: 'Lora', Georgia, serif;
     --beyond-font-sans:  'DM Sans', system-ui, sans-serif;
+
+    --color-indigo: #5B5BD6;
+    --color-cream: #F5F3EF;
+    --color-light-grey: #EDEAE3;
+    --color-dark: #1B1F4B;
+    --beyond-font-serif: 'Playfair Display', Georgia, serif;
+    --beyond-font-sans: 'Inter', system-ui, sans-serif;
 
     /* shadcn/ui tokens (HSL values; consumed via hsl(var(--token))) */
     --radius: 0.5rem;

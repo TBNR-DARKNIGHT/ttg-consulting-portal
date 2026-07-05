@@ -1,68 +1,56 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { publicStorageUrl } from '@/lib/public-assets';
+import { BookOpen, FileText, Video } from 'lucide-react';
 
 const resources = [
   {
+    badge: 'Video Series',
     title: 'DSA Seminar Clips',
-    imagePath: 'portal/dsa_seminar_clips.jpeg',
     description:
       'Bite-sized videos covering the history of DSA, common misconceptions, how to choose the right domain, and the interview questions that come up most consistently across schools.',
+    Icon: Video,
   },
   {
+    badge: 'Reference Guide',
     title: 'Opportunities Directory',
-    imagePath: 'portal/opportunities_directory.jpeg',
     description:
-      'A curated guide to competitions, programmes, and experiences across primary and secondary levels — organised by domain and stage of learning.',
+      'A curated guide to competitions, programmes, and experiences across primary and secondary levels—organised by domain and stage of learning.',
+    Icon: FileText,
   },
   {
+    badge: 'eBook',
     title: '8 Golden Rules for Acing DSA Interviews',
-    imagePath: 'portal/8_golden_rules.jpeg',
     description:
       'A practical guide built from real experience on both sides of the interview process. Written for students who want to walk into any room with genuine confidence.',
+    Icon: BookOpen,
   },
 ] as const;
 
 export function PortalFreeResourcesSection() {
   return (
-    <section className="mt-14 md:mt-16" aria-labelledby="portal-free-resources-heading">
-      <h2
-        id="portal-free-resources-heading"
-        className="text-2xl font-semibold tracking-tight text-brand-dark md:text-3xl"
-      >
-        Free On Signup: DSA 101
-      </h2>
-      <p className="mt-3 max-w-2xl text-base leading-relaxed text-brand-dark/75 md:text-lg">
-        Three resources, available the moment you create your account.
-      </p>
-
-      <div className="mt-8 grid gap-5 md:grid-cols-3">
-        {resources.map((item) => {
-          const thumbUrl = publicStorageUrl(item.imagePath);
-          return (
-            <Card
-              key={item.title}
-              className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand-grey shadow-none"
-            >
-              <CardHeader className="pb-2 pt-5">
-                {thumbUrl ? (
-                  <div className="mb-2 flex h-16 items-center justify-start">
-                    <img
-                      src={thumbUrl}
-                      alt=""
-                      className="max-h-16 w-auto max-w-[220px] object-contain object-left"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ) : null}
-                <h3 className="text-lg font-semibold leading-snug text-brand-dark">{item.title}</h3>
-              </CardHeader>
-              <CardContent className="pt-0 pb-5 text-sm leading-relaxed text-brand-dark/75 md:text-base">
-                {item.description}
-              </CardContent>
-            </Card>
-          );
-        })}
+    <section className="border-b border-brand-dark/15 bg-brand-grey" aria-labelledby="portal-free-resources-heading">
+      <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">
+          Free on Signup
+        </p>
+        <h2 id="portal-free-resources-heading" className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">
+          Three resources, available
+          <br />
+          <em className="font-normal text-brand-indigo">the moment you join.</em>
+        </h2>
+        <p className="mb-12 mt-5 max-w-[640px] leading-[1.7] text-brand-dark/70">
+          No payment required. Create your account and access all three immediately.
+        </p>
+        <div className="grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-3">
+          {resources.map(({ badge, title, description, Icon }) => (
+            <article key={title} className="border-b border-brand-dark/15 bg-white px-8 py-9 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
+              <div className="grid size-11 place-items-center rounded-[10px] bg-[#e8e8fa]">
+                <Icon className="size-5 text-brand-indigo" aria-hidden />
+              </div>
+              <span className="mt-4 inline-block rounded bg-[#e8e8fa] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">{badge}</span>
+              <h3 className="mt-3 text-lg font-bold leading-tight text-brand-dark">{title}</h3>
+              <p className="mt-3 text-sm leading-[1.65] text-brand-dark/70">{description}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

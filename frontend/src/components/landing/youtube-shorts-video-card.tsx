@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 type YoutubeShortsVideoCardProps = {
@@ -16,7 +16,17 @@ export function YoutubeShortsVideoCard({
 }: YoutubeShortsVideoCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInView, setIsInView] = useState(false);
+  const [hasEnteredView, setHasEnteredView] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const inlineIframeRef = useRef<HTMLIFrameElement>(null);
+  const isInViewRef = useRef(false);
+
+  const sendPlayerCommand = useCallback((command: 'mute' | 'playVideo' | 'pauseVideo') => {
+    inlineIframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: command, args: [] }),
+      'https://www.youtube-nocookie.com',
+    );
+  }, []);
 
   useEffect(() => {
     const videoContainer = videoContainerRef.current;
@@ -31,11 +41,17 @@ export function YoutubeShortsVideoCard({
           return;
         }
 
-        setIsInView((wasInView) =>
-          wasInView ? entry.intersectionRatio > 0.05 : entry.intersectionRatio >= 0.35,
-        );
+        const inView = isInViewRef.current
+          ? entry.isIntersecting && entry.intersectionRatio > 0.05
+          : entry.isIntersecting && entry.intersectionRatio >= 0.35;
+
+        isInViewRef.current = inView;
+        setIsInView(inView);
+        if (inView) {
+          setHasEnteredView(true);
+        }
       },
-      { threshold: [0.05, 0.35] },
+      { threshold: [0, 0.05, 0.35] },
     );
 
     observer.observe(videoContainer);
@@ -62,9 +78,36 @@ export function YoutubeShortsVideoCard({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isExpanded]);
-  const iframeBaseSrc = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&vq=hd1080`;
-  const inlineIframeSrc =
-    isInView && !isExpanded ? `${iframeBaseSrc}&autoplay=1&mute=1` : iframeBaseSrc;
+  const iframeBaseSrc = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&vq=hd1080&enablejsapi=1`;
+  const inlineIframeSrc = `${iframeBaseSrc}&autoplay=0&mute=1&loop=1&playlist=${videoId}`;
+
+  useEffect(() => {
+    if (!hasEnteredView) {
+      return;
+    }
+
+    if (isInView && !isExpanded) {
+      sendPlayerCommand('mute');
+      sendPlayerCommand('playVideo');
+    } else {
+      sendPlayerCommand('pauseVideo');
+    }
+  }, [hasEnteredView, isExpanded, isInView, sendPlayerCommand]);
+
+  const handleInlinePlayerLoad = () => {
+    const syncPlayback = () => {
+      if (isInViewRef.current && !isExpanded) {
+        sendPlayerCommand('mute');
+        sendPlayerCommand('playVideo');
+      } else {
+        sendPlayerCommand('pauseVideo');
+      }
+    };
+
+    syncPlayback();
+    window.setTimeout(syncPlayback, 250);
+    window.setTimeout(syncPlayback, 750);
+  };
 
   return (
     <>
@@ -103,15 +146,19 @@ export function YoutubeShortsVideoCard({
                 onClick={() => setIsExpanded(true)}
                 className="absolute inset-0 z-10 h-full w-full bg-transparent"
               />
-              <iframe
-                className="absolute inset-0 z-0 h-full w-full"
-                src={inlineIframeSrc}
-                title={title}
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+              {hasEnteredView ? (
+                <iframe
+                  ref={inlineIframeRef}
+                  className="absolute inset-0 z-0 h-full w-full"
+                  src={inlineIframeSrc}
+                  title={title}
+                  loading="eager"
+                  onLoad={handleInlinePlayerLoad}
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              ) : null}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-center justify-center bg-gradient-to-t from-black/55 to-transparent px-4 py-4 text-sm font-medium text-white">
                 Click to expand
               </div>

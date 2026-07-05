@@ -1,120 +1,67 @@
 import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { publicStorageUrl } from '@/lib/public-assets';
 
 const options = [
   {
+    badge: 'Self-paced',
     title: 'Explore at Your Own Pace',
-    body: "The Beyond Grades Portal gives you immediate access to our frameworks, tools, and resources - free to join, with premium courses available when you are ready. Work through our materials at your own pace, preview what our methodology looks like in practice, and take the first step towards building your child's standout profile.",
+    body: "Free to join. Access our DSA seminar clips, Opportunities Directory, and practical guides the moment you sign up. Premium courses are available when you're ready.",
     cta: 'Join the Portal Free',
     to: '/portal',
-    /** `public-assets/landing/explore_at_own_pace.jpeg` */
-    logoPath: 'landing/explore_at_own_pace.jpeg',
   },
   {
+    badge: 'Cohort-based',
     title: 'Learn With a Cohort',
-    body: 'DSA Interview Intensive brings motivated students together in a structured, time-bound environment. Working alongside peers who share the same ambition, your child will build their portfolio, refine their personal narrative, and develop the interview presence that selection panels remember. Places are limited each intake.',
+    body: 'Our DSA Interview Intensive is a focused programme with small groups, real practice, and direct coaching from our team.',
     cta: 'View DSA Interview Intensive',
     to: '/group-programme',
-    /** `public-assets/landing/learn_with_a_cohort.jpeg` */
-    logoPath: 'landing/learn_with_a_cohort.jpeg',
   },
   {
+    badge: '1-on-1',
     title: 'Work With Us Directly',
-    body: 'Our DSA Consultation is our highest-touch offering. Your child works one-on-one with a member of our team to build a fully personalised strategy from narrative development to mock interview panels.',
-    cta: 'Book a Consulting Call',
+    body: "Our DSA Consultation begins with a personalised session covering your child's profile, the right domain to pursue, and a clear set of next steps.",
+    cta: 'Book Your Initial Consultation',
     to: '/consult',
-    /** `public-assets/landing/work_with_us_directly.jpeg` */
-    logoPath: 'landing/work_with_us_directly.jpeg',
   },
 ] as const;
 
-const TTA_CLIENT_SERVICES_WA = 'https://wa.me/6597692396';
-const THINK_TEACH_ACADEMY_URL = 'https://www.thinkteachacademy.com';
-
 export function StartOptionsSection() {
   return (
-    <section className="w-full bg-white">
-      <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22">
-        <h2 className="text-brand-dark text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
-          How Would You Like To Begin?
-        </h2>
-        <p className="mt-4 text-brand-dark/75 text-base md:text-lg leading-relaxed max-w-[720px]">
-          Every family&apos;s journey looks different. Choose the path that fits where you are right
-          now.
-        </p>
+      <section className="w-full border-b border-brand-dark/15 bg-brand-grey">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">
+            How Would You Like to Begin
+          </p>
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-brand-dark md:text-[40px]">
+            Every family&apos;s journey
+            <br />
+            looks <em className="font-normal text-brand-indigo">different.</em>
+          </h2>
+          <p className="mt-5 max-w-[640px] leading-[1.7] text-brand-dark/70">
+            Choose the path that fits where you are right now. You can move between pathways at any
+            time.
+          </p>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {options.map((option) => {
-            const logoUrl = publicStorageUrl(option.logoPath);
-            return (
-            <Card
-              key={option.title}
-              className="h-full rounded-2xl border border-brand-grey shadow-none flex flex-col"
-            >
-              <CardHeader>
-                {logoUrl ? (
-                  <div className="mb-4 flex h-14 items-center justify-start">
-                    <img
-                      src={logoUrl}
-                      alt=""
-                      className="max-h-14 w-auto max-w-[200px] object-contain object-left"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ) : null}
-                <CardTitle className="text-brand-dark text-xl">{option.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col">
-                <p className="text-brand-dark/75 leading-relaxed text-sm md:text-base">{option.body}</p>
-                <Button asChild className="mt-6 w-full md:mt-auto">
-                  <Link to={option.to}>{option.cta}</Link>
-                </Button>
-              </CardContent>
-            </Card>
-            );
-          })}
-        </div>
-
-        <div className="mt-12 rounded-2xl border border-brand-grey bg-brand-cream/60 px-6 py-7 md:mt-14 md:px-8 md:py-9">
-          <h3 className="text-brand-dark text-2xl font-bold tracking-[-0.01em] md:text-3xl">
-            A Note For Think Teach Academy Families
-          </h3>
-          <div className="mt-4 space-y-4 text-brand-dark/80 leading-relaxed">
-            <p>
-              If your child is currently enrolled at Think Teach Academy, you already have full
-              access to our premium courses — at no additional cost.
-            </p>
-            <p>
-              Beyond Grades is part of the Think Teach Group, the same team behind Think Teach
-              Academy, MACRO Academy and the education approach featured in The Straits Times,
-              Channel NewsAsia, and Bloomberg, and South Korea’s Education Broadcasting Network. As
-              a TTA family, your membership extends here automatically.
-            </p>
-            <p>
-              To claim your complimentary access, simply reach out to our client services team and
-              we will get you set up.
-            </p>
-          </div>
-          <div className="mt-6 flex flex-col items-start gap-3">
-            <Button asChild className="h-11 px-5">
-              <a href={TTA_CLIENT_SERVICES_WA} target="_blank" rel="noopener noreferrer">
-                Contact Client Services
-              </a>
-            </Button>
-            <a
-              href={THINK_TEACH_ACADEMY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-brand-indigo underline underline-offset-4 hover:opacity-80"
-            >
-              Not a TTA family yet? Learn more about Think Teach Academy
-            </a>
+          <div className="mt-12 grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-3">
+            {options.map((option) => (
+              <article
+                key={option.title}
+                className="flex min-h-[330px] flex-col border-b border-brand-dark/15 bg-white px-8 py-9 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0"
+              >
+                <span className="w-fit rounded bg-[#e8e8fa] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">
+                  {option.badge}
+                </span>
+                <h3 className="mt-3 text-xl font-bold leading-tight text-brand-dark">{option.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-[1.65] text-brand-dark/70">{option.body}</p>
+                <Link
+                  to={option.to}
+                  className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-indigo transition-opacity hover:opacity-75"
+                >
+                  {option.cta} <span aria-hidden>→</span>
+                </Link>
+              </article>
+            ))}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
   );
 }

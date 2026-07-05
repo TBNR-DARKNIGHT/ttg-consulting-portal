@@ -6,9 +6,9 @@ import { PortalPremiumCourseSection } from '@/components/portal/portal-premium-c
 import {
   PortalBeginTodaySection,
   PortalCommunitySection,
+  PortalHowItWorksSection,
   PortalTtaMembersSection,
 } from '@/components/portal/portal-tail-sections';
-import { Button } from '@/components/ui/button';
 import { publicStorageUrl } from '@/lib/public-assets';
 
 const PORTAL_HEADER_IMAGE = publicStorageUrl('portal/header.jpg');
@@ -19,44 +19,59 @@ export const Route = createFileRoute('/portal')({
 
 function PortalPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-brand-cream">
       <Navbar />
-      <main className="mx-auto max-w-[1000px] px-6 pt-4 pb-16 md:py-24">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-5xl">
-          Everything You Need To Navigate DSA, In One Place.
-        </h1>
+      <main>
+        <section className="relative overflow-hidden bg-brand-dark">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_80%_50%,rgba(91,91,214,0.18),transparent_70%)]" />
+          <div className="relative mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">
+              The Beyond Grades Portal
+            </p>
+            <h1 className="max-w-[700px] font-serif text-4xl font-bold leading-[1.12] tracking-[-0.02em] text-white md:text-[56px]">
+              Everything You Need to Navigate DSA,
+              <br />
+              <em className="font-normal text-[#a8a8f0]">In One Place.</em>
+            </h1>
+            <p className="mt-5 max-w-[480px] font-light leading-[1.7] text-white/65">
+              Free to join. Immediately useful. And when you are ready to go deeper, we will be
+              here.
+            </p>
 
-        {PORTAL_HEADER_IMAGE ? (
-          <div className="mx-auto mt-6 max-w-[520px] overflow-hidden rounded-xl border border-brand-grey">
-            <img
-              src={PORTAL_HEADER_IMAGE}
-              alt=""
-              className="w-full object-cover"
-              loading="eager"
-              decoding="async"
-            />
+            <div className="mt-12 max-w-[560px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.05]">
+              <p className="border-b border-white/10 px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40">
+                DSA Seminar · Preview
+              </p>
+              {PORTAL_HEADER_IMAGE ? (
+                <img
+                  src={PORTAL_HEADER_IMAGE}
+                  alt="Beyond Grades DSA seminar preview"
+                  className="block h-auto w-full"
+                  loading="eager"
+                  decoding="async"
+                />
+              ) : (
+                <div className="h-[200px] bg-brand-indigo/15" />
+              )}
+            </div>
+
+            <div className="mt-9 flex flex-wrap items-center gap-6">
+              <Link
+                to="/auth/sign-up"
+                className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Create Your Free Account
+              </Link>
+              <Link to="/auth/login" className="text-sm text-white/60 hover:text-white">
+                Already a member? Log in →
+              </Link>
+            </div>
           </div>
-        ) : null}
-
-        <p className="mx-auto mt-6 max-w-[520px] text-center text-lg leading-relaxed text-brand-dark/80 md:text-xl">
-          Free to join. Immediately useful. And when you are ready to go deeper, we will be here.
-        </p>
-
-        <div className="mx-auto mt-6 flex max-w-[520px] flex-col items-center">
-          <Button asChild>
-            <Link to="/auth/sign-up">Create Your Free Account</Link>
-          </Button>
-          <p className="mt-3 text-sm text-brand-dark/70">
-            Already a member?{' '}
-            <Link to="/auth/login" className="text-brand-indigo underline underline-offset-4">
-              Log in
-            </Link>
-          </p>
-        </div>
-
+        </section>
         <PortalFreeResourcesSection />
         <PortalPremiumCourseSection />
         <PortalCommunitySection />
+        <PortalHowItWorksSection />
         <PortalBeginTodaySection />
         <PortalTtaMembersSection />
       </main>

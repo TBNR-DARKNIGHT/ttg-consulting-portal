@@ -1,76 +1,72 @@
-import { BadgeCheck, MessageSquareText, Sparkles } from 'lucide-react';
+import { BadgeCheck, Clock3, MessageSquareText } from 'lucide-react';
 
-const whyPoints = [
+const philosophySteps = [
   {
     title: 'Crafting the Narrative',
     description:
-      'Moving beyond a list of grades to answer the most important question: "Who am I?"',
-    icon: <Sparkles className="h-5 w-5 text-brand-indigo" aria-hidden />,
+      'Moving beyond a list of grades to answer the most important question: who is this student, and why do they belong here?',
+    Icon: Clock3,
   },
   {
     title: 'Strategic Personal Branding',
     description:
-      'Learning to synthesise diverse talents into a unique profile that stands out to selection panels.',
-    icon: <BadgeCheck className="h-5 w-5 text-brand-indigo" aria-hidden />,
+      'Synthesising diverse talents, interests, and achievements into a unique profile that stands out to selection panels.',
+    Icon: BadgeCheck,
   },
   {
     title: 'Elite Communication',
     description:
-      'Developing the poise, presence, and clarity required for the world’s most competitive rooms.',
-    icon: <MessageSquareText className="h-5 w-5 text-brand-indigo" aria-hidden />,
+      'Developing the poise, presence, and clarity required to walk into any competitive interview room with genuine confidence.',
+    Icon: MessageSquareText,
   },
 ] as const;
 
 export function WhySection() {
   return (
-    <section className="w-full bg-white">
-      <div className="mx-auto max-w-[1200px] px-6 pb-12 pt-18 md:pb-16 md:pt-22">
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
-          <div>
-            <h2 className="text-brand-dark text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
-              The Beyond Grades Philosophy
-            </h2>
-            <div className="mt-5 max-w-[640px] space-y-4 text-base leading-relaxed text-brand-dark/75 md:text-lg">
-              <p>
-                Many believe that DSA is reserved only for students with elite talents in sports or
-                the arts. We offer a different perspective.
-              </p>
-              <p>
-                We treat the DSA journey as a foundational workshop for life. Whether or not a student
-                secures an offer, the process of building a portfolio and preparing for an interview is
-                invaluable. It is a rare opportunity for students to explore their identity, discover
-                what they genuinely care about, and learn to articulate their thinking with clarity and
-                confidence. These are skills that compound for decades.
-              </p>
-            </div>
-          </div>
+    <section className="w-full border-b border-brand-dark/15 bg-brand-cream">
+      <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">
+          The Beyond Grades Philosophy
+        </p>
+        <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.02em] text-brand-dark md:text-[40px]">
+          DSA is not about
+          <br />
+          <em className="font-normal text-brand-indigo">gaming the system.</em>
+        </h2>
+        <p className="mt-5 max-w-[640px] leading-[1.7] text-brand-dark/70">
+          Selection panels are looking for students who know themselves well. Our role is to help
+          your child develop the self-awareness and clarity to present who they genuinely are with
+          confidence.
+        </p>
 
-          <div className="grid gap-4">
-            {whyPoints.map((point) => (
-              <div
-                key={point.title}
-                className="flex items-start gap-4 rounded-2xl border border-brand-grey bg-white px-6 py-5 shadow-none"
-              >
-                <div
-                  className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-grey/30"
-                  aria-hidden
-                >
-                  {point.icon}
+        <div className="mt-12 grid items-start gap-10 md:grid-cols-2 md:gap-20">
+          <div className="flex flex-col gap-8">
+            {philosophySteps.map(({ title, description, Icon }) => (
+              <article key={title} className="flex items-start gap-5">
+                <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#e8e8fa]">
+                  <Icon className="size-[18px] text-brand-indigo" aria-hidden />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-brand-dark font-semibold text-base">
-                    {point.title}
-                  </div>
-                  <p className="mt-1 text-sm md:text-[15px] text-brand-dark/75 leading-relaxed">
-                    {point.description}
-                  </p>
+                <div>
+                  <h3 className="text-base font-bold text-brand-dark">{title}</h3>
+                  <p className="mt-1.5 text-sm leading-[1.6] text-brand-dark/70">{description}</p>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
+
+          <aside className="rounded-xl bg-brand-dark px-8 py-10 md:px-10 md:py-12">
+            <blockquote className="font-serif text-[22px] italic leading-[1.5] text-white/90">
+              “Many believe DSA is reserved only for students with elite talents in sports or the
+              arts. We offer a different perspective. Whether or not a student secures an offer,
+              the process is a rare opportunity to explore their identity and learn to articulate
+              their thinking.”
+            </blockquote>
+            <cite className="mt-6 block text-[13px] not-italic text-white/50">
+              — The Beyond Grades founding team
+            </cite>
+          </aside>
         </div>
       </div>
     </section>
   );
 }
-

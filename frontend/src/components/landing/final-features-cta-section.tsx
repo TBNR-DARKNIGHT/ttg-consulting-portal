@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 
 export function FinalFeaturesCtaSection() {
   return (
-    <section className="w-full bg-brand-indigo">
-      <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22 text-center">
+    <section className="w-full bg-brand-dark">
+      <div className="mx-auto max-w-[960px] px-5 py-16 text-center md:px-8 md:py-20">
         <h2 className="text-white text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
           Ready To Begin?
         </h2>

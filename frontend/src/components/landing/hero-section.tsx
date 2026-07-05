@@ -1,72 +1,49 @@
 import { Link } from '@tanstack/react-router';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { publicStorageUrl } from '@/lib/public-assets';
-
-const HERO_HEADER_IMAGE = publicStorageUrl('landing/hero_section_header.jpg');
 
 export function HeroSection() {
   return (
-    <section className="w-full overflow-x-clip bg-brand-cream">
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 pt-4 pb-16 md:pt-24 md:pb-20">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-x-12">
-          <div className="order-2 min-w-0 lg:order-1">
-            <h1 className="font-serif text-brand-dark text-4xl md:text-[52px] lg:text-[56px] font-bold leading-[1.08] tracking-[-0.02em]">
-              Your Child’s Voice.
-              <br />
-              Their Future.
-            </h1>
-
-            <p className="mt-5 text-brand-dark/80 max-w-[620px] text-base md:text-lg leading-relaxed">
-              For parents who know that grades alone are no longer enough.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-12 px-7">
-                <Link to="/portal">
-                  Explore the Portal - Free to Join
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 px-7">
-                <Link to="/consult">
-                  Book a Consulting Call
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-
-            <div className="mt-8 max-w-[620px] space-y-4 text-base leading-relaxed text-brand-dark/75 md:text-lg">
-              <p>
-                The world&apos;s most selective schools, scholarship panels, and employers share one
-                open secret: your grades get you into the room, but your voice gets you the seat.
-              </p>
-              <p>
-                Every year, brilliant students miss life-changing opportunities — not because they
-                lacked ability, but because nobody taught them how to find their voice, build their
-                narrative, or walk into a room with genuine confidence. Beyond Grades exists to change
-                that.
-              </p>
-            </div>
+    <section className="relative w-full overflow-hidden bg-brand-dark">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_65%_at_80%_50%,rgba(91,91,214,0.22),transparent_70%)]" />
+      <div className="relative mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+        <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">
+          Beyond Grades · Strategic Personal Branding
+        </p>
+        <div className="max-w-[760px]">
+          <h1 className="font-serif text-4xl font-bold leading-[1.08] tracking-[-0.02em] text-white md:text-[64px]">
+            Your Child&apos;s Voice.
+            <br />
+            <em className="font-normal text-[#a8a8f0]">Their Future.</em>
+          </h1>
+          <p className="mt-6 max-w-[600px] text-base font-light leading-[1.7] text-white/70 md:text-[17px]">
+            For parents who know that grades alone are no longer enough. We help students find
+            their voice, build standout portfolios, and master the art of personal branding.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg" className="h-12 px-7">
+              <Link to="/portal">
+                Explore the Portal - Free to Join
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 border-white/30 bg-transparent px-7 text-white hover:bg-white/10 hover:text-white"
+            >
+              <Link to="/consult">
+                Book a Consulting Call
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
-
-          <div className="order-1 min-w-0 lg:order-2">
-            {HERO_HEADER_IMAGE ? (
-              <div className="relative w-full overflow-hidden rounded-lg shadow-[0_12px_40px_-28px_rgba(26,26,46,0.35)] ring-1 ring-brand-dark/10 lg:aspect-[2.1/1]">
-                <img
-                  src={HERO_HEADER_IMAGE}
-                  alt="Beyond Grades hero"
-                  className="block h-auto w-full lg:absolute lg:inset-0 lg:h-full lg:object-cover lg:object-center"
-                  loading="eager"
-                  decoding="async"
-                  sizes="(max-width: 1023px) 100vw, min(540px, 50vw)"
-                />
-              </div>
-            ) : (
-              <div className="rounded-lg border border-brand-grey bg-white p-8 text-brand-dark/70">
-                Hero image placeholder
-              </div>
-            )}
+          <div className="mt-8 max-w-[620px] space-y-3 text-sm leading-relaxed text-white/55 md:text-base">
+            <p>
+              Your grades get you into the room, but your voice gets you the seat. Beyond Grades
+              helps students build their narrative and walk into the room with genuine confidence.
+            </p>
           </div>
         </div>
       </div>

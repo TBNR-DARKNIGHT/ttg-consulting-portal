@@ -1,165 +1,77 @@
 import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
+import { FileText, MessageSquareText, Route, Target, UserRound } from 'lucide-react';
 import { publicStorageUrl } from '@/lib/public-assets';
 
-const EXECUTIVE_CONSULTING_IMAGE = publicStorageUrl('landing/executive_counsulting.jpg');
-const PERSONALIZED_NEXT_STEPS_IMAGE = publicStorageUrl('landing/personalized_next_steps.jpg');
+const HERO_IMAGE = publicStorageUrl('landing/executive_counsulting.jpg');
+const SESSION_IMAGE = publicStorageUrl('landing/personalized_next_steps.jpg');
 const CONTACT_EMAIL = 'mailto:beyondgrades@thinkteachacademy.com';
+
+const areas = [
+  ['Holistic Profile Understanding', "We look beyond grades to understand your child's genuine strengths, interests, and experiences.", UserRound],
+  ['Identifying the Right Domain', "We determine which areas genuinely fit your child's profile and what specific schools look for.", Target],
+  ['Portfolio Evaluation', 'We identify what carries real weight with selection panels and share honest feedback on the gaps.', FileText],
+  ['Interview Readiness Assessment', 'We give your child an honest picture of where they stand and what they need to work on.', MessageSquareText],
+  ['Personalised Next Steps', 'Every session ends with a clear, realistic plan your family can act on immediately.', Route],
+] as const;
 
 export function ConsultUsSection() {
   return (
-    <section className="bg-white pb-16 pt-4 md:pt-10 md:pb-24" aria-label="Consultation details">
-      <div className="mx-auto max-w-[900px] px-6">
-        <div className="mx-auto max-w-3xl">
-          {EXECUTIVE_CONSULTING_IMAGE ? (
-            <div className="mx-auto mb-5 max-w-[520px] overflow-hidden rounded-xl border border-brand-grey md:mb-6">
-              <img
-                src={EXECUTIVE_CONSULTING_IMAGE}
-                alt="Executive consulting session"
-                className="w-full object-cover"
-                loading="eager"
-                decoding="async"
-              />
-            </div>
-          ) : null}
-
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark md:text-4xl">
-            Clarity On Your Child&apos;s DSA Journey. In A Single Conversation.
+    <>
+      <section className="relative overflow-hidden bg-brand-dark">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_80%_50%,rgba(91,91,214,0.18),transparent_70%)]" />
+        <div className="relative mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">DSA Consulting</p>
+          <h1 className="max-w-[760px] font-serif text-4xl font-bold leading-[1.12] text-white md:text-[56px]">
+            Clarity on Your Child&apos;s DSA Journey.
+            <br /><em className="font-normal text-[#a8a8f0]">In a Single Conversation.</em>
           </h1>
-
-          <div className="mt-5 space-y-4 text-base leading-relaxed text-brand-dark/80">
-            <p>
-            Every child’s profile is different. The right domain, the right schools, the right preparation focus. 
-            And none of that can be answered by a generic checklist. 
-            Our Initial Consultation gives you an honest, personalised assessment of where your child stands and what a realistic path forward looks like.
-            </p>
+          <p className="mt-5 max-w-[620px] font-light leading-[1.7] text-white/65">Every child&apos;s profile is different. The right domain, the right schools, the right preparation focus. Our Initial Consultation gives you an honest, personalised assessment of where your child stands and what a realistic path forward looks like.</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href={CONTACT_EMAIL} className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Book Your Initial Consultation</a>
+            <a href={CONTACT_EMAIL} className="rounded-[7px] border border-white/30 px-7 py-3.5 text-sm text-white">Get in Touch to Discuss</a>
           </div>
+          {HERO_IMAGE ? <img src={HERO_IMAGE} alt="Beyond Grades consultation" className="mt-12 block h-auto w-full max-w-[720px] rounded-xl border border-white/10" loading="eager" decoding="async" /> : null}
+        </div>
+      </section>
 
-          <div className="mt-8 grid gap-4 rounded-2xl border border-brand-grey bg-brand-grey/20 p-6">
-            <h2 className="text-xl font-semibold text-brand-dark">What To Expect</h2>
-            <p className="text-brand-dark/75">
-              A focused 1-on-1 session with a member of our team. We cover five areas:
-            </p>
-            <div className="grid gap-6 text-sm leading-relaxed text-brand-dark/80 md:text-base">
-              <div>
-                <h3 className="text-base font-semibold text-brand-dark">Holistic Profile Understanding</h3>
-                <p className="mt-1">
-                  We look beyond grades to understand your child&apos;s genuine strengths, interests,
-                  and experiences, and identify the domains where they can present themselves
-                  authentically.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-brand-dark">Identifying The Right Domain</h3>
-                <p className="mt-1">
-                  We help you determine which areas genuinely fit your child&apos;s profile and what
-                  specific schools look for, so you invest your time and effort in a direction that
-                  makes sense for them.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-brand-dark">Portfolio Evaluation</h3>
-                <p className="mt-1">
-                  We review what your child has already built, identify what carries real weight with
-                  selection panels, and share honest feedback on where the gaps are.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-brand-dark">Interview Readiness Assessment</h3>
-                <p className="mt-1">
-                  We give your child an honest picture of where they stand relative to what schools
-                  are looking for, and what they need to work on before the application window.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-brand-dark">Personalised Next Steps</h3>
-                <p className="mt-1">
-                  Every session ends with a clear, realistic plan your family can act on immediately.
-                </p>
-              </div>
+      <section className="border-b border-brand-dark/15 bg-brand-cream">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">What to Expect</p>
+          <h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">One session.<br /><em className="font-normal text-brand-indigo">Five areas covered.</em></h2>
+          <div className="mt-12 grid items-start gap-10 md:grid-cols-2 md:gap-20">
+            <div><p className="leading-[1.7] text-brand-dark/70">A focused 1-on-1 session with a member of our team. We cover five areas in sequence, giving you a complete and honest picture of where your child stands and what their DSA journey should look like.</p><a href={CONTACT_EMAIL} className="mt-6 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Book Your Consultation</a></div>
+            <div className="flex flex-col gap-6">
+              {areas.map(([title, body, Icon]) => <article key={title} className="flex gap-5"><div className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#e8e8fa]"><Icon className="size-[18px] text-brand-indigo" /></div><div><h3 className="text-sm font-semibold text-brand-dark">{title}</h3><p className="mt-1.5 text-sm leading-[1.6] text-brand-dark/70">{body}</p></div></article>)}
             </div>
-            <div>
-              <h3 className="text-base font-semibold text-brand-dark">When Should You Book?</h3>
-              <p className="mt-1 text-sm leading-relaxed text-brand-dark/80 md:text-base">
-                The earlier the better. The families who benefit most are those who start the
-                conversation early — giving their child time to build their profile deliberately
-                rather than presenting what they already have under pressure. If your child is in
-                Primary 4 or above and DSA is on your radar, now is the right time.
-              </p>
-            </div>
-            <div className="mt-2">
-              <Button asChild>
-                <a href={CONTACT_EMAIL}>
-                  Start the Conversation
-                </a>
-              </Button>
-            </div>
-          </div>
-
-          {PERSONALIZED_NEXT_STEPS_IMAGE ? (
-            <div className="mx-auto mt-8 mb-8 max-w-[520px] overflow-hidden rounded-xl border border-brand-grey">
-              <img
-                src={PERSONALIZED_NEXT_STEPS_IMAGE}
-                alt="Personalized next steps"
-                className="w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          ) : null}
-
-          <div className="mt-8 space-y-8 rounded-2xl border border-brand-grey bg-white p-6">
-            <div>
-              <h3 className="text-xl font-semibold text-brand-dark">Our Approach</h3>
-              <p className="mt-3 text-brand-dark/75 leading-relaxed">
-                DSA selection is designed to identify students who know themselves well — their
-                interests, their strengths, and their reasons for pursuing a particular pathway. Our
-                role is not to manufacture a profile, but to help your child develop the
-                self-awareness and clarity to present who they genuinely are with confidence. The
-                students who do well in DSA interviews are rarely the most polished. They are the
-                most prepared to be themselves.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-brand-dark">Begin With A Conversation.</h3>
-              <p className="mt-3 text-brand-dark/75 leading-relaxed">
-                One honest conversation can change how your family approaches the entire DSA journey.
-              </p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Button asChild>
-                  <a href={CONTACT_EMAIL}>
-                    Start the Conversation
-                  </a>
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 rounded-2xl border border-brand-grey bg-white p-6">
-            <p className="text-brand-dark/75 leading-relaxed">
-              Prefer group-based interview preparation? Our DSA Interview Intensive returns each
-              April and May.
-            </p>
-            <a
-              href={CONTACT_EMAIL}
-              className="mt-1 inline-block text-brand-indigo underline underline-offset-4"
-            >
-              Join the 2027 Waitlist
-            </a>
-            <p className="mt-4 text-brand-dark/75 leading-relaxed">
-              Prefer to start at your own pace? The Beyond Grades Portal is free to join and gives
-              you immediate access to our foundational frameworks.
-            </p>
-            <Link
-              to="/portal"
-              className="mt-1 inline-block text-brand-indigo underline underline-offset-4"
-            >
-              Explore the Portal
-            </Link>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {SESSION_IMAGE ? <div className="border-b border-brand-dark/15 bg-brand-cream px-5 py-12"><img src={SESSION_IMAGE} alt="Personalised next steps consultation" className="mx-auto block h-auto w-full max-w-[960px] rounded-xl" loading="lazy" decoding="async" /></div> : null}
+
+      <section className="border-b border-brand-dark/15 bg-brand-grey">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <div className="grid items-center gap-10 rounded-xl bg-brand-dark px-7 py-10 md:grid-cols-[1fr_auto] md:px-12 md:py-12">
+            <div><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">When Should You Book</p><h2 className="text-3xl font-bold leading-[1.2] text-white md:text-[40px]">The earlier,<br /><em className="font-normal text-[#a8a8f0]">the better.</em></h2><p className="mt-4 max-w-[560px] text-sm leading-[1.7] text-white/55">The families who benefit most start the conversation early, giving their child time to build deliberately. If your child is in Primary 4 or above and DSA is on your radar, now is the right time.</p></div>
+            <div className="flex flex-col gap-3"><a href={CONTACT_EMAIL} className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-center text-sm font-semibold text-white">Start the Conversation</a><a href={CONTACT_EMAIL} className="rounded-[7px] border border-white/30 px-7 py-3.5 text-center text-sm text-white">Send Us a Message</a></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-brand-dark/15 bg-brand-cream">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Our Approach</p>
+          <h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Not about gaming<br /><em className="font-normal text-brand-indigo">the system.</em></h2>
+          <div className="mt-12 grid items-start gap-10 md:grid-cols-2 md:gap-16">
+            <div className="space-y-4 leading-[1.7] text-brand-dark/70"><p>DSA selection is designed to identify students who know themselves well—their interests, strengths, and reasons for pursuing a pathway. Our role is not to manufacture a profile, but to help your child present who they genuinely are.</p><p>The students who do well are rarely the most polished. They are the most prepared to be themselves.</p></div>
+            <aside className="rounded-xl bg-[#e8e8fa] px-8 py-10"><blockquote className="font-serif text-xl italic leading-[1.55] text-brand-dark">“The students who get selected are not always the ones with the most impressive achievements. They are the ones who walk in knowing who they are and why they are there.”</blockquote><cite className="mt-5 block text-xs not-italic text-brand-dark/50">— From the Beyond Grades founding team</cite></aside>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-brand-dark/15 bg-brand-grey text-center"><div className="mx-auto max-w-[720px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Begin With a Conversation</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">One honest conversation can change how your family<br /><em className="font-normal text-brand-indigo">approaches the entire DSA journey.</em></h2><p className="mt-5 leading-[1.7] text-brand-dark/70">You will leave with a clear strategy, an honest assessment, and a concrete plan to act on.</p><a href={CONTACT_EMAIL} className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Book Your Initial Consultation</a></div></section>
+
+      <section className="bg-brand-cream"><div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Explore Our Other Offerings</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Looking for a<br /><em className="font-normal text-brand-indigo">different starting point?</em></h2><div className="mt-10 grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-2"><article className="border-b border-brand-dark/15 bg-white px-8 py-8 md:border-b-0 md:border-r"><span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">Cohort-based</span><h3 className="mt-3 text-lg font-bold text-brand-dark">DSA Interview Intensive</h3><p className="mt-3 text-sm leading-[1.65] text-brand-dark/70">Small groups, real practice, and direct coaching from our team.</p><Link to="/group-programme" className="mt-5 inline-block text-[13px] font-semibold text-brand-indigo">Join the 2027 Waitlist →</Link></article><article className="bg-white px-8 py-8"><span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">Self-paced</span><h3 className="mt-3 text-lg font-bold text-brand-dark">The Beyond Grades Portal</h3><p className="mt-3 text-sm leading-[1.65] text-brand-dark/70">Free foundational frameworks and premium self-paced courses.</p><Link to="/portal" className="mt-5 inline-block text-[13px] font-semibold text-brand-indigo">Explore the Portal →</Link></article></div></div></section>
+    </>
   );
 }

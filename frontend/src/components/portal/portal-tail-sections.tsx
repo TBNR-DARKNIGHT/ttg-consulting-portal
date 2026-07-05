@@ -1,72 +1,47 @@
 import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
+import { MessageSquareText } from 'lucide-react';
 
 const TTA_CONTACT_URL = 'https://thinkteachacademy.com/contact-us/';
 
 export function PortalCommunitySection() {
   return (
-    <section className="mt-14 md:mt-16" aria-labelledby="portal-community-heading">
-      <div className="rounded-2xl border border-brand-grey bg-brand-grey/20 p-6 md:p-8">
-        <h2
-          id="portal-community-heading"
-          className="text-2xl font-semibold tracking-tight text-brand-dark md:text-3xl"
-        >
-          Community And Live Q And A
-        </h2>
-        <p className="mt-2 text-sm font-medium uppercase tracking-wide text-brand-dark/60">
-          (Coming Soon)
-        </p>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-brand-dark/80 md:text-lg">
-          A dedicated space for questions, shared experiences, and live sessions where you can put
-          your questions directly to the Beyond Grades team.
-        </p>
+    <section className="border-b border-white/10 bg-brand-dark">
+      <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">Coming Soon</p>
+        <h2 className="text-3xl font-bold leading-[1.2] text-white md:text-[40px]">Community and<br /><em className="font-normal text-[#a8a8f0]">Live Q and A</em></h2>
+        <p className="mb-12 mt-5 max-w-[640px] leading-[1.7] text-white/55">A dedicated space for questions, shared experiences, and live sessions with the Beyond Grades team.</p>
+        <div className="flex items-start gap-6 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-8 md:px-10 md:py-12">
+          <div className="grid size-12 shrink-0 place-items-center rounded-[10px] bg-brand-indigo/20"><MessageSquareText className="size-[22px] text-[#a8a8f0]" /></div>
+          <div><span className="rounded bg-brand-indigo/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#a8a8f0]">Coming Soon</span><h3 className="mt-3 text-xl font-bold text-white">Community and Live Q and A</h3><p className="mt-2 text-sm leading-[1.65] text-white/50">A dedicated space where you can put your questions directly to the Beyond Grades team.</p></div>
+        </div>
       </div>
     </section>
+  );
+}
+
+const steps = [
+  ['01', 'Create your free account', 'Gain immediate access to our DSA Seminar Clips, Opportunities Directory, and 8 Golden Rules guide.'],
+  ['02', 'Work through free resources', 'Build a clear picture of where your child stands and what they need to develop next.'],
+  ['03', 'Preview the premium course', 'Watch real coaching clips and see how the full programme works before deciding.'],
+  ['04', 'Unlock when ready', 'Purchase the complete course only when it is the right next step for your family.'],
+] as const;
+
+export function PortalHowItWorksSection() {
+  return (
+    <section className="border-b border-brand-dark/15 bg-brand-grey"><div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">How It Works</p>
+      <h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Start free.<br /><em className="font-normal text-brand-indigo">Go deeper when you are ready.</em></h2>
+      <div className="mt-12 grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-4">
+        {steps.map(([number, title, body]) => <article key={number} className="border-b border-brand-dark/15 bg-white px-6 py-8 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0"><p className="font-serif text-[32px] font-bold leading-none text-[#e8e8fa]">{number}</p><h3 className="mt-3 text-[13px] font-semibold text-brand-dark">{title}</h3><p className="mt-2 text-xs leading-[1.55] text-brand-dark/65">{body}</p></article>)}
+      </div>
+    </div></section>
   );
 }
 
 export function PortalBeginTodaySection() {
-  return (
-    <section className="mt-14 md:mt-16" aria-labelledby="portal-begin-today-heading">
-      <div className="mx-auto max-w-xl rounded-2xl border border-brand-grey bg-brand-grey/20 p-6 text-center md:p-8">
-        <h2
-          id="portal-begin-today-heading"
-          className="text-2xl font-semibold tracking-tight text-brand-dark md:text-3xl"
-        >
-          Begin Today.
-        </h2>
-        <div className="mt-6 flex justify-center">
-          <Button asChild size="lg">
-            <Link to="/auth/sign-up">Create Your Free Account</Link>
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
+  return <section className="border-b border-brand-dark/15 bg-brand-cream text-center"><div className="mx-auto max-w-[560px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Begin Today</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Joining is free.<br /><em className="font-normal text-brand-indigo">The frameworks are immediately useful.</em></h2><p className="mt-4 leading-[1.7] text-brand-dark/70">Create your account and start exploring the resources today.</p><Link to="/auth/sign-up" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Create Your Free Account</Link></div></section>;
 }
 
 export function PortalTtaMembersSection() {
-  return (
-    <section className="mt-14 md:mt-16" aria-labelledby="portal-tta-members-heading">
-      <div className="rounded-2xl border border-brand-grey bg-white p-6 md:p-8">
-        <h2
-          id="portal-tta-members-heading"
-          className="text-2xl font-semibold tracking-tight text-brand-dark md:text-3xl"
-        >
-          For Think Teach Academy Families
-        </h2>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-brand-dark/80 md:text-lg">
-          Already enrolled at Think Teach Academy? Contact our client services team to claim your
-          complimentary access to the premium course.
-        </p>
-        <div className="mt-6">
-          <Button asChild size="lg" variant="outline">
-            <a href={TTA_CONTACT_URL} target="_blank" rel="noopener noreferrer">
-              Contact Client Services
-            </a>
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
+  return <section className="bg-[#e8e8fa] text-center"><div className="mx-auto max-w-[720px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">For Think Teach Academy Families</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Already a TTA family?<br /><em className="font-normal text-brand-indigo">Your access is waiting.</em></h2><p className="mt-3 leading-[1.7] text-brand-dark/70">Contact our client services team to claim your complimentary access to the premium course.</p><a href={TTA_CONTACT_URL} target="_blank" rel="noopener noreferrer" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Contact Client Services</a></div></section>;
 }

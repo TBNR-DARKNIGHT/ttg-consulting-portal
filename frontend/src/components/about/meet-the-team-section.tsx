@@ -1,92 +1,55 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Linkedin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { publicStorageUrl } from '@/lib/public-assets';
-import { cn } from '@/lib/utils';
 
 const team = [
   {
     name: 'Shou Yee',
     title: 'The Selection Insider',
     initials: 'SY',
-    accent: 'from-brand-cream to-white',
     photoPath: 'about/shouyee.png',
     linkedinUrl: 'https://www.linkedin.com/in/shou-yee/',
-    bio: `Most advisors teach students how to impress a panel. Shou Yee has been on one.
-
-A pioneer batch alumnus of the Raffles Integrated Programme and Lee Kong Chian Scholar at SMU, Shou Yee went on to join UBS through its Graduate Talent Programme — where he later crossed to the other side of the table, assessing candidates for campus recruitment. He has also served as an assessor on the Lee Kong Chian Scholarship panel.
-
-His work with Beyond Grades is driven by a conviction that the insider's perspective on selection should be available to every family, not just those with the right connections.`,
+    tags: ['SMU', 'UBS', 'Scholarship Assessor', 'RI Pioneer Batch'],
+    bio: "A pioneer batch alumnus of the Raffles Integrated Programme and Lee Kong Chian Scholar at SMU, Shou Yee joined UBS through its Graduate Talent Programme, where he later assessed candidates for campus recruitment. He has also served as an assessor on the Lee Kong Chian Scholarship panel. His work is driven by a conviction that the insider's perspective on selection should be available to every family.",
   },
   {
     name: 'Isaac',
     title: 'The Multidisciplinary Strategist',
     initials: 'I',
-    accent: 'from-brand-grey/60 to-white',
     photoPath: 'about/isaac.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/isaac-ong-6a9a51163/',
-    bio: `Isaac's greatest strength is an ability to see the coherent narrative running through what looks, on the surface, like a collection of unrelated interests and achievements.
-
-He moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, later graduating from Cambridge University with a Law degree before making the deliberate transition to Duke-NUS Medical School. This is not a career that followed a straight line — it is a profile built on the rare ability to synthesise diverse passions into a compelling, unified story.
-
-Isaac now brings that same skill to the students he works with. He specialises in guiding multi-disciplinary learners who feel their range of interests is a liability, and helping them understand that it is, in fact, their most powerful asset.`,
+    tags: ['Cambridge Law', 'Duke-NUS Medicine', 'Hwa Chong'],
+    bio: 'Isaac moved from ACS Primary to Hwa Chong Institution via the DSA Gifted Education pathway, graduated from Cambridge University with a Law degree, then transitioned to Duke-NUS Medical School. He specialises in helping multidisciplinary learners synthesise diverse passions into one compelling story.',
   },
   {
     name: 'Hugo',
     title: 'The Narrative Architect',
     initials: 'H',
-    accent: 'from-brand-sage/35 to-white',
     photoPath: 'about/hugo.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/mrhugobear/',
-    bio: `Hugo's founding insight is a personal one: you do not need a perfect record to earn a place at the table. You need a compelling story about why you belong there.
-
-A graduate of UCLA and a lifelong friend and co-founder alongside Isaac since their days at ACS Primary, Hugo secured his place at an American university not on the strength of flawless grades but on the power of his personal narrative. He understood, earlier than most, that elite institutions are not just selecting academic performers. They are selecting people.
-
-He now specialises in helping students find their Unique Selling Point and craft authentic stories that resonate with interview panels on both an emotional and intellectual level — the kind of stories that panels remember long after the interview ends.`,
+    tags: ['UCLA', 'Personal Narrative', 'US Admissions'],
+    bio: 'A UCLA graduate and lifelong collaborator with Isaac since ACS Primary, Hugo secured his university place through the power of his personal narrative rather than flawless grades. He helps students find their Unique Selling Point and craft authentic stories that resonate with selection panels.',
   },
   {
     name: 'Martin',
     title: 'The Elite Strategy Specialist',
     initials: 'M',
-    accent: 'from-brand-sage/25 to-white',
     photoPath: 'about/martin.jpg',
     linkedinUrl: 'https://www.linkedin.com/in/li-yicheng/',
-    bio: `Martin has competed at the highest level of Singapore’s selection landscape — and was offered the PSC and SAFOS Overseas Scholarship, one of the most coveted and demanding awards in the country.
-
-A graduate of Hwa Chong Institution and the University of Oxford, Martin gained early experience in one of the world’s most competitive financial environments during his time at GIC’s London office. He understands, from personal experience, the specific combination of intellectual rigour, communication poise, and personal clarity that the most demanding selection panels require.
-
-Martin now specialises in preparing students for high-stakes applications and interviews, teaching the refined communication skills and composure required to perform when the pressure is highest.`,
+    tags: ['Oxford', 'PSC Scholar', 'SAFOS', 'Hwa Chong'],
+    bio: 'A graduate of Hwa Chong Institution and the University of Oxford, Martin was offered the PSC and SAFOS Overseas Scholarship and gained early experience at GIC’s London office. He prepares students for high-stakes applications and the communication demands of the most competitive selection environments.',
   },
-];
+] as const;
 
-function TeamAvatar({
-  photoUrl,
-  initials,
-  accent,
-  name,
-}: {
-  photoUrl: string;
-  initials: string;
-  accent: string;
-  name: string;
-}) {
-  const [showFallback, setShowFallback] = useState(() => !photoUrl);
+function TeamPhoto({ member }: { member: (typeof team)[number] }) {
+  const photoUrl = publicStorageUrl(member.photoPath);
+  const [failed, setFailed] = useState(() => !photoUrl);
 
-  const circleClass = 'size-36 shrink-0 rounded-full border-2 border-brand-grey';
-
-  if (showFallback) {
+  if (failed) {
     return (
-      <div
-        className={cn(
-          'flex items-center justify-center bg-linear-to-br text-xl font-semibold text-brand-dark/90',
-          circleClass,
-          accent
-        )}
-        aria-hidden
-      >
-        {initials}
+      <div className="grid size-[72px] place-items-center rounded-full bg-[#e8e8fa] text-sm font-semibold text-brand-indigo" aria-hidden>
+        {member.initials}
       </div>
     );
   }
@@ -94,126 +57,102 @@ function TeamAvatar({
   return (
     <img
       src={photoUrl}
-      alt={`Photo of ${name}`}
-      className={cn('object-cover', circleClass)}
-      onError={() => setShowFallback(true)}
+      alt={`Photo of ${member.name}`}
+      className="block h-auto w-full max-w-[120px] rounded-lg"
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
     />
   );
 }
 
 export function MeetTheTeamSection() {
   return (
-    <section className="bg-white py-16 md:py-24" aria-labelledby="meet-the-team-heading">
-      <div className="mx-auto max-w-[1200px] px-6">
-        <h2
-          id="meet-the-team-heading"
-          className="text-center text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem] md:leading-tight"
-        >
-          We Built This Because We Saw What Was Missing From The Inside.
-        </h2>
-        <div className="mx-auto mt-4 max-w-4xl space-y-4 text-center text-base leading-relaxed text-brand-dark/75">
-          <p>
+    <>
+      <section className="relative overflow-hidden bg-brand-dark">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_80%_50%,rgba(91,91,214,0.18),transparent_70%)]" />
+        <div className="relative mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">About Beyond Grades</p>
+          <h1 className="max-w-[720px] font-serif text-4xl font-bold leading-[1.12] tracking-[-0.02em] text-white md:text-[52px]">
+            We Built This Because We Saw What Was
+            <br /><em className="font-normal text-[#a8a8f0]">Missing From the Inside.</em>
+          </h1>
+          <p className="mt-5 max-w-[560px] font-light leading-[1.7] text-white/65">
             We spent years navigating the corridors of global banks, law firms, hospitals, and
-            world-class universities. Along the way, we noticed a recurring truth: in the real
-            world, your grades get you into the room, but your voice gets you the seat.
-          </p>
-          <p>
-            We saw brilliant students miss out on life-changing opportunities—not because they
-            weren&apos;t smart enough, but because they hadn&apos;t yet found their personal brand or the
-            confidence to speak their truth authentically.
-          </p>
-          <p>
-            We came together to create Beyond Grades because we believe these "insider" skills
-            shouldn&apos;t be a secret. Whether you are preparing for a DSA interview, a university
-            application, or a competitive scholarship, we are here to help you find your voice and
-            position yourself for success. From free resources to specialised coaching, we are
-            dedicated to making high-level mentorship accessible to every student who is ready to
-            be heard.
+            world-class universities. Along the way, we noticed a recurring truth: your grades get
+            you into the room, but your voice gets you the seat.
           </p>
         </div>
+      </section>
 
-        <h3 className="mt-12 text-center text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
-          The Team
-        </h3>
-
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {team.map((member) => (
-            <li key={member.name}>
-              <Card
-                className={cn(
-                  'h-full border border-brand-grey bg-white py-0 shadow-none transition-shadow duration-200',
-                  'hover:shadow-md'
-                )}
-              >
-                <CardContent className="flex flex-col items-center px-5 pb-6 pt-8 text-center">
-                  <TeamAvatar
-                    photoUrl={publicStorageUrl(member.photoPath)}
-                    initials={member.initials}
-                    accent={member.accent}
-                    name={member.name}
-                  />
-                  <h3 className="mt-5 font-bold text-brand-dark">{member.name}</h3>
-                  <p className="mt-1 text-sm font-medium text-brand-indigo">{member.title}</p>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-brand-dark/75">
-                    {member.bio}
-                  </p>
-                  <a
-                    href={member.linkedinUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-indigo underline-offset-4 hover:underline"
-                  >
-                    <Linkedin className="size-4 shrink-0" aria-hidden />
-                    LinkedIn
-                    <span className="sr-only">
-                      {' '}
-                      — {member.name} (opens in new tab)
-                    </span>
-                  </a>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mx-auto mt-14 max-w-4xl rounded-2xl border border-brand-grey bg-brand-grey/20 px-6 py-8 text-center">
-          <h3 className="text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
-            Our Work Begins Earlier Than You Might Think.
-          </h3>
-          <p className="mt-4 text-base leading-relaxed text-brand-dark/75">
-            The Beyond Grades mission does not begin at P5. Through Young Explorers, our formally
-            partnered programme with MapleBear Student Care Eunos, the same team brings the
-            foundations of confident communication to younger children from Primary 1 onwards.
-            Delivered in Singapore and Shanghai, Young Explorers gives students an early and joyful
-            introduction to public speaking, personal storytelling, and self-expression - skills
-            that compound long before the DSA journey officially begins.
-          </p>
-          <Button asChild variant="link" className="mt-2 h-auto p-0 text-brand-indigo">
-            <Link to="/young-explorers">Learn More About Young Explorers</Link>
-          </Button>
-        </div>
-
-        <div className="mx-auto mt-12 max-w-4xl rounded-2xl border border-brand-grey bg-white px-6 py-8 text-center">
-          <h3 className="text-2xl font-bold tracking-tight text-brand-dark md:text-[1.75rem]">
-            Ready To Work With Us?
-          </h3>
-          <p className="mt-4 text-base leading-relaxed text-brand-dark/75">
-            Explore our three ways to engage: at your own pace, in a cohort, or one-on-one with
-            our team.
-          </p>
-          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild>
-              <Link to="/portal">Explore the Portal - Free to Join</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/group-programme">View the Group Programme</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/consult">Book a Consulting Call</Link>
-            </Button>
+      <section className="border-b border-brand-dark/15 bg-brand-grey">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Our Story</p>
+          <h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">
+            Built by people who saw
+            <br /><em className="font-normal text-brand-indigo">the gap from the inside.</em>
+          </h2>
+          <div className="mt-12 grid items-start gap-10 md:grid-cols-2 md:gap-16">
+            <div className="space-y-5 text-[15px] leading-[1.75] text-brand-dark/70">
+              <p>We saw brilliant students miss out on life-changing opportunities—not because they were not smart enough, but because they had not yet found their personal brand or the confidence to speak authentically.</p>
+              <p>We created Beyond Grades because these insider skills should not be a secret. Whether your child is preparing for DSA, university, or a competitive scholarship, we help them find their voice and position themselves for success.</p>
+              <p>From free resources to specialised coaching, we make high-level mentorship accessible to every student who is ready to be heard.</p>
+            </div>
+            <aside className="rounded-xl bg-brand-dark px-8 py-10 md:px-10 md:py-12">
+              <blockquote className="font-serif text-[22px] italic leading-[1.5] text-white/90">“Your grades get you into the room. Your voice gets you the seat.”</blockquote>
+              <cite className="mt-6 block text-[13px] not-italic text-white/40">— The Beyond Grades founding conviction</cite>
+            </aside>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="border-b border-brand-dark/15 bg-brand-cream" aria-labelledby="meet-the-team-heading">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">The Team</p>
+          <h2 id="meet-the-team-heading" className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">
+            Four founders.
+            <br /><em className="font-normal text-brand-indigo">One shared conviction.</em>
+          </h2>
+          <p className="mb-12 mt-5 max-w-[680px] leading-[1.7] text-brand-dark/70">Between us, we hold degrees from Oxford, Cambridge, UCLA, and SMU. We have navigated DSA, secured PSC and SAFOS Overseas Scholarships, and gained early careers experience at UBS and GIC.</p>
+          <div className="grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-2">
+            {team.map((member) => (
+              <article key={member.name} className="flex flex-col border-b border-brand-dark/15 bg-white px-8 py-10 odd:md:border-r [&:nth-child(3)]:md:border-b-0 [&:nth-child(4)]:border-b-0">
+                <TeamPhoto member={member} />
+                <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">Co-founder</p>
+                <h3 className="mt-2 text-[22px] font-bold text-brand-dark">{member.name}</h3>
+                <p className="mt-1 text-[13px] italic text-brand-dark/60">{member.title}</p>
+                <p className="mt-3 flex-1 text-sm leading-[1.7] text-brand-dark/70">{member.bio}</p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {member.tags.map((tag) => <span key={tag} className="rounded-full bg-[#e8e8fa] px-2.5 py-1 text-[11px] text-brand-indigo">{tag}</span>)}
+                </div>
+                <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-indigo hover:opacity-75">
+                  <Linkedin className="size-3.5" aria-hidden /> LinkedIn →
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-brand-dark/15 bg-brand-grey">
+        <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Our Work Begins Earlier Than You Might Think</p>
+          <h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Confidence starts<br /><em className="font-normal text-brand-indigo">before secondary school.</em></h2>
+          <div className="mt-12 grid items-center gap-10 rounded-xl border border-brand-dark/15 bg-white px-8 py-10 md:grid-cols-2 md:px-10">
+            <div><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">In partnership with MapleBear Student Care</p><h3 className="mt-3 text-2xl font-bold text-brand-dark">Young Explorers Programme</h3><p className="mt-3 text-[15px] leading-[1.7] text-brand-dark/70">The same team brings confident communication to Primary 1 to 6 children through a joyful year-long programme delivered in Singapore and Shanghai.</p><Link to="/young-explorers" className="mt-5 inline-block text-[13px] font-semibold text-brand-indigo">Learn More About Young Explorers →</Link></div>
+            <div className="flex flex-wrap gap-8">{[['12', 'Engaging modules'], ['P1–P6', 'All primary levels'], ['2', 'Countries']].map(([value, label]) => <div key={label}><p className="font-serif text-[28px] font-bold text-brand-dark">{value}</p><p className="mt-1 text-xs text-brand-dark/60">{label}</p></div>)}</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-brand-dark text-center">
+        <div className="mx-auto max-w-[560px] px-5 py-16 md:px-8 md:py-20">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">Ready to Work With Us</p>
+          <h2 className="text-3xl font-bold leading-[1.2] text-white md:text-[40px]">Three ways to engage.<br /><em className="font-normal text-[#a8a8f0]">One place to start.</em></h2>
+          <p className="mt-4 leading-[1.7] text-white/60">Explore our offerings at your own pace, in a cohort, or one-on-one with our team.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3"><Link to="/portal" className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Explore the Portal - Free to Join</Link><Link to="/consult" className="rounded-[7px] border border-white/25 px-7 py-3.5 text-sm text-white/75">Book a Consulting Call</Link></div>
+        </div>
+      </section>
+    </>
   );
 }

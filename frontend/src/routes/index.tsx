@@ -8,6 +8,7 @@ import { BuiltBySection } from '@/components/landing/built-by-section';
 import { WhySection } from '@/components/landing/why-section';
 import { YoungExplorersTeaserSection } from '@/components/landing/young-explorers-teaser-section';
 import { FinalFeaturesCtaSection } from '@/components/landing/final-features-cta-section';
+import { TtaFamilyNoteSection } from '@/components/landing/tta-family-note-section';
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -21,8 +22,9 @@ function LandingPage() {
         <HeroSection />
         <PromoVideoCardSection />
         <StartOptionsSection />
-        <BuiltBySection />
         <WhySection />
+        <BuiltBySection />
+        <TtaFamilyNoteSection />
         <YoungExplorersTeaserSection />
         <FinalFeaturesCtaSection />
       </main>

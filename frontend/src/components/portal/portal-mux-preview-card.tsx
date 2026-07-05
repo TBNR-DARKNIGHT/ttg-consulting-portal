@@ -6,10 +6,10 @@ import type { PortalPreview } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 const cardShellClassName =
-  'overflow-hidden rounded-2xl border border-brand-grey bg-white shadow-[0_18px_50px_-35px_rgba(26,26,46,0.25)]';
+  'overflow-hidden rounded-[10px] border border-brand-dark/15 bg-white';
 
 const videoFrameClassName =
-  'overflow-hidden rounded-xl border border-brand-grey bg-brand-grey/30 shadow-sm';
+  'overflow-hidden bg-brand-grey/30';
 
 export function PortalPreviewCardShell({
   children,
@@ -20,7 +20,7 @@ export function PortalPreviewCardShell({
 }) {
   return (
     <div className={cn(cardShellClassName, className)}>
-      <div className="p-5 lg:p-4">
+      <div>
         <div className={videoFrameClassName}>{children}</div>
       </div>
     </div>
@@ -55,7 +55,7 @@ export function PortalMuxPreviewCard({
     };
   }, [isPlaying]);
   const videoAreaClassName = cn(
-    'aspect-video min-h-[220px] w-full sm:min-h-[260px] md:min-h-[300px]',
+    'h-[160px] w-full',
     videoClassName,
   );
 
@@ -141,7 +141,7 @@ export function PortalMuxPreviewCard({
 export function PortalPreviewCardSkeleton({ className }: { className?: string }) {
   return (
     <PortalPreviewCardShell className={className}>
-      <div className="aspect-video min-h-[220px] w-full animate-pulse bg-brand-grey/25 sm:min-h-[260px] md:min-h-[300px]" />
+      <div className="h-[160px] w-full animate-pulse bg-brand-grey/25" />
     </PortalPreviewCardShell>
   );
 }
@@ -155,7 +155,7 @@ export function PortalPreviewCardPlaceholder({
 }) {
   return (
     <PortalPreviewCardShell className={className}>
-      <div className="flex aspect-video min-h-[220px] w-full items-center justify-center bg-brand-grey/15 px-3 text-center text-sm text-brand-dark/60 sm:min-h-[260px] md:min-h-[300px]">
+      <div className="flex h-[160px] w-full items-center justify-center bg-brand-grey/15 px-3 text-center text-sm text-brand-dark/60">
         {message}
       </div>
     </PortalPreviewCardShell>

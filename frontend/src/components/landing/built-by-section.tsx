@@ -1,111 +1,101 @@
 import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
 import { publicStorageUrl } from '@/lib/public-assets';
-
-const BUILT_BY_IMAGE = publicStorageUrl('landing/prep_lounge_image.jpg');
 
 const founders = [
   {
-    name: 'Shou Yee | The Selection Insider',
+    role: 'Co-founder',
+    name: 'Shou Yee',
     photoPath: 'about/shouyee.png',
+    title: 'The Selection Insider',
     bio: 'Pioneer batch of the Raffles Integrated Programme. Lee Kong Chian Scholar. Former assessor on the Lee Kong Chian Scholarship panel and UBS campus recruitment.',
+    tags: ['SMU', 'UBS', 'Scholarship Assessor'],
   },
   {
-    name: 'Isaac | The Multidisciplinary Strategist',
+    role: 'Co-founder',
+    name: 'Isaac',
     photoPath: 'about/isaac.jpg',
-    bio: 'ACS Primary to Hwa Chong via DSA Gifted Education. Cambridge University Law graduate. Duke-NUS Medical School. Specialist in synthesising multi-talent profiles into high-impact narratives.',
+    title: 'The Multidisciplinary Strategist',
+    bio: 'ACS Primary to Hwa Chong via DSA Gifted Education. Cambridge University Law graduate. Duke-NUS Medical School.',
+    tags: ['Cambridge Law', 'Duke-NUS', 'DSA Expert'],
   },
   {
-    name: 'Hugo | The Narrative Architect',
+    role: 'Co-founder',
+    name: 'Hugo',
     photoPath: 'about/hugo.jpg',
-    bio: 'UCLA graduate. Secured his university place on the strength of his personal narrative, not a perfect academic record. Specialist in helping students find and articulate their Unique Selling Point.',
+    title: 'The Narrative Architect',
+    bio: 'UCLA graduate. Secured his university place on the strength of his personal narrative, not a perfect academic record.',
+    tags: ['UCLA', 'Personal Narrative', 'US Admissions'],
   },
   {
-    name: 'Martin | The Elite Strategy Specialist',
+    role: 'Co-founder',
+    name: 'Martin',
     photoPath: 'about/martin.jpg',
-    bio: 'Hwa Chong Institution and University of Oxford. Offered PSC and SAFOS Scholarships. Specialist in training students for the most demanding selection environments.',
+    title: 'The Elite Strategy Specialist',
+    bio: 'Hwa Chong Institution and University of Oxford. Offered PSC and SAFOS Overseas Scholarships.',
+    tags: ['Oxford', 'PSC Scholar', 'SAFOS'],
   },
 ] as const;
 
-function founderHeadshotAlt(fullName: string): string {
-  const first = fullName.split('|')[0]?.trim() ?? fullName;
-  return `${first} headshot`;
-}
-
 export function BuiltBySection() {
   return (
-    <section className="w-full bg-brand-grey/20">
-      <div className="mx-auto max-w-[1200px] px-6 py-18 md:py-22">
-        <h2 className="text-center text-brand-dark text-3xl md:text-[44px] font-bold tracking-[-0.02em] leading-[1.08]">
-          Built By People Who Have Been There
+    <section className="w-full border-b border-white/10 bg-brand-dark">
+      <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">
+          The Team Behind Beyond Grades
+        </p>
+        <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.02em] text-white md:text-[40px]">
+          Built by people
+          <br />
+          <em className="font-normal text-[#a8a8f0]">who have been there.</em>
         </h2>
-        <div className="mt-5 flex flex-col gap-8">
-          <div className="order-3 mx-auto max-w-[920px] space-y-4 text-left text-base leading-relaxed text-brand-dark/75 md:order-2 md:text-lg">
-            <p>
-              Between us, we hold degrees from Oxford, Cambridge, UCLA, and SMU. We have navigated
-              DSA, secured PSC and SAFOS Overseas Scholarships, transitioned between law and medicine,
-              and gained early careers experience at global institutions including UBS and GIC.
-            </p>
-            <p>But credentials are not why we built Beyond Grades.</p>
-            <p>
-              We built it because across all of those experiences - in lecture halls, interview
-              rooms, and boardrooms - we kept seeing the same gap. Brilliant students who had done
-              everything right on paper, but had never been taught how to walk into a room and own
-              it. How to tell their story. How to make a selection panel remember them.
-            </p>
-            <p>Beyond Grades exists to close that gap.</p>
-          </div>
+        <p className="mt-5 max-w-[720px] leading-[1.7] text-white/60">
+          Between us, we hold degrees from Oxford, Cambridge, UCLA, and SMU. We have navigated DSA,
+          secured PSC and SAFOS Overseas Scholarships, and gained early careers experience at UBS
+          and GIC.
+        </p>
 
-          <div className="order-4 grid gap-3 md:order-3 md:grid-cols-2">
-            {founders.map((founder) => {
-              const src = publicStorageUrl(founder.photoPath);
-              return (
-                <article
-                  key={founder.name}
-                  className="flex gap-4 rounded-xl border border-brand-grey bg-white px-5 py-4"
-                >
-                  {src ? (
-                    <div className="size-16 shrink-0 overflow-hidden rounded-full ring-1 ring-brand-grey/40 md:size-20">
-                      <img
-                        src={src}
-                        alt={founderHeadshotAlt(founder.name)}
-                        className="size-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                        width={80}
-                        height={80}
-                      />
-                    </div>
-                  ) : null}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-brand-dark font-semibold">{founder.name}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-brand-dark/75 md:text-base">
-                      {founder.bio}
-                    </p>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          {BUILT_BY_IMAGE ? (
-            <div className="order-2 mx-auto max-w-[860px] overflow-hidden rounded-xl border border-brand-grey md:order-4">
-              <img
-                src={BUILT_BY_IMAGE}
-                alt="Beyond Grades workshop session"
-                className="w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          ) : null}
-
-          <div className="order-5 mx-auto max-w-[860px] md:order-5">
-            <Button asChild variant="link" className="h-auto p-0 text-brand-indigo">
-              <Link to="/about">Read our full story on the About Us page</Link>
-            </Button>
-          </div>
+        <div className="mt-12 grid overflow-hidden rounded-xl border border-white/10 sm:grid-cols-2 lg:grid-cols-4">
+          {founders.map((founder) => (
+            <article
+              key={founder.name}
+              className="border-b border-white/10 bg-white/[0.04] px-7 py-8 transition-colors last:border-b-0 hover:bg-white/[0.07] sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:border-b-0 lg:[&:nth-child(2n)]:border-r lg:last:border-r-0"
+            >
+              <div className="mb-5 size-20 overflow-hidden rounded-full ring-1 ring-white/15">
+                <img
+                  src={publicStorageUrl(founder.photoPath)}
+                  alt={`${founder.name} headshot`}
+                  className="size-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  width={80}
+                  height={80}
+                />
+              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#a8a8f0]">
+                {founder.role}
+              </p>
+              <h3 className="mt-2 text-lg font-bold text-white">{founder.name}</h3>
+              <p className="mt-1 text-[13px] italic text-white/50">{founder.title}</p>
+              <p className="mt-3 text-[13px] leading-[1.65] text-white/55">{founder.bio}</p>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {founder.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-brand-indigo/20 px-2.5 py-1 text-[11px] text-[#a8a8f0]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
         </div>
+        <Link
+          to="/about"
+          className="mt-8 inline-flex text-[13px] font-semibold text-[#a8a8f0] hover:opacity-75"
+        >
+          Read our full story <span aria-hidden className="ml-1.5">→</span>
+        </Link>
       </div>
     </section>
   );

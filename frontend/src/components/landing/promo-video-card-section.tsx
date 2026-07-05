@@ -2,8 +2,8 @@ import { YoutubeShortsVideoCard } from '@/components/landing/youtube-shorts-vide
 
 export function PromoVideoCardSection() {
   return (
-    <section className="w-full bg-brand-cream">
-      <div className="mx-auto max-w-[1200px] px-6 pb-16 md:pb-20">
+    <section className="w-full border-b border-brand-dark/15 bg-brand-cream">
+      <div className="mx-auto max-w-[960px] px-5 py-14 md:px-8 md:py-16">
         <YoutubeShortsVideoCard
           videoId="o75xaFFw0vU"
           title="BeyondGrades intro video"
