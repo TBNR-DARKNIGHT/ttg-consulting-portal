@@ -26,7 +26,7 @@ export function HeroSection() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="h-12 px-7">
               <Link to="/portal">
-                Explore the Portal - Free to Join
+                Explore the DSA Portal - Free to Join
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
