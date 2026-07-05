@@ -59,27 +59,28 @@ async def test_upload_options_returns_catalog_values(
 
 
 @pytest.mark.asyncio
-async def test_document_upload_passes_file_and_metadata(
+async def test_document_upload_returns_direct_upload_target(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    resource_id = uuid4()
     captured: dict[str, object] = {}
 
-    def fake_upload_pdf(**kwargs: object) -> UUID:
+    def fake_begin_pdf_upload(**kwargs: object) -> tuple[str, str]:
         captured.update(kwargs)
-        return resource_id
+        return "course-1/pdf/guide.pdf", "https://storage.example/signed"
 
-    monkeypatch.setattr(admin, "upload_pdf", fake_upload_pdf)
+    monkeypatch.setattr(admin, "begin_pdf_upload", fake_begin_pdf_upload)
     app.dependency_overrides[require_admin] = _admin_user
     try:
         response = await client.post(
             "/api/v1/admin/resources/documents",
-            files={"file": ("guide.pdf", b"%PDF-1.7 test", "application/pdf")},
-            data={
+            json={
                 "title": "Guide",
                 "description": "A useful guide",
-                "course_id": "course-1",
+                "courseId": "course-1",
                 "topic": "dsa-pathways",
+                "filename": "guide.pdf",
+                "contentType": "application/pdf",
+                "fileSize": 1234,
             },
         )
     finally:
@@ -87,17 +88,49 @@ async def test_document_upload_passes_file_and_metadata(
 
     assert response.status_code == 201
     assert response.json()["data"] == {
-        "resourceId": str(resource_id),
         "type": "pdf",
-        "status": "ready",
-        "uploadUrl": None,
-        "uploadId": None,
+        "status": "waiting",
+        "uploadUrl": "https://storage.example/signed",
+        "uploadId": "course-1/pdf/guide.pdf",
     }
     assert captured["filename"] == "guide.pdf"
-    assert captured["content"] == b"%PDF-1.7 test"
+    assert captured["file_size"] == 1234
     metadata = captured["metadata"]
     assert getattr(metadata, "course_id") == "course-1"
     assert getattr(metadata, "topic") == "dsa-pathways"
+
+
+@pytest.mark.asyncio
+async def test_document_upload_finalize_creates_resource(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    resource_id = uuid4()
+    captured: dict[str, object] = {}
+
+    def fake_complete_pdf_upload(**kwargs: object) -> UUID:
+        captured.update(kwargs)
+        return resource_id
+
+    monkeypatch.setattr(admin, "complete_pdf_upload", fake_complete_pdf_upload)
+    app.dependency_overrides[require_admin] = _admin_user
+    try:
+        response = await client.post(
+            "/api/v1/admin/resources/documents/complete",
+            json={
+                "title": "Guide",
+                "description": "A useful guide",
+                "courseId": "course-1",
+                "topic": "dsa-pathways",
+                "uploadId": "course-1/pdf/guide.pdf",
+            },
+        )
+    finally:
+        app.dependency_overrides.pop(require_admin, None)
+
+    assert response.status_code == 201
+    assert response.json()["data"]["resourceId"] == str(resource_id)
+    assert response.json()["data"]["status"] == "ready"
+    assert captured["upload_id"] == "course-1/pdf/guide.pdf"
 
 
 @pytest.mark.asyncio

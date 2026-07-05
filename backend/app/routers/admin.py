@@ -3,8 +3,7 @@ from __future__ import annotations
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.config import settings
 from app.dependencies import get_current_user, require_admin
@@ -12,16 +11,18 @@ from app.models.admin import (
     AccessCodeActionIn,
     AccessCodeOut,
     BulkRevokeAccessCodesOut,
+    CompleteDocumentUploadIn,
     CreateAccessCodeIn,
+    CreateDocumentUploadIn,
     CreateLinkUploadIn,
     CreateTtaCodeBatchIn,
     CreateVideoUploadIn,
     CurrentUserOut,
     DeleteRevokedAccessCodesOut,
+    DocumentUploadTargetOut,
     IssuedAccessCodeOut,
     ResetTtaOrderNumberingOut,
     ResourceMetadataUpdateIn,
-    ResourceUploadMetadata,
     ResourceUploadOptionsOut,
     ResourceUploadOut,
     TtaCodeBatchOut,
@@ -43,13 +44,14 @@ from app.services.admin_access_codes import (
 )
 from app.services.admin_resource_uploads import (
     ResourceUploadError,
+    begin_pdf_upload,
     begin_video_upload,
+    complete_pdf_upload,
     complete_video_upload,
     delete_resource,
     ingest_link,
     list_upload_options,
     update_resource_metadata,
-    upload_pdf,
 )
 from app.services.external_files import ExternalFileError
 from app.services.google_sheets import GoogleSheetsError
@@ -317,47 +319,52 @@ async def remove_resource(
 
 @router.post(
     "/admin/resources/documents",
+    response_model=ApiResponse[DocumentUploadTargetOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_document_upload(
+    body: CreateDocumentUploadIn,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[DocumentUploadTargetOut]:
+    try:
+        upload_id, upload_url = begin_pdf_upload(
+            filename=body.filename,
+            content_type=body.content_type,
+            file_size=body.file_size,
+            metadata=body,
+        )
+        return ApiResponse(
+            data=DocumentUploadTargetOut(
+                upload_url=upload_url,
+                upload_id=upload_id,
+            )
+        )
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Unable to prepare PDF document upload")
+        raise HTTPException(status_code=503, detail="Unable to prepare document upload") from exc
+
+
+@router.post(
+    "/admin/resources/documents/complete",
     response_model=ApiResponse[ResourceUploadOut],
     status_code=status.HTTP_201_CREATED,
 )
-async def upload_document(
-    file: UploadFile = File(...),
-    title: str = Form(...),
-    description: str = Form(""),
-    course_id: str = Form(...),
-    module_id: str | None = Form(None),
-    module_title: str | None = Form(None),
-    topic: str = Form(...),
+async def finalize_document_upload(
+    body: CompleteDocumentUploadIn,
     _user: ClerkUser = Depends(require_admin),
 ) -> ApiResponse[ResourceUploadOut]:
-    content = await file.read()
-    if len(content) > 50 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="PDF must be 50 MB or smaller")
     try:
-        metadata = ResourceUploadMetadata(
-            title=title,
-            description=description,
-            course_id=course_id,
-            module_id=module_id or None,
-            module_title=module_title or None,
-            topic=topic,
-        )
-        resource_id = upload_pdf(
-            filename=file.filename or "",
-            content_type=file.content_type,
-            content=content,
-            metadata=metadata,
-        )
+        resource_id = complete_pdf_upload(upload_id=body.upload_id, metadata=body)
         return ApiResponse(
             data=ResourceUploadOut(resource_id=resource_id, type="pdf", status="ready")
         )
     except ResourceUploadError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except ValidationError as exc:
-        raise HTTPException(status_code=422, detail="Invalid resource metadata") from exc
     except Exception as exc:
-        logger.exception("Unable to upload PDF document")
-        raise HTTPException(status_code=503, detail="Unable to upload document") from exc
+        logger.exception("Unable to finalize PDF document upload")
+        raise HTTPException(status_code=503, detail="Unable to finalize document upload") from exc
 
 
 @router.post(

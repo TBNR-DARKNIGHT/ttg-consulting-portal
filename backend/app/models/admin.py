@@ -104,6 +104,16 @@ class CreateVideoUploadIn(ResourceUploadMetadata):
     content_type: str = Field(default="video/mp4", max_length=100)
 
 
+class CreateDocumentUploadIn(ResourceUploadMetadata):
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str = Field(default="application/pdf", max_length=100)
+    file_size: int = Field(gt=0)
+
+
+class CompleteDocumentUploadIn(ResourceUploadMetadata):
+    upload_id: str = Field(min_length=1, max_length=500)
+
+
 class CreateLinkUploadIn(ResourceUploadMetadata):
     url: HttpUrl
     resource_type: str = Field(pattern=r"^(pdf|video)$")
@@ -115,6 +125,13 @@ class ResourceUploadOut(AdminModel):
     status: str
     upload_url: str | None = None
     upload_id: str | None = None
+
+
+class DocumentUploadTargetOut(AdminModel):
+    type: str = "pdf"
+    status: str = "waiting"
+    upload_url: str
+    upload_id: str
 
 
 class ResourceUploadOptionsOut(AdminModel):

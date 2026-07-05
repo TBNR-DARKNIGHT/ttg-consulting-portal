@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
+from storage3.types import CreateSignedUploadUrlOptions
+
 from app.models.admin import ResourceUploadMetadata
 from app.services.external_files import download_pdf, validate_public_https_url
 from app.services.mux_client import MuxClient, MuxClientError, resolve_playback
@@ -28,6 +30,7 @@ DEFAULT_TOPICS = {
     "course-2": {"interview-preparation"},
 }
 PDF_TYPES = {"application/pdf", "application/x-pdf"}
+MAX_PDF_BYTES = 50 * 1024 * 1024
 MODULE_TITLE_PATTERN = re.compile(r"^Module\s+([1-9][0-9]*)\s*:", re.IGNORECASE)
 
 
@@ -251,10 +254,16 @@ def upload_pdf(
         file=thumbnail,
         file_options={"content-type": "image/jpeg", "upsert": "true"},
     )
+    return _save_pdf_resource(client, rule["bucket"], file_path, row)
+
+
+def _save_pdf_resource(
+    client: Any, bucket: str, file_path: str, row: dict[str, Any]
+) -> UUID:
     existing = (
         client.table("resources")
         .select("id")
-        .eq("bucket", rule["bucket"])
+        .eq("bucket", bucket)
         .eq("file_path", file_path)
         .execute()
     )
@@ -266,6 +275,64 @@ def upload_pdf(
     if not result.data:
         raise ResourceUploadError("The resource record could not be created")
     return UUID(str(result.data[0]["id"]))
+
+
+def begin_pdf_upload(
+    *,
+    filename: str,
+    content_type: str | None,
+    file_size: int,
+    metadata: ResourceUploadMetadata,
+) -> tuple[str, str]:
+    if Path(filename).suffix.lower() != ".pdf" or content_type not in PDF_TYPES:
+        raise ResourceUploadError("Only PDF documents are supported")
+    if file_size > MAX_PDF_BYTES:
+        raise ResourceUploadError("PDF must be 50 MB or smaller")
+
+    rule = _rule(metadata)
+    file_path = f"{rule['prefix']}{_safe_pdf_name(filename)}"
+    signed = get_client().storage.from_(rule["bucket"]).create_signed_upload_url(
+        file_path,
+        CreateSignedUploadUrlOptions(upsert="true"),
+    )
+    return file_path, str(signed["signed_url"])
+
+
+def complete_pdf_upload(
+    *, upload_id: str, metadata: ResourceUploadMetadata
+) -> UUID:
+    rule = _rule(metadata)
+    expected_prefix = str(rule["prefix"])
+    safe_path = upload_id.replace("\\", "/")
+    if (
+        safe_path != upload_id
+        or not safe_path.startswith(expected_prefix)
+        or Path(safe_path).suffix.lower() != ".pdf"
+        or ".." in Path(safe_path).parts
+    ):
+        raise ResourceUploadError("Invalid PDF upload")
+
+    client = get_client()
+    content = client.storage.from_(rule["bucket"]).download(safe_path)
+    if not content:
+        raise ResourceUploadError("The uploaded file is empty")
+    if len(content) > MAX_PDF_BYTES:
+        client.storage.from_(rule["bucket"]).remove([safe_path])
+        raise ResourceUploadError("PDF must be 50 MB or smaller")
+
+    thumbnail = _generate_pdf_thumbnail(content)
+    thumbnail_path = pdf_thumbnail_path(safe_path)
+    client.storage.from_(rule["bucket"]).upload(
+        path=thumbnail_path,
+        file=thumbnail,
+        file_options={"content-type": "image/jpeg", "upsert": "true"},
+    )
+    row = {
+        **_resource_row(metadata, "pdf"),
+        "bucket": rule["bucket"],
+        "file_path": safe_path,
+    }
+    return _save_pdf_resource(client, rule["bucket"], safe_path, row)
 
 
 def begin_video_upload(metadata: ResourceUploadMetadata) -> tuple[UUID, str, str]:

@@ -166,8 +166,7 @@ export function AdminResourcesPage() {
             : 'Video uploaded; Mux is preparing playback',
         );
       } else if (file) {
-        await uploadAdminDocument(file, metadata, getToken);
-        setProgress(100);
+        await uploadAdminDocument(file, metadata, getToken, setProgress);
         toast.success('PDF uploaded and added to resources');
       }
       chooseFile(null);

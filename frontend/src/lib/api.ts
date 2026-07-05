@@ -311,6 +311,13 @@ export interface AdminResourceUpload {
   uploadId?: string;
 }
 
+interface AdminDocumentUploadTarget {
+  type: "pdf";
+  status: string;
+  uploadUrl: string;
+  uploadId: string;
+}
+
 export interface AdminResourceMetadata {
   title: string;
   description: string;
@@ -367,28 +374,55 @@ export async function uploadAdminDocument(
   file: File,
   metadata: AdminResourceMetadata,
   getToken: () => Promise<string | null>,
+  onProgress: (percent: number) => void,
 ): Promise<AdminResourceUpload> {
-  const form = new FormData();
-  form.set("file", file);
-  form.set("title", metadata.title);
-  form.set("description", metadata.description);
-  form.set("course_id", metadata.courseId);
-  if (metadata.moduleId) form.set("module_id", metadata.moduleId);
-  if (metadata.moduleTitle) form.set("module_title", metadata.moduleTitle);
-  form.set("topic", metadata.topic);
-  const token = await getToken();
-  const response = await fetch(buildApiUrl("/admin/resources/documents"), {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: form,
-  });
-  if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as {
-      detail?: string;
+  const target = await apiFetch<AdminDocumentUploadTarget>(
+    "/admin/resources/documents",
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        ...metadata,
+        filename: file.name,
+        contentType: file.type || "application/pdf",
+        fileSize: file.size,
+      }),
+    },
+  );
+  await putSupabaseFileWithProgress(target.uploadUrl, file, onProgress);
+  return apiFetch<AdminResourceUpload>(
+    "/admin/resources/documents/complete",
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({ ...metadata, uploadId: target.uploadId }),
+    },
+  );
+}
+
+function putSupabaseFileWithProgress(
+  url: string,
+  file: File,
+  onProgress: (percent: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    const form = new FormData();
+    form.set("cacheControl", "3600");
+    form.set("file", file);
+    request.open("PUT", url);
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable)
+        onProgress(Math.round((event.loaded / event.total) * 100));
     };
-    throw new Error(error.detail || `Upload failed (${response.status})`);
-  }
-  return (await response.json()).data as AdminResourceUpload;
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) resolve();
+      else reject(new Error(`PDF upload failed (${request.status})`));
+    };
+    request.onerror = () =>
+      reject(new Error("The connection to document storage was interrupted"));
+    request.send(form);
+  });
 }
 
 export function createAdminVideoUpload(
