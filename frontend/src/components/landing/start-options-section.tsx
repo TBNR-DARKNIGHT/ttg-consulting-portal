@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { publicStorageUrl } from '@/lib/public-assets';
 
 const options = [
   {
@@ -7,6 +8,7 @@ const options = [
     body: "Free to join. Access our DSA seminar clips, Opportunities Directory, and practical guides the moment you sign up. Premium courses are available when you're ready.",
     cta: 'Join the Portal Free',
     to: '/portal',
+    imagePath: 'landing/explore_at_own_pace.jpeg',
   },
   {
     badge: 'Cohort-based',
@@ -14,6 +16,7 @@ const options = [
     body: 'Our DSA Interview Intensive is a focused programme with small groups, real practice, and direct coaching from our team.',
     cta: 'View DSA Interview Intensive',
     to: '/group-programme',
+    imagePath: 'landing/learn_with_a_cohort.jpeg',
   },
   {
     badge: '1-on-1',
@@ -21,6 +24,7 @@ const options = [
     body: "Our DSA Consultation begins with a personalised session covering your child's profile, the right domain to pursue, and a clear set of next steps.",
     cta: 'Book Your Initial Consultation',
     to: '/consult',
+    imagePath: 'landing/work_with_us_directly.jpeg',
   },
 ] as const;
 
@@ -47,9 +51,18 @@ export function StartOptionsSection() {
                 key={option.title}
                 className="flex min-h-[330px] flex-col border-b border-brand-dark/15 bg-white px-8 py-9 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0"
               >
-                <span className="w-fit rounded bg-[#e8e8fa] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">
-                  {option.badge}
-                </span>
+                <div className="flex min-h-14 items-center gap-3">
+                  <img
+                    src={publicStorageUrl(option.imagePath)}
+                    alt=""
+                    className="block h-auto max-h-14 w-auto max-w-[150px] shrink-0 object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span className="w-fit rounded bg-[#e8e8fa] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-indigo">
+                    {option.badge}
+                  </span>
+                </div>
                 <h3 className="mt-3 text-xl font-bold leading-tight text-brand-dark">{option.title}</h3>
                 <p className="mt-3 flex-1 text-sm leading-[1.65] text-brand-dark/70">{option.body}</p>
                 <Link

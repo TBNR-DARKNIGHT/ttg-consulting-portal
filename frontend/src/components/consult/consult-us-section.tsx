@@ -26,9 +26,8 @@ export function ConsultUsSection() {
             <br /><em className="font-normal text-[#a8a8f0]">In a Single Conversation.</em>
           </h1>
           <p className="mt-5 max-w-[620px] font-light leading-[1.7] text-white/65">Every child&apos;s profile is different. The right domain, the right schools, the right preparation focus. Our Initial Consultation gives you an honest, personalised assessment of where your child stands and what a realistic path forward looks like.</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a href={CONTACT_EMAIL} className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Book Your Initial Consultation</a>
-            <a href={CONTACT_EMAIL} className="rounded-[7px] border border-white/30 px-7 py-3.5 text-sm text-white">Get in Touch to Discuss</a>
+          <div className="mt-8">
+            <a href={CONTACT_EMAIL} className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Get in Touch to Discuss</a>
           </div>
           {HERO_IMAGE ? <img src={HERO_IMAGE} alt="Beyond Grades consultation" className="mt-12 block h-auto w-full max-w-[720px] rounded-xl border border-white/10" loading="eager" decoding="async" /> : null}
         </div>
@@ -53,7 +52,7 @@ export function ConsultUsSection() {
         <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
           <div className="grid items-center gap-10 rounded-xl bg-brand-dark px-7 py-10 md:grid-cols-[1fr_auto] md:px-12 md:py-12">
             <div><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">When Should You Book</p><h2 className="text-3xl font-bold leading-[1.2] text-white md:text-[40px]">The earlier,<br /><em className="font-normal text-[#a8a8f0]">the better.</em></h2><p className="mt-4 max-w-[560px] text-sm leading-[1.7] text-white/55">The families who benefit most start the conversation early, giving their child time to build deliberately. If your child is in Primary 4 or above and DSA is on your radar, now is the right time.</p></div>
-            <div className="flex flex-col gap-3"><a href={CONTACT_EMAIL} className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-center text-sm font-semibold text-white">Start the Conversation</a><a href={CONTACT_EMAIL} className="rounded-[7px] border border-white/30 px-7 py-3.5 text-center text-sm text-white">Send Us a Message</a></div>
+            <div><a href={CONTACT_EMAIL} className="inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-center text-sm font-semibold text-white">Start the Conversation</a></div>
           </div>
         </div>
       </section>

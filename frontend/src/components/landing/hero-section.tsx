@@ -1,6 +1,9 @@
 import { Link } from '@tanstack/react-router';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { publicStorageUrl } from '@/lib/public-assets';
+
+const HERO_HEADER_IMAGE = publicStorageUrl('landing/hero_section_header.jpg');
 
 export function HeroSection() {
   return (
@@ -39,6 +42,15 @@ export function HeroSection() {
               </Link>
             </Button>
           </div>
+          {HERO_HEADER_IMAGE ? (
+            <img
+              src={HERO_HEADER_IMAGE}
+              alt="Beyond Grades"
+              className="mt-10 block h-auto w-full max-w-[720px] rounded-xl border border-white/10"
+              loading="eager"
+              decoding="async"
+            />
+          ) : null}
           <div className="mt-8 max-w-[620px] space-y-3 text-sm leading-relaxed text-white/55 md:text-base">
             <p>
               Your grades get you into the room, but your voice gets you the seat. Beyond Grades

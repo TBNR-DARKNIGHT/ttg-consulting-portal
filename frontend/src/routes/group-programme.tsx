@@ -76,7 +76,7 @@ function GroupProgrammePage() {
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a8a8f0]">Reserve Your Child&apos;s Place</p>
             <h2 className="text-3xl font-bold leading-[1.2] text-white md:text-[40px]">The 2026 intake is now closed.<br /><em className="font-normal text-[#a8a8f0]">Join the 2027 waitlist.</em></h2>
             <p className="mt-5 max-w-[640px] leading-[1.7] text-white/55">Places are kept small deliberately so every student receives individual coaching and meaningful practice time.</p>
-            <div className="mt-8 flex flex-wrap gap-3"><a href={WAITLIST_EMAIL} className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Join the 2027 Waitlist</a><Link to="/consult" className="rounded-[7px] border border-white/30 px-7 py-3.5 text-sm text-white">Get in touch with a question</Link></div>
+            <div className="mt-8"><a href={WAITLIST_EMAIL} className="inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white">Join the 2027 Waitlist</a></div>
           </div>
         </section>
 

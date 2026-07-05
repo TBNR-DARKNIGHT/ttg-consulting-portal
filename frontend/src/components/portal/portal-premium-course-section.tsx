@@ -41,7 +41,7 @@ export function PortalPremiumCourseSection() {
             <a href={PARENT_OVERVIEW_GUIDE_URL} download="Course Overview Parents.pdf" className="mt-5 inline-flex text-[13px] font-semibold text-brand-dark/60 hover:text-brand-indigo">
               ← Download the Parent Overview Guide
             </a>
-            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer" className="mt-7 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">
+            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer" className="mt-7 hidden w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:block">
               Unlock the Full Course
             </a>
           </div>
@@ -60,6 +60,9 @@ export function PortalPremiumCourseSection() {
                 return <PortalMuxPreviewCard key={slot.key} preview={slot.preview} isOfflineDemo={isOfflineDemo} />;
               })}
             </div>
+            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer" className="mt-6 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:hidden">
+              Unlock the Full Course
+            </a>
           </div>
         </div>
       </div>
