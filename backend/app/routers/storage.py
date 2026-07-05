@@ -105,7 +105,12 @@ async def storage_public_download(
     data = supabase.storage.from_(resource.bucket).download(resource.file_path)
     if not isinstance(data, (bytes, bytearray)):
         raise ValueError("Unexpected download response")
-    return Response(content=bytes(data), media_type="application/pdf")
+    filename = resource.file_path.rsplit("/", 1)[-1]
+    return Response(
+        content=bytes(data),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/storage/paid-url", response_model=ApiResponse[StorageUrlResponse])
@@ -192,5 +197,10 @@ async def storage_paid_download(
     data = supabase.storage.from_(resource.bucket).download(resource.file_path)
     if not isinstance(data, (bytes, bytearray)):
         raise ValueError("Unexpected download response")
-    return Response(content=bytes(data), media_type="application/pdf")
+    filename = resource.file_path.rsplit("/", 1)[-1]
+    return Response(
+        content=bytes(data),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 

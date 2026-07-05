@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useMemo } from 'react';
 import MuxPlayer from '@mux/mux-player-react';
 import { usePortalAuth } from '@/auth/auth-context';
 import { MuxPublicPlayer } from '@/components/mux/mux-public-player';
@@ -10,6 +10,13 @@ import { muxEnvKey } from '@/lib/mux';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
 import { useEntitlements } from '@/hooks/use-entitlements';
+import { Download } from 'lucide-react';
+
+const PdfDocumentViewer = lazy(() =>
+  import('@/components/pdf/pdf-document-viewer').then((module) => ({
+    default: module.PdfDocumentViewer,
+  })),
+);
 
 export const Route = createFileRoute('/dashboard/resources/$resourceId')({
   validateSearch: (
@@ -131,6 +138,7 @@ function ResourceDetailPage() {
   }, [blobUrl]);
 
   const publicObjectUrl = publicUrlQuery.data?.url ?? null;
+  const pdfUrl = publicObjectUrl ?? blobUrl;
 
   const backendDownloadUrl = useMemo(() => {
     if (!resource?.bucket || !resource.filePath) return null;
@@ -143,6 +151,10 @@ function ResourceDetailPage() {
   }, [resource]);
 
   const muxEnvKeyValue = muxEnvKey();
+  const downloadFilename = `${resource?.title ?? 'resource'}.pdf`.replace(
+    /[<>:"/\\|?*]/g,
+    '-',
+  );
 
   if (!resource) {
     return (
@@ -206,7 +218,22 @@ function ResourceDetailPage() {
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">{resource.description}</p>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {isPdf && pdfUrl && (
+              <Button asChild>
+                <a
+                  href={
+                    resource.access === 'paid'
+                      ? pdfUrl
+                      : backendDownloadUrl ?? pdfUrl
+                  }
+                  download={downloadFilename}
+                >
+                  <Download aria-hidden="true" />
+                  Download PDF
+                </a>
+              </Button>
+            )}
             <Button variant="outline" asChild>
               <Link
                 to={backToCourseList.to}
@@ -303,11 +330,14 @@ function ResourceDetailPage() {
                 </div>
               </div>
             )}
-            {publicObjectUrl && (
-              <iframe title={resource.title} src={publicObjectUrl} className="h-[75vh] w-full" />
-            )}
-            {!publicObjectUrl && blobUrl && (
-              <iframe title={resource.title} src={blobUrl} className="h-[75vh] w-full" />
+            {pdfUrl && (
+              <Suspense
+                fallback={
+                  <div className="p-6 text-sm text-muted-foreground">Loading PDF viewer…</div>
+                }
+              >
+                <PdfDocumentViewer file={pdfUrl} title={resource.title} />
+              </Suspense>
             )}
             {!publicUrlQuery.isLoading &&
               !paidBlobQuery.isLoading &&
