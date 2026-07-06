@@ -53,32 +53,49 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
 
       {isAdmin ? (
         <div className="rounded-md">
-          <Link
-            to="/dashboard/settings"
-            search={{}}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
-            aria-expanded={settingsOpen}
-            onClick={(event) => {
-              if (settingsActive && !selectedSettingsTool) {
-                event.preventDefault();
-                setSettingsOpen((open) => !open);
-                return;
-              }
-              setSettingsOpen(true);
-              onNavigate?.();
-            }}
+          <div
+            className={cn(
+              'group/sidebar-row flex items-center rounded-md pl-1 transition-colors',
+              settingsActive
+                ? 'bg-brand-indigo/10 text-brand-indigo'
+                : 'hover:bg-muted/80',
+            )}
           >
-            <ChevronRight
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((open) => !open)}
               className={cn(
-                'size-4 shrink-0 text-muted-foreground transition-transform',
-                settingsOpen && 'rotate-90',
+                'grid size-8 shrink-0 place-items-center rounded-md transition-colors group-hover/sidebar-row:text-foreground',
+                settingsActive ? 'text-brand-indigo' : 'text-muted-foreground',
               )}
-              aria-hidden
-            />
-            <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">
-              Settings
-            </span>
-          </Link>
+              aria-expanded={settingsOpen}
+              aria-label={`${settingsOpen ? 'Collapse' : 'Expand'} Settings`}
+            >
+              <ChevronRight
+                className={cn(
+                  'size-4 transition-transform',
+                  settingsOpen && 'rotate-90',
+                )}
+                aria-hidden
+              />
+            </button>
+            <Link
+              to="/dashboard/settings"
+              search={{}}
+              className={cn(
+                'min-w-0 flex-1 rounded-md py-2 pr-2 text-left text-sm font-medium transition-colors',
+                settingsActive
+                  ? 'text-brand-indigo'
+                  : 'text-foreground',
+              )}
+              onClick={() => {
+                setSettingsOpen(true);
+                onNavigate?.();
+              }}
+            >
+              <span className="whitespace-normal break-words leading-snug">Settings</span>
+            </Link>
+          </div>
           {settingsOpen && (
             <div className="ml-2 flex flex-col gap-0.5 border-l border-border pl-1">
               <Link

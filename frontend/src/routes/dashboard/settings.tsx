@@ -41,7 +41,15 @@ function DashboardSettingsPage() {
     redeem.mutate(value, {
       onSuccess: ({ courseId }) => {
         setCode('');
-        toast.success(`${courseId === 'course-2' ? 'Course 2' : courseId} unlocked`);
+        toast.success(
+          `${
+            courseId === 'course-2'
+              ? 'Ace Your DSA Interview'
+              : courseId === 'course-1'
+                ? 'Free Course'
+                : courseId
+          } unlocked`,
+        );
       },
       onError: (error) => {
         toast.error(error instanceof Error ? error.message : 'Unable to redeem access code');
@@ -59,8 +67,8 @@ function DashboardSettingsPage() {
           <CardHeader>
             <CardTitle>Course Access</CardTitle>
             <CardDescription>
-              Course 1 is included with every account. Redeem the single-use code supplied after
-              purchase to unlock Course 2.
+              The Free Course is included with every account. Redeem the single-use code supplied
+              after purchase to unlock Paid Courses.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -72,9 +80,9 @@ function DashboardSettingsPage() {
                   : courses
                       .map((courseId) =>
                         courseId === 'course-1'
-                          ? 'Course 1'
+                          ? 'Free Course'
                           : courseId === 'course-2'
-                            ? 'Course 2'
+                            ? 'Ace Your DSA Interview'
                             : courseId,
                       )
                       .join(', ')}
@@ -83,7 +91,7 @@ function DashboardSettingsPage() {
 
             {hasCourseAccess('course-2') ? (
               <p className="rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
-                Course 2 is unlocked for this account.
+                Ace Your DSA Interview is unlocked for this account.
               </p>
             ) : (
               <form className="space-y-3" onSubmit={submitCode}>

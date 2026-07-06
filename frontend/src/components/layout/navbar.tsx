@@ -10,6 +10,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import { publicNavLinks } from '@/components/layout/public-nav-links';
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -30,46 +31,17 @@ export function Navbar() {
         </Link>
 
         <div className="hidden flex-1 items-center justify-center gap-8 px-8 md:flex">
-          <Link
-            to="/portal"
-            activeProps={{ className: 'text-brand-indigo' }}
-            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-            className="text-[13px] font-medium transition-colors"
-          >
-            DSA Portal
-          </Link>
-          <Link
-            to="/group-programme"
-            activeProps={{ className: 'text-brand-indigo' }}
-            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-            className="text-[13px] font-medium transition-colors"
-          >
-            DSA Interview Intensive
-          </Link>
-          <Link
-            to="/consult"
-            activeProps={{ className: 'text-brand-indigo' }}
-            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-            className="text-[13px] font-medium transition-colors"
-          >
-            DSA Consulting
-          </Link>
-          <Link
-            to="/young-explorers"
-            activeProps={{ className: 'text-brand-indigo' }}
-            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-            className="text-[13px] font-medium transition-colors"
-          >
-            Young Explorers
-          </Link>
-          <Link
-            to="/about"
-            activeProps={{ className: 'text-brand-indigo' }}
-            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
-            className="text-[13px] font-medium transition-colors"
-          >
-            About Us
-          </Link>
+          {publicNavLinks.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              activeProps={{ className: 'text-brand-indigo' }}
+              inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+              className="text-[13px] font-medium transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
 
         <div className="hidden md:flex items-center gap-2">
@@ -122,41 +94,16 @@ export function Navbar() {
               Site navigation links
             </SheetDescription>
             <div className="flex flex-col gap-2 pt-8 px-2">
-              <Link
-                to="/portal"
-                onClick={() => setOpen(false)}
-                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-              >
-                DSA Portal
-              </Link>
-              <Link
-                to="/group-programme"
-                onClick={() => setOpen(false)}
-                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-              >
-                DSA Interview Intensive
-              </Link>
-              <Link
-                to="/consult"
-                onClick={() => setOpen(false)}
-                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-              >
-                DSA Consultation
-              </Link>
-              <Link
-                to="/young-explorers"
-                onClick={() => setOpen(false)}
-                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-              >
-                Young Explorers
-              </Link>
-              <Link
-                to="/about"
-                onClick={() => setOpen(false)}
-                className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
-              >
-                About us
-              </Link>
+              {publicNavLinks.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
+                >
+                  {item.label}
+                </Link>
+              ))}
               {!isLoaded ? (
                 <div className="relative mt-4 h-10 rounded-md bg-brand-grey/40">
                   <span className="sr-only">Loading account</span>

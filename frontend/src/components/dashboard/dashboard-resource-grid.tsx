@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { usePortalAuth } from '@/auth/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ResourceLoadingState } from '@/components/dashboard/resource-loading-state';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,8 @@ import {
   updateAdminResource,
 } from '@/lib/api';
 import { muxSignedThumbnailUrl, muxThumbnailUrl } from '@/lib/mux';
+import { publicBucketStorageUrl } from '@/lib/public-assets';
+import { TTA_SHOP_URL } from '@/lib/tta-shop';
 import type { ContentTopic, Resource, ResourceType } from '@/types';
 
 function titleCase(value: string) {
@@ -130,21 +133,29 @@ function ResourceVideoThumbnail({
 function ResourcePdfThumbnail({ resource, locked }: { resource: Resource; locked: boolean }) {
   const { getToken } = usePortalAuth();
   const [imageFailed, setImageFailed] = useState(false);
+  const publicThumbnailUrl =
+    resource.access !== 'paid' && resource.bucket && resource.filePath
+      ? publicBucketStorageUrl(
+          resource.bucket,
+          resource.filePath.replace(/([^/]+)\.pdf$/i, '$1_thumbnail.jpg'),
+        )
+      : '';
   const thumbnailQuery = useQuery({
     queryKey: ['pdf-thumbnail-url', resource.id],
     queryFn: () => getPdfThumbnailUrl(resource.id, getToken),
-    enabled: !locked,
+    enabled: !locked && !resource.thumbnailUrl && !publicThumbnailUrl,
     staleTime: 10 * 60 * 1000,
   });
-  const thumbnailUrl = resource.thumbnailUrl ?? thumbnailQuery.data?.url;
+  const thumbnailUrl =
+    resource.thumbnailUrl ?? (publicThumbnailUrl || thumbnailQuery.data?.url);
 
   return (
-    <div className="relative aspect-video overflow-hidden bg-muted">
+    <div className="group relative aspect-video overflow-hidden bg-muted">
       {thumbnailUrl && !imageFailed ? (
         <img
           src={thumbnailUrl}
           alt={`Preview for ${resource.title}`}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
           loading="lazy"
           decoding="async"
           onError={() => setImageFailed(true)}
@@ -436,7 +447,7 @@ export function DashboardResourceGrid({
   const error = resourcesError;
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading resources…</p>;
+    return <ResourceLoadingState />;
   }
 
   if (error) {
@@ -458,53 +469,72 @@ export function DashboardResourceGrid({
         const typeLabel = resourceTypeLabel(resource.type);
         const courseId = resource.courseId ?? getCourseIdForTopic(resource.topic);
         const locked = !hasCourseAccess(courseId);
-        const resourceLink = locked
-          ? {
-              to: '/dashboard/settings' as const,
-              hash: 'course-access',
-            }
-          : {
-              to: '/dashboard/resources/$resourceId' as const,
-              params: { resourceId: resource.id },
-              search: {
-                from: resourceOrigin,
-                courseId,
-                ...(typeof moduleId === 'string' ? { module: moduleId } : {}),
-              },
-            };
+        const resourceLink = {
+          to: '/dashboard/resources/$resourceId' as const,
+          params: { resourceId: resource.id },
+          search: {
+            from: resourceOrigin,
+            courseId,
+            ...(typeof moduleId === 'string' ? { module: moduleId } : {}),
+          },
+        };
+        const thumbnail =
+          resource.type === 'video' ? (
+            <ResourceVideoThumbnail resource={resource} locked={locked} />
+          ) : resource.type === 'pdf' ? (
+            <ResourcePdfThumbnail resource={resource} locked={locked} />
+          ) : (
+            <div className="aspect-video bg-muted/20" aria-hidden />
+          );
         return (
           <li
             key={resource.id}
             className="group/card relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm"
           >
             {isAdmin && <AdminResourceEditButton resource={resource} />}
-            <Link
-              {...resourceLink}
-              className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-              aria-label={`${locked ? 'Unlock' : 'Open'} ${resource.title}`}
-            >
-              {resource.type === 'video' ? (
-                <ResourceVideoThumbnail resource={resource} locked={locked} />
-              ) : resource.type === 'pdf' ? (
-                <ResourcePdfThumbnail resource={resource} locked={locked} />
-              ) : (
-                <div className="aspect-video bg-muted/20" aria-hidden />
-              )}
-            </Link>
+            {locked ? (
+              <a
+                href={TTA_SHOP_URL}
+                className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                aria-label={`Purchase access to ${resource.title}`}
+              >
+                {thumbnail}
+              </a>
+            ) : (
+              <Link
+                {...resourceLink}
+                className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                aria-label={`Open ${resource.title}`}
+              >
+                {thumbnail}
+              </Link>
+            )}
             <div
               data-resource-card-content
               data-title-lines="one"
               className="group/content flex h-64 flex-none flex-col gap-2 overflow-hidden border-t border-border p-5"
             >
               <div className="flex min-w-0 items-start justify-between gap-3">
-                <AdaptiveResourceTitle>
-                  <Link
-                    {...resourceLink}
-                    className="line-clamp-2 rounded-sm [overflow-wrap:anywhere] hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {resource.title}
-                  </Link>
-                </AdaptiveResourceTitle>
+                {locked ? (
+                  <AdaptiveResourceTitle>
+                    <a
+                      href={TTA_SHOP_URL}
+                      className="line-clamp-2 rounded-sm [overflow-wrap:anywhere] hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={`Purchase access to ${resource.title}`}
+                    >
+                      {resource.title}
+                    </a>
+                  </AdaptiveResourceTitle>
+                ) : (
+                  <AdaptiveResourceTitle>
+                    <Link
+                      {...resourceLink}
+                      className="line-clamp-2 rounded-sm [overflow-wrap:anywhere] hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {resource.title}
+                    </Link>
+                  </AdaptiveResourceTitle>
+                )}
                 <div className="flex shrink-0 items-center gap-2">
                   {locked && (
                     <LockKeyhole

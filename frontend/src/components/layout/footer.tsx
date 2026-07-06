@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { publicNavLinks } from '@/components/layout/public-nav-links';
 
 export function Footer() {
   return (
@@ -9,10 +10,15 @@ export function Footer() {
           <p className="mt-1 text-xs text-white/35">Part of Think Teach Group · beyondgrades.sg</p>
         </div>
         <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2" aria-label="Footer">
-          <Link to="/portal" className="text-xs text-white/40 hover:text-white/70">Portal</Link>
-          <Link to="/group-programme" className="text-xs text-white/40 hover:text-white/70">DSA Interview Intensive</Link>
-          <Link to="/consult" className="text-xs text-white/40 hover:text-white/70">DSA Consulting</Link>
-          <Link to="/about" className="text-xs text-white/40 hover:text-white/70">About Us</Link>
+          {publicNavLinks.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="text-xs text-white/40 hover:text-white/70"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <p className="text-xs text-white/30">© 2026 Beyond Grades.</p>
       </div>

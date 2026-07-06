@@ -7,6 +7,7 @@ import { useResourceProgress } from '@/hooks/use-resource-progress';
 import { useResources } from '@/hooks/use-resources';
 import { useEntitlements } from '@/hooks/use-entitlements';
 import { COURSES } from '@/lib/courses';
+import { TTA_SHOP_URL } from '@/lib/tta-shop';
 import type { ContentTopic, Resource, ResourceProgress } from '@/types';
 
 function courseCompletion(
@@ -59,6 +60,7 @@ export function DashboardProgressOverview() {
     <div className="grid gap-4 sm:grid-cols-2">
       {byCourse.map(({ course, total, completed, pct }) => (
         <div key={course.id}>
+          {hasCourseAccess(course.id) ? (
           <Link
             to="/dashboard/course/$courseId"
             params={{ courseId: course.id }}
@@ -70,28 +72,42 @@ export function DashboardProgressOverview() {
                 <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {!hasCourseAccess(course.id) ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <LockKeyhole className="size-4" aria-hidden />
-                    Redeem your access code to unlock this course.
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Completed</span>
-                      <span className="font-medium text-foreground">
-                        {completed} / {total}
-                      </span>
-                    </div>
-                    <Progress
-                      value={pct}
-                      className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
-                    />
-                  </>
-                )}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Completed</span>
+                  <span className="font-medium text-foreground">
+                    {completed} / {total}
+                  </span>
+                </div>
+                <Progress
+                  value={pct}
+                  className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
+                />
               </CardContent>
             </Card>
           </Link>
+          ) : (
+            <a
+              href={TTA_SHOP_URL}
+              className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Purchase access to ${course.title}`}
+            >
+              <Card className="h-full border-brand-indigo/25 bg-brand-indigo/[0.03] shadow-sm transition-colors hover:border-brand-indigo/50 hover:bg-brand-indigo/[0.06]">
+                <CardHeader className="pb-2">
+                  <CardDescription>{course.shortLabel}</CardDescription>
+                  <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <LockKeyhole className="mt-0.5 size-4 shrink-0" aria-hidden />
+                    <span>Unlock every module, video, and downloadable resource.</span>
+                  </div>
+                  <span className="inline-flex text-sm font-semibold text-brand-indigo">
+                    Purchase access →
+                  </span>
+                </CardContent>
+              </Card>
+            </a>
+          )}
         </div>
       ))}
     </div>

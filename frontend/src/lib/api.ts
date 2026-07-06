@@ -146,6 +146,17 @@ export function getPublicStorageUrl(
   );
 }
 
+export function getPaidStorageUrl(
+  params: { resourceId: string; expiresIn?: number },
+  getToken: () => Promise<string | null>,
+): Promise<StorageUrlResponse> {
+  const query = new URLSearchParams({
+    resource_id: params.resourceId,
+    expires_in: String(params.expiresIn ?? 3600),
+  });
+  return apiFetch<StorageUrlResponse>(`/storage/paid-url?${query}`, getToken);
+}
+
 export function getPdfThumbnailUrl(
   resourceId: string,
   getToken: () => Promise<string | null>,

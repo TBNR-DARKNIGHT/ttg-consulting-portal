@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TTA_SHOP_URL } from '@/lib/tta-shop';
 
 export function LockedCourseAccess({ title = 'Unlock Course 2' }: { title?: string }) {
   return (
@@ -13,14 +14,19 @@ export function LockedCourseAccess({ title = 'Unlock Course 2' }: { title?: stri
           <div>
             <h2 className="font-semibold text-foreground">{title}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Redeem the single-use code supplied with your purchase to access these materials.
+              Purchase the full course to unlock every module, video, and downloadable resource.
             </p>
           </div>
-          <Button asChild size="sm">
-            <Link to="/dashboard/settings" hash="course-access">
-              Redeem Access Code
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm">
+              <a href={TTA_SHOP_URL}>Purchase Access</a>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/dashboard/settings" hash="course-access">
+                Already purchased? Redeem code
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

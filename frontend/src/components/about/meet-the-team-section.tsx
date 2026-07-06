@@ -48,7 +48,7 @@ function TeamPhoto({ member }: { member: (typeof team)[number] }) {
 
   if (failed) {
     return (
-      <div className="grid size-[72px] place-items-center rounded-full bg-[#e8e8fa] text-sm font-semibold text-brand-indigo" aria-hidden>
+      <div className="grid size-[120px] place-items-center rounded-full bg-[#e8e8fa] text-sm font-semibold text-brand-indigo" aria-hidden>
         {member.initials}
       </div>
     );
@@ -58,9 +58,11 @@ function TeamPhoto({ member }: { member: (typeof team)[number] }) {
     <img
       src={photoUrl}
       alt={`Photo of ${member.name}`}
-      className="block h-auto w-full max-w-[120px] rounded-lg"
+      className="block size-[120px] rounded-full object-cover object-top"
       loading="lazy"
       decoding="async"
+      width={120}
+      height={120}
       onError={() => setFailed(true)}
     />
   );

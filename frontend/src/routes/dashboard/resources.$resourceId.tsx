@@ -1,16 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useEffect, useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import MuxPlayer from '@mux/mux-player-react';
 import { usePortalAuth } from '@/auth/auth-context';
 import { MuxPublicPlayer } from '@/components/mux/mux-public-player';
+import { ResourceLoadingState } from '@/components/dashboard/resource-loading-state';
 import { Button } from '@/components/ui/button';
-import { apiFetchBlob, getMuxPlaybackToken, getPublicStorageUrl } from '@/lib/api';
+import { getMuxPlaybackToken, getPaidStorageUrl, getPublicStorageUrl } from '@/lib/api';
 import { muxEnvKey } from '@/lib/mux';
+import { publicBucketStorageUrl } from '@/lib/public-assets';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
 import { useEntitlements } from '@/hooks/use-entitlements';
-import { Download } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 
 const PdfDocumentViewer = lazy(() =>
   import('@/components/pdf/pdf-document-viewer').then((module) => ({
@@ -95,6 +97,14 @@ function ResourceDetailPage() {
     staleTime: 50 * 60 * 1000,
   });
 
+  const directPublicUrl =
+    resource?.type === 'pdf' &&
+    resource.access !== 'paid' &&
+    resource.bucket &&
+    resource.filePath
+      ? publicBucketStorageUrl(resource.bucket, resource.filePath)
+      : '';
+
   const publicUrlQuery = useQuery({
     enabled: Boolean(
       resource &&
@@ -102,7 +112,8 @@ function ResourceDetailPage() {
         resource.type === 'pdf' &&
         resource.access !== 'paid' &&
         resource.bucket &&
-        resource.filePath,
+        resource.filePath &&
+        !directPublicUrl,
     ),
     queryKey: ['resource-public-url', resourceId],
     queryFn: async () => {
@@ -113,32 +124,21 @@ function ResourceDetailPage() {
     },
   });
 
-  const paidBlobQuery = useQuery({
+  const paidUrlQuery = useQuery({
     enabled: Boolean(resource && canAccess && resource.type === 'pdf' && resource.bucket && resource.filePath),
-    queryKey: ['resource-paid-blob', resourceId, canAccess],
+    queryKey: ['resource-paid-url', resourceId, canAccess],
     queryFn: async () => {
       if (!resource || resource.access !== 'paid') {
         return null;
       }
-      return apiFetchBlob(
-        `/storage/paid-download?resource_id=${encodeURIComponent(resource.id)}`,
-        getToken,
-      );
+      return getPaidStorageUrl({ resourceId: resource.id, expiresIn: 3600 }, getToken);
     },
+    staleTime: 50 * 60 * 1000,
   });
 
-  const blobUrl = useMemo(() => {
-    if (!paidBlobQuery.data) return null;
-    if (!(paidBlobQuery.data instanceof Blob)) return null;
-    return URL.createObjectURL(paidBlobQuery.data);
-  }, [paidBlobQuery.data]);
-  useEffect(() => {
-    if (!blobUrl) return;
-    return () => URL.revokeObjectURL(blobUrl);
-  }, [blobUrl]);
-
-  const publicObjectUrl = publicUrlQuery.data?.url ?? null;
-  const pdfUrl = publicObjectUrl ?? blobUrl;
+  const publicObjectUrl = directPublicUrl || publicUrlQuery.data?.url || null;
+  const paidObjectUrl = paidUrlQuery.data?.url ?? null;
+  const pdfUrl = publicObjectUrl ?? paidObjectUrl;
 
   const backendDownloadUrl = useMemo(() => {
     if (!resource?.bucket || !resource.filePath) return null;
@@ -218,9 +218,21 @@ function ResourceDetailPage() {
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">{resource.description}</p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+            <Button variant="outline" size="icon" asChild>
+              <Link
+                to={backToCourseList.to}
+                params={backToCourseList.params}
+                search={backToCourseList.search}
+                aria-label="Back"
+                title="Back"
+              >
+                <ArrowLeft aria-hidden="true" />
+                <span className="sr-only">Back</span>
+              </Link>
+            </Button>
             {isPdf && pdfUrl && (
-              <Button asChild>
+              <Button size="icon" asChild>
                 <a
                   href={
                     resource.access === 'paid'
@@ -228,21 +240,14 @@ function ResourceDetailPage() {
                       : backendDownloadUrl ?? pdfUrl
                   }
                   download={downloadFilename}
+                  aria-label="Download PDF"
+                  title="Download PDF"
                 >
                   <Download aria-hidden="true" />
-                  Download PDF
+                  <span className="sr-only">Download PDF</span>
                 </a>
               </Button>
             )}
-            <Button variant="outline" asChild>
-              <Link
-                to={backToCourseList.to}
-                params={backToCourseList.params}
-                search={backToCourseList.search}
-              >
-                Back
-              </Link>
-            </Button>
           </div>
         </header>
 
@@ -313,15 +318,15 @@ function ResourceDetailPage() {
 
         {isPdf && (
           <div className="overflow-hidden rounded-xl border border-border bg-card">
-            {(publicUrlQuery.isLoading || paidBlobQuery.isLoading) && (
-              <div className="p-6 text-sm text-muted-foreground">Preparing your document…</div>
+            {(publicUrlQuery.isLoading || paidUrlQuery.isLoading) && (
+              <ResourceLoadingState label="Preparing your document…" className="p-6" />
             )}
-            {(publicUrlQuery.error || paidBlobQuery.error) && (
+            {(publicUrlQuery.error || paidUrlQuery.error) && (
               <div className="p-6 text-sm text-destructive" role="alert">
                 {publicUrlQuery.error instanceof Error
                   ? publicUrlQuery.error.message
-                  : paidBlobQuery.error instanceof Error
-                    ? paidBlobQuery.error.message
+                  : paidUrlQuery.error instanceof Error
+                    ? paidUrlQuery.error.message
                     : 'Failed to load PDF'}
                 <div className="mt-2 text-xs text-muted-foreground">
                   Tip: ensure <span className="font-mono">VITE_API_BASE_URL</span> points at your backend (usually{' '}
@@ -333,18 +338,18 @@ function ResourceDetailPage() {
             {pdfUrl && (
               <Suspense
                 fallback={
-                  <div className="p-6 text-sm text-muted-foreground">Loading PDF viewer…</div>
+                  <ResourceLoadingState label="Loading PDF viewer…" className="p-6" />
                 }
               >
                 <PdfDocumentViewer file={pdfUrl} title={resource.title} />
               </Suspense>
             )}
             {!publicUrlQuery.isLoading &&
-              !paidBlobQuery.isLoading &&
+              !paidUrlQuery.isLoading &&
               !publicUrlQuery.error &&
-              !paidBlobQuery.error &&
+              !paidUrlQuery.error &&
               !publicObjectUrl &&
-              !blobUrl && (
+              !paidObjectUrl && (
                 <div className="p-6 text-sm text-muted-foreground">No PDF content loaded yet.</div>
               )}
           </div>
