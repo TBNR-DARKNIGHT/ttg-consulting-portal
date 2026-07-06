@@ -87,16 +87,16 @@ function DashboardHomePage() {
                 </Button>
               ) : (
                 <div className="mt-6">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <LockKeyhole className="size-3.5" aria-hidden />
+                    One purchase unlocks all course materials.
+                  </p>
                   <Button asChild className="w-fit">
                     <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
                       Get Full Course Access
                       <ArrowRight aria-hidden />
                     </a>
                   </Button>
-                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <LockKeyhole className="size-3.5" aria-hidden />
-                    One purchase unlocks all course materials.
-                  </p>
                 </div>
               )}
             </CardContent>
