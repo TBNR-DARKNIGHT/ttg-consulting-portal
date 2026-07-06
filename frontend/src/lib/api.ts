@@ -370,6 +370,32 @@ export function deleteAdminResource(
   );
 }
 
+export async function replaceAdminDocument(
+  resourceId: string,
+  file: File,
+  getToken: () => Promise<string | null>,
+  onProgress: (percent: number) => void,
+): Promise<null> {
+  const target = await apiFetch<AdminDocumentUploadTarget>(
+    `/admin/resources/${encodeURIComponent(resourceId)}/document-replacement`,
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type || "application/pdf",
+        fileSize: file.size,
+      }),
+    },
+  );
+  await putSupabaseFileWithProgress(target.uploadUrl, file, onProgress);
+  return apiFetch<null>(
+    `/admin/resources/${encodeURIComponent(resourceId)}/document-replacement/complete`,
+    getToken,
+    { method: "POST" },
+  );
+}
+
 export async function uploadAdminDocument(
   file: File,
   metadata: AdminResourceMetadata,

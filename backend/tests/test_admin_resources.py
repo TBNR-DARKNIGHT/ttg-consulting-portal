@@ -185,6 +185,48 @@ async def test_admin_can_delete_resource(
 
 
 @pytest.mark.asyncio
+async def test_admin_can_replace_pdf_without_metadata(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    prepared: dict[str, object] = {}
+    completed: list[str] = []
+
+    def fake_begin(resource_id: str, **kwargs: object) -> tuple[str, str]:
+        prepared["resource_id"] = resource_id
+        prepared.update(kwargs)
+        return "course-1/pdf/guide.pdf", "https://storage.example/signed"
+
+    monkeypatch.setattr(admin, "begin_pdf_replacement", fake_begin)
+    monkeypatch.setattr(admin, "complete_pdf_replacement", completed.append)
+    app.dependency_overrides[require_admin] = _admin_user
+    try:
+        prepare_response = await client.post(
+            "/api/v1/admin/resources/resource-123/document-replacement",
+            json={
+                "filename": "new-guide.pdf",
+                "contentType": "application/pdf",
+                "fileSize": 1234,
+            },
+        )
+        complete_response = await client.post(
+            "/api/v1/admin/resources/resource-123/document-replacement/complete"
+        )
+    finally:
+        app.dependency_overrides.pop(require_admin, None)
+
+    assert prepare_response.status_code == 200
+    assert prepare_response.json()["data"]["uploadId"] == "course-1/pdf/guide.pdf"
+    assert prepared == {
+        "resource_id": "resource-123",
+        "filename": "new-guide.pdf",
+        "content_type": "application/pdf",
+        "file_size": 1234,
+    }
+    assert complete_response.status_code == 200
+    assert completed == ["resource-123"]
+
+
+@pytest.mark.asyncio
 async def test_video_upload_rejects_non_video_content_type(client: AsyncClient) -> None:
     app.dependency_overrides[require_admin] = _admin_user
     try:

@@ -22,6 +22,7 @@ from app.models.admin import (
     DocumentUploadTargetOut,
     IssuedAccessCodeOut,
     ResetTtaOrderNumberingOut,
+    ReplaceDocumentUploadIn,
     ResourceMetadataUpdateIn,
     ResourceUploadOptionsOut,
     ResourceUploadOut,
@@ -45,8 +46,10 @@ from app.services.admin_access_codes import (
 from app.services.admin_resource_uploads import (
     ResourceUploadError,
     begin_pdf_upload,
+    begin_pdf_replacement,
     begin_video_upload,
     complete_pdf_upload,
+    complete_pdf_replacement,
     complete_video_upload,
     delete_resource,
     ingest_link,
@@ -315,6 +318,50 @@ async def remove_resource(
     except Exception as exc:
         logger.exception("Unable to delete resource")
         raise HTTPException(status_code=503, detail="Unable to delete resource") from exc
+
+
+@router.post(
+    "/admin/resources/{resource_id}/document-replacement",
+    response_model=ApiResponse[DocumentUploadTargetOut],
+)
+async def create_document_replacement(
+    resource_id: str,
+    body: ReplaceDocumentUploadIn,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[DocumentUploadTargetOut]:
+    try:
+        upload_id, upload_url = begin_pdf_replacement(
+            resource_id,
+            filename=body.filename,
+            content_type=body.content_type,
+            file_size=body.file_size,
+        )
+        return ApiResponse(
+            data=DocumentUploadTargetOut(upload_url=upload_url, upload_id=upload_id)
+        )
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Unable to prepare PDF replacement")
+        raise HTTPException(status_code=503, detail="Unable to prepare PDF replacement") from exc
+
+
+@router.post(
+    "/admin/resources/{resource_id}/document-replacement/complete",
+    response_model=ApiResponse[None],
+)
+async def finalize_document_replacement(
+    resource_id: str,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[None]:
+    try:
+        complete_pdf_replacement(resource_id)
+        return ApiResponse(data=None)
+    except ResourceUploadError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Unable to finalize PDF replacement")
+        raise HTTPException(status_code=503, detail="Unable to finalize PDF replacement") from exc
 
 
 @router.post(

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ImageOff, LockKeyhole, Pencil, Play } from 'lucide-react';
+import { FileUp, ImageOff, LockKeyhole, Pencil, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePortalAuth } from '@/auth/auth-context';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,7 @@ import {
   deleteAdminResource,
   getMuxThumbnailToken,
   getPdfThumbnailUrl,
+  replaceAdminDocument,
   updateAdminResource,
 } from '@/lib/api';
 import { muxSignedThumbnailUrl, muxThumbnailUrl } from '@/lib/mux';
@@ -169,6 +170,8 @@ function AdminResourceEditButton({ resource }: { resource: Resource }) {
   const [topic, setTopic] = useState(resource.topic);
   const [description, setDescription] = useState(resource.description);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [replacementProgress, setReplacementProgress] = useState(0);
   const updateMutation = useMutation({
     mutationFn: () =>
       updateAdminResource(
@@ -206,6 +209,20 @@ function AdminResourceEditButton({ resource }: { resource: Resource }) {
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Unable to delete resource');
+    },
+  });
+  const replaceMutation = useMutation({
+    mutationFn: (file: File) =>
+      replaceAdminDocument(resource.id, file, getToken, setReplacementProgress),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['pdf-thumbnail-url', resource.id] });
+      await queryClient.invalidateQueries({ queryKey: ['resources'] });
+      toast.success('PDF replaced');
+      setReplacementProgress(0);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Unable to replace PDF');
+      setReplacementProgress(0);
     },
   });
 
@@ -269,9 +286,44 @@ function AdminResourceEditButton({ resource }: { resource: Resource }) {
           <form className="space-y-4" onSubmit={submit}>
             <DialogHeader>
               <DialogTitle>Edit Resource</DialogTitle>
-              <DialogDescription>
-                Update the details shown to students. The uploaded file is unchanged.
-              </DialogDescription>
+            <DialogDescription>
+                Update the details shown to students or replace the PDF without changing them.
+            </DialogDescription>
+            {resource.type === 'pdf' && (
+              <div className="rounded-md border border-border p-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = '';
+                    if (!file) return;
+                    if (file.type && file.type !== 'application/pdf') {
+                      toast.error('Choose a PDF file');
+                      return;
+                    }
+                    replaceMutation.mutate(file);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={replaceMutation.isPending}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <FileUp className="mr-2 size-4" />
+                  {replaceMutation.isPending
+                    ? `Replacing PDF… ${replacementProgress}%`
+                    : 'Replace PDF file'}
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Keeps the current title, topic, and description.
+                </p>
+              </div>
+            )}
             </DialogHeader>
             <div className="space-y-2">
               <Label htmlFor={`resource-title-${resource.id}`}>Title</Label>

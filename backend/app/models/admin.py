@@ -114,6 +114,12 @@ class CompleteDocumentUploadIn(ResourceUploadMetadata):
     upload_id: str = Field(min_length=1, max_length=500)
 
 
+class ReplaceDocumentUploadIn(AdminModel):
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str = Field(default="application/pdf", max_length=100)
+    file_size: int = Field(gt=0)
+
+
 class CreateLinkUploadIn(ResourceUploadMetadata):
     url: HttpUrl
     resource_type: str = Field(pattern=r"^(pdf|video)$")
