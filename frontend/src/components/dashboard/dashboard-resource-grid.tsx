@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { useResourceProgress } from '@/hooks/use-resource-progress';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
 import { useEntitlements } from '@/hooks/use-entitlements';
@@ -395,7 +394,6 @@ export function DashboardResourceGrid({
   moduleId,
 }: DashboardResourceGridProps) {
   const { resources, isLoading: resourcesLoading, error: resourcesError } = useResources();
-  const { progress, isLoading: progressLoading, error: progressError } = useResourceProgress();
   const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
   const currentUser = useCurrentUser();
   const isAdmin = currentUser.data?.role === 'ADMIN';
@@ -434,9 +432,8 @@ export function DashboardResourceGrid({
     [resources, courseId, topicSet, typeSet, moduleId],
   );
 
-  const progressById = new Map(progress.map((p) => [p.resourceId, p]));
-  const loading = resourcesLoading || progressLoading || entitlementsLoading;
-  const error = resourcesError ?? progressError;
+  const loading = resourcesLoading || entitlementsLoading;
+  const error = resourcesError;
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading resources…</p>;
@@ -457,7 +454,6 @@ export function DashboardResourceGrid({
   return (
     <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {filtered.map((resource) => {
-        const p = progressById.get(resource.id);
         const topicLabel = resource.topic;
         const typeLabel = resourceTypeLabel(resource.type);
         const courseId = resource.courseId ?? getCourseIdForTopic(resource.topic);
@@ -538,9 +534,6 @@ export function DashboardResourceGrid({
                 <div className="shrink-0 text-xs text-muted-foreground">{resource.duration}</div>
               )}
               <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span className={p?.completed ? 'font-medium text-primary' : undefined}>
-                  {p?.completed ? 'Completed' : p?.lastAccessedAt ? 'In progress' : 'Not started'}
-                </span>
                 <Badge variant="secondary" className="shrink-0">
                   {typeLabel}
                 </Badge>

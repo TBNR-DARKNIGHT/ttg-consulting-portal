@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { CheckCircle2, Lock, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { publicStorageUrl } from '@/lib/public-assets';
 
 const PREP_LOUNGE_IMAGE = publicStorageUrl('landing/prep_lounge_image.jpg');
@@ -103,7 +102,7 @@ export function PrepLoungeSection() {
                             <div className="text-xs text-brand-dark/60">DSA Foundations</div>
                           </div>
                         </div>
-                        <span className="text-xs font-medium text-brand-dark/65">In progress</span>
+                        <span className="text-xs font-medium text-brand-dark/65">Available</span>
                       </div>
 
                       <div className="flex items-center justify-between rounded-xl border border-brand-grey bg-white px-4 py-3">
@@ -135,16 +134,6 @@ export function PrepLoungeSection() {
                       </div>
                     </div>
 
-                    <div className="mt-5 rounded-xl border border-brand-grey bg-white px-4 py-4">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-brand-dark">Overall progress</div>
-                        <div className="text-sm font-semibold text-brand-dark">42%</div>
-                      </div>
-                      <Progress
-                        value={42}
-                        className="mt-3 h-2.5 bg-brand-grey **:data-[slot='progress-indicator']:bg-brand-indigo"
-                      />
-                    </div>
                   </div>
                 </div>
               </div>

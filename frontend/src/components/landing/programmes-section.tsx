@@ -11,7 +11,7 @@ const programmes = [
     name: 'Student Care & Young Explorers',
     icon: '\uD83C\uDF3F',
     description:
-      'Public speaking recordings, progress tracking, and enrichment programme transparency for parents.',
+      'Public speaking recordings, enrichment resources, and programme transparency for parents.',
   },
   {
     entity: 'Macro Academy',
