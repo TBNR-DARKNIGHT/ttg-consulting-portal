@@ -36,7 +36,7 @@ export function Navbar() {
             inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
             className="text-[13px] font-medium transition-colors"
           >
-            Portal
+            DSA Portal
           </Link>
           <Link
             to="/group-programme"
@@ -53,6 +53,14 @@ export function Navbar() {
             className="text-[13px] font-medium transition-colors"
           >
             DSA Consulting
+          </Link>
+          <Link
+            to="/young-explorers"
+            activeProps={{ className: 'text-brand-indigo' }}
+            inactiveProps={{ className: 'text-brand-dark/70 hover:text-brand-dark' }}
+            className="text-[13px] font-medium transition-colors"
+          >
+            Young Explorers
           </Link>
           <Link
             to="/about"
@@ -140,7 +148,7 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className="text-brand-dark/70 hover:text-brand-dark transition-colors py-3 px-3 rounded-lg hover:bg-brand-grey/40"
               >
-                DSA Young Explorers
+                Young Explorers
               </Link>
               <Link
                 to="/about"
