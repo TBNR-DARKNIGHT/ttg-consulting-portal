@@ -27,14 +27,14 @@ export const COURSES: readonly CourseDefinition[] = [
   {
     id: 'course-1',
     title: 'Online Seminar',
-    shortLabel: 'Course 1',
-    topics: ['DSA Pathways', 'Timelines & Deadlines'] as const,
+    shortLabel: 'Free Course',
+    topics: [],
   },
   {
     id: 'course-2',
     title: 'Ace Your DSA Interview',
-    shortLabel: 'Course 2',
-    topics: ['Interview Preparation'] as const,
+    shortLabel: 'Paid Course',
+    topics: [],
   },
 ] as const;
 

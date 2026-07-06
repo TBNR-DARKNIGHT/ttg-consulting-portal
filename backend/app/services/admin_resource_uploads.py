@@ -25,10 +25,6 @@ COURSE_RULES = {
         "access": "paid",
     },
 }
-DEFAULT_TOPICS = {
-    "course-1": {"dsa-pathways", "timelines-deadlines"},
-    "course-2": {"interview-preparation"},
-}
 PDF_TYPES = {"application/pdf", "application/x-pdf"}
 MAX_PDF_BYTES = 50 * 1024 * 1024
 MODULE_TITLE_PATTERN = re.compile(r"^Module\s+([1-9][0-9]*)\s*:", re.IGNORECASE)
@@ -127,7 +123,7 @@ def list_upload_options() -> tuple[
     list[str], dict[str, list[str]], dict[str, list[dict[str, str]]]
 ]:
     courses = set(COURSE_RULES)
-    topics = {course: set(values) for course, values in DEFAULT_TOPICS.items()}
+    topics: dict[str, set[str]] = {}
     result = get_client().table("resources").select("course_id,topic").execute()
     for row in result.data or []:
         course_id = str(row.get("course_id") or "").strip()
@@ -333,6 +329,64 @@ def complete_pdf_upload(
         "file_path": safe_path,
     }
     return _save_pdf_resource(client, rule["bucket"], safe_path, row)
+
+
+def begin_pdf_replacement(
+    resource_id: str, *, filename: str, content_type: str | None, file_size: int
+) -> tuple[str, str]:
+    if Path(filename).suffix.lower() != ".pdf" or content_type not in PDF_TYPES:
+        raise ResourceUploadError("Only PDF documents are supported")
+    if file_size > MAX_PDF_BYTES:
+        raise ResourceUploadError("PDF must be 50 MB or smaller")
+
+    client = get_client()
+    result = (
+        client.table("resources")
+        .select("type,bucket,file_path")
+        .eq("id", resource_id)
+        .execute()
+    )
+    if not result.data:
+        raise ResourceUploadError("Resource not found")
+    row = result.data[0]
+    bucket = str(row.get("bucket") or "")
+    file_path = str(row.get("file_path") or "")
+    if row.get("type") != "pdf" or not bucket or not file_path:
+        raise ResourceUploadError("Resource is not a replaceable PDF")
+
+    signed = client.storage.from_(bucket).create_signed_upload_url(
+        file_path,
+        CreateSignedUploadUrlOptions(upsert="true"),
+    )
+    return file_path, str(signed["signed_url"])
+
+
+def complete_pdf_replacement(resource_id: str) -> None:
+    client = get_client()
+    result = (
+        client.table("resources")
+        .select("type,bucket,file_path")
+        .eq("id", resource_id)
+        .execute()
+    )
+    if not result.data:
+        raise ResourceUploadError("Resource not found")
+    row = result.data[0]
+    bucket = str(row.get("bucket") or "")
+    file_path = str(row.get("file_path") or "")
+    if row.get("type") != "pdf" or not bucket or not file_path:
+        raise ResourceUploadError("Resource is not a replaceable PDF")
+
+    content = client.storage.from_(bucket).download(file_path)
+    if not content:
+        raise ResourceUploadError("The uploaded file is empty")
+    if len(content) > MAX_PDF_BYTES:
+        raise ResourceUploadError("PDF must be 50 MB or smaller")
+    client.storage.from_(bucket).upload(
+        path=pdf_thumbnail_path(file_path),
+        file=_generate_pdf_thumbnail(content),
+        file_options={"content-type": "image/jpeg", "upsert": "true"},
+    )
 
 
 def begin_video_upload(metadata: ResourceUploadMetadata) -> tuple[UUID, str, str]:
