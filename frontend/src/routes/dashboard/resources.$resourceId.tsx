@@ -350,55 +350,6 @@ function ResourceDetailPage() {
           </div>
         )}
 
-        <div className="rounded-xl border border-border bg-muted/20 p-4 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span>
-              <span className="font-medium text-foreground">Debug</span> — access:{' '}
-              <span className="font-mono">{canAccess ? 'granted' : 'locked'}</span>
-            </span>
-            {isPdf && (
-              <>
-                <span>
-                  pdf enabled:{' '}
-                  <span className="font-mono">
-                    {String(Boolean(canAccess && resource.bucket && resource.filePath))}
-                  </span>
-                </span>
-                <span>
-                  pdf status:{' '}
-                  <span className="font-mono">
-                    {publicUrlQuery.isLoading || paidBlobQuery.isLoading
-                      ? 'loading'
-                      : publicUrlQuery.error || paidBlobQuery.error
-                        ? 'error'
-                        : publicObjectUrl || blobUrl
-                          ? 'ok'
-                          : 'idle'}
-                  </span>
-                </span>
-              </>
-            )}
-            {isVideo && (
-              <>
-                <span>
-                  mux signed:{' '}
-                  <span className="font-mono">{String(Boolean(resource.muxPlaybackSigned))}</span>
-                </span>
-                <span>
-                  mux token:{' '}
-                  <span className="font-mono">
-                    {muxTokenQuery.isLoading ? 'loading' : muxTokenQuery.error ? 'error' : videoReadySigned ? 'ok' : 'n/a'}
-                  </span>
-                </span>
-              </>
-            )}
-            {backendDownloadUrl && isPdf && (
-              <a className="underline" href={backendDownloadUrl} target="_blank" rel="noreferrer">
-                Open backend download directly
-              </a>
-            )}
-          </div>
-        </div>
       </div>
     </main>
   );
