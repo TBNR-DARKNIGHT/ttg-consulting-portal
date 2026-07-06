@@ -19,7 +19,9 @@ export function useResources() {
       // browser's HTTP cache to return the pre-edit catalog after a refetch.
       return apiFetch<Resource[]>('/resources', getToken, { cache: 'no-store' });
     },
-    refetchOnMount: 'always',
+    // Admin mutations explicitly invalidate this query. Keeping normal dashboard
+    // mounts warm avoids downloading the same catalog again on every navigation.
+    staleTime: 5 * 60 * 1000,
   });
 
   return { resources, isLoading, error };

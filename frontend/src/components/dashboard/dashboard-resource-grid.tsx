@@ -1,6 +1,14 @@
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { FileUp, ImageOff, LockKeyhole, Pencil, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePortalAuth } from '@/auth/auth-context';
@@ -42,6 +50,32 @@ function resourceTypeLabel(type: ResourceType) {
   return type === 'pdf' ? 'PDF' : titleCase(type);
 }
 
+function useNearViewport<T extends HTMLElement>(): [RefObject<T | null>, boolean] {
+  const ref = useRef<T>(null);
+  const [isNearViewport, setIsNearViewport] = useState(
+    () => typeof IntersectionObserver === 'undefined',
+  );
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || isNearViewport || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsNearViewport(true);
+        observer.disconnect();
+      },
+      // Begin fetching shortly before a card scrolls into view.
+      { rootMargin: '400px 0px' },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [isNearViewport]);
+
+  return [ref, isNearViewport];
+}
+
 function AdaptiveResourceTitle({ children }: { children: ReactNode }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -80,11 +114,12 @@ function ResourceVideoThumbnail({
 }) {
   const { getToken } = usePortalAuth();
   const [imageFailed, setImageFailed] = useState(false);
+  const [thumbnailRef, isNearViewport] = useNearViewport<HTMLDivElement>();
   const signed = Boolean(resource.muxPlaybackId && resource.muxPlaybackSigned);
   const tokenQuery = useQuery({
     queryKey: ['mux-thumbnail-token', resource.id],
     queryFn: () => getMuxThumbnailToken(resource.id, getToken),
-    enabled: signed && !locked && !resource.thumbnailUrl,
+    enabled: isNearViewport && signed && !locked && !resource.thumbnailUrl,
     staleTime: 50 * 60 * 1000,
   });
 
@@ -98,7 +133,7 @@ function ResourceVideoThumbnail({
   const loading = signed && !locked && tokenQuery.isLoading;
 
   return (
-    <div className="group relative aspect-video overflow-hidden bg-muted">
+    <div ref={thumbnailRef} className="group relative aspect-video overflow-hidden bg-muted">
       {thumbnailUrl && !imageFailed ? (
         <>
           <img
@@ -133,6 +168,7 @@ function ResourceVideoThumbnail({
 function ResourcePdfThumbnail({ resource, locked }: { resource: Resource; locked: boolean }) {
   const { getToken } = usePortalAuth();
   const [imageFailed, setImageFailed] = useState(false);
+  const [thumbnailRef, isNearViewport] = useNearViewport<HTMLDivElement>();
   const publicThumbnailUrl =
     resource.access !== 'paid' && resource.bucket && resource.filePath
       ? publicBucketStorageUrl(
@@ -143,14 +179,14 @@ function ResourcePdfThumbnail({ resource, locked }: { resource: Resource; locked
   const thumbnailQuery = useQuery({
     queryKey: ['pdf-thumbnail-url', resource.id],
     queryFn: () => getPdfThumbnailUrl(resource.id, getToken),
-    enabled: !locked && !resource.thumbnailUrl && !publicThumbnailUrl,
-    staleTime: 10 * 60 * 1000,
+    enabled: isNearViewport && !locked && !resource.thumbnailUrl && !publicThumbnailUrl,
+    staleTime: 14 * 60 * 1000,
   });
   const thumbnailUrl =
     resource.thumbnailUrl ?? (publicThumbnailUrl || thumbnailQuery.data?.url);
 
   return (
-    <div className="group relative aspect-video overflow-hidden bg-muted">
+    <div ref={thumbnailRef} className="group relative aspect-video overflow-hidden bg-muted">
       {thumbnailUrl && !imageFailed ? (
         <img
           src={thumbnailUrl}
