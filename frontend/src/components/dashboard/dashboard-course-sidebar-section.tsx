@@ -7,7 +7,6 @@ import {
   COURSE_2_MODULES,
   type CourseId,
 } from '@/lib/courses';
-import { TTA_SHOP_URL } from '@/lib/tta-shop';
 import { cn } from '@/lib/utils';
 
 export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () => void }) {
@@ -114,13 +113,13 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                 />
               </button>
               {locked ? (
-                <a
-                  href={TTA_SHOP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to="/dashboard/course/$courseId"
+                  params={{ courseId: course.id }}
+                  search={{}}
                   onClick={onNavigate}
                   className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-2 pr-2 text-left transition-colors"
-                  aria-label={`Purchase access to ${course.title}`}
+                  aria-label={`View purchase options for ${course.title}`}
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block whitespace-normal break-words text-sm font-medium leading-snug text-foreground">
@@ -134,7 +133,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                     className="size-3.5 shrink-0 text-muted-foreground"
                     aria-hidden
                   />
-                </a>
+                </Link>
               ) : (
                 <Link
                   to="/dashboard/course/$courseId"
