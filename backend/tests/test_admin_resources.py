@@ -164,7 +164,9 @@ async def test_admin_can_update_resource_metadata(
         "title": "Updated Guide",
         "topic": "Interview Preparation",
         "description": "Updated description.",
+        "actor_user_id": captured["actor_user_id"],
     }
+    assert isinstance(captured["actor_user_id"], UUID)
 
 
 @pytest.mark.asyncio
@@ -197,7 +199,11 @@ async def test_admin_can_replace_pdf_without_metadata(
         return "course-1/pdf/guide.pdf", "https://storage.example/signed"
 
     monkeypatch.setattr(admin, "begin_pdf_replacement", fake_begin)
-    monkeypatch.setattr(admin, "complete_pdf_replacement", completed.append)
+    def fake_complete(resource_id: str, **kwargs: object) -> None:
+        completed.append(resource_id)
+        assert isinstance(kwargs["actor_user_id"], UUID)
+
+    monkeypatch.setattr(admin, "complete_pdf_replacement", fake_complete)
     app.dependency_overrides[require_admin] = _admin_user
     try:
         prepare_response = await client.post(

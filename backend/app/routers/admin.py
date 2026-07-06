@@ -285,7 +285,7 @@ async def get_resource_upload_options(
 async def update_resource(
     resource_id: str,
     body: ResourceMetadataUpdateIn,
-    _user: ClerkUser = Depends(require_admin),
+    user: ClerkUser = Depends(require_admin),
 ) -> ApiResponse[None]:
     try:
         update_resource_metadata(
@@ -293,6 +293,7 @@ async def update_resource(
             title=body.title,
             topic=body.topic,
             description=body.description,
+            actor_user_id=_user_id(user),
         )
         return ApiResponse(data=None)
     except ResourceUploadError as exc:
@@ -352,10 +353,10 @@ async def create_document_replacement(
 )
 async def finalize_document_replacement(
     resource_id: str,
-    _user: ClerkUser = Depends(require_admin),
+    user: ClerkUser = Depends(require_admin),
 ) -> ApiResponse[None]:
     try:
-        complete_pdf_replacement(resource_id)
+        complete_pdf_replacement(resource_id, actor_user_id=_user_id(user))
         return ApiResponse(data=None)
     except ResourceUploadError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

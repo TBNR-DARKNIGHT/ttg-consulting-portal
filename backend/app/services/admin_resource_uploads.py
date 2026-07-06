@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -155,12 +156,17 @@ def list_upload_options() -> tuple[
 
 
 def update_resource_metadata(
-    resource_id: str, *, title: str, topic: str, description: str
+    resource_id: str,
+    *,
+    title: str,
+    topic: str,
+    description: str,
+    actor_user_id: UUID,
 ) -> None:
     client = get_client()
     existing = (
         client.table("resources")
-        .select("title,type,mux_asset_id")
+        .select("title,topic,description,type,mux_asset_id")
         .eq("id", resource_id)
         .execute()
     )
@@ -189,6 +195,26 @@ def update_resource_metadata(
     )
     if not result.data:
         raise ResourceUploadError("Resource not found")
+    client.table("admin_audit_log").insert(
+        {
+            "actor_user_id": str(actor_user_id),
+            "action": "resource.details_updated",
+            "target_type": "resource",
+            "target_id": resource_id,
+            "details": {
+                "before": {
+                    "title": str(row.get("title") or ""),
+                    "topic": str(row.get("topic") or ""),
+                    "description": str(row.get("description") or ""),
+                },
+                "after": {
+                    "title": title.strip(),
+                    "topic": topic.strip(),
+                    "description": description.strip(),
+                },
+            },
+        }
+    ).execute()
 
 
 def delete_resource(resource_id: str) -> None:
@@ -361,7 +387,7 @@ def begin_pdf_replacement(
     return file_path, str(signed["signed_url"])
 
 
-def complete_pdf_replacement(resource_id: str) -> None:
+def complete_pdf_replacement(resource_id: str, *, actor_user_id: UUID) -> None:
     client = get_client()
     result = (
         client.table("resources")
@@ -387,6 +413,28 @@ def complete_pdf_replacement(resource_id: str) -> None:
         file=_generate_pdf_thumbnail(content),
         file_options={"content-type": "image/jpeg", "upsert": "true"},
     )
+    replaced_at = datetime.now(timezone.utc).isoformat()
+    updated = (
+        client.table("resources")
+        .update({"created_at": replaced_at})
+        .eq("id", resource_id)
+        .execute()
+    )
+    if not updated.data:
+        raise ResourceUploadError("Resource not found")
+    client.table("admin_audit_log").insert(
+        {
+            "actor_user_id": str(actor_user_id),
+            "action": "resource.document_replaced",
+            "target_type": "resource",
+            "target_id": resource_id,
+            "details": {
+                "bucket": bucket,
+                "file_path": file_path,
+                "created_at": replaced_at,
+            },
+        }
+    ).execute()
 
 
 def begin_video_upload(metadata: ResourceUploadMetadata) -> tuple[UUID, str, str]:
