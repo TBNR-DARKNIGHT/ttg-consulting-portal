@@ -495,6 +495,8 @@ export function DashboardResourceGrid({
             {locked ? (
               <a
                 href={TTA_SHOP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 aria-label={`Purchase access to ${resource.title}`}
               >
@@ -519,6 +521,8 @@ export function DashboardResourceGrid({
                   <AdaptiveResourceTitle>
                     <a
                       href={TTA_SHOP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="line-clamp-2 rounded-sm [overflow-wrap:anywhere] hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       aria-label={`Purchase access to ${resource.title}`}
                     >

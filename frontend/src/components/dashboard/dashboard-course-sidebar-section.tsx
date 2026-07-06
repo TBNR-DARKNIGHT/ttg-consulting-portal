@@ -116,6 +116,8 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
               {locked ? (
                 <a
                   href={TTA_SHOP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={onNavigate}
                   className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-2 pr-2 text-left transition-colors"
                   aria-label={`Purchase access to ${course.title}`}

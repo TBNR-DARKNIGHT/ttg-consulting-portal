@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { MessageSquareText } from 'lucide-react';
+import { TTA_WEBSITE_URL } from '@/lib/tta-shop';
 
 const TTA_CONTACT_URL = 'https://thinkteachacademy.com/contact-us/';
 
@@ -43,5 +44,5 @@ export function PortalBeginTodaySection() {
 }
 
 export function PortalTtaMembersSection() {
-  return <section className="bg-[#e8e8fa] text-center"><div className="mx-auto max-w-[720px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">For Think Teach Academy Families</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Already a TTA family?<br /><em className="font-normal text-brand-indigo">Your access is waiting.</em></h2><p className="mt-3 leading-[1.7] text-brand-dark/70">Contact our client services team to claim your complimentary access to the premium course.</p><a href={TTA_CONTACT_URL} target="_blank" rel="noopener noreferrer" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Contact Client Services</a></div></section>;
+  return <section className="bg-[#e8e8fa] text-center"><div className="mx-auto max-w-[720px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">For Think Teach Academy Families</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">Already a TTA family?<br /><em className="font-normal text-brand-indigo">Your access is waiting.</em></h2><p className="mt-3 leading-[1.7] text-brand-dark/70">Contact our client services team to claim your complimentary access to the premium course.</p><a href={TTA_CONTACT_URL} target="_blank" rel="noopener noreferrer" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Contact Client Services</a><a href={TTA_WEBSITE_URL} target="_blank" rel="noopener noreferrer" className="mt-4 block text-[13px] font-semibold text-brand-dark/60 transition-colors hover:text-brand-indigo">Visit Think Teach Academy →</a></div></section>;
 }

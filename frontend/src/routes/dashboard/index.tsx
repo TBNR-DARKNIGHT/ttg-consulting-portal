@@ -88,7 +88,7 @@ function DashboardHomePage() {
               ) : (
                 <div className="mt-6">
                   <Button asChild className="w-fit">
-                    <a href={TTA_SHOP_URL}>
+                    <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
                       Get Full Course Access
                       <ArrowRight aria-hidden />
                     </a>

@@ -19,7 +19,9 @@ export function LockedCourseAccess({ title = 'Unlock Course 2' }: { title?: stri
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild size="sm">
-              <a href={TTA_SHOP_URL}>Purchase Access</a>
+              <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
+                Purchase Access
+              </a>
             </Button>
             <Button asChild size="sm" variant="outline">
               <Link to="/dashboard/settings" hash="course-access">

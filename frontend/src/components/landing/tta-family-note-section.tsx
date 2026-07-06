@@ -1,3 +1,5 @@
+import { TTA_WEBSITE_URL } from '@/lib/tta-shop';
+
 const TTA_CLIENT_SERVICES_WA = 'https://wa.me/6597692396';
 
 export function TtaFamilyNoteSection() {
@@ -24,6 +26,14 @@ export function TtaFamilyNoteSection() {
           className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           Contact Client Services
+        </a>
+        <a
+          href={TTA_WEBSITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 block text-[13px] font-semibold text-brand-dark/60 transition-colors hover:text-brand-indigo"
+        >
+          Visit Think Teach Academy →
         </a>
       </div>
     </section>

@@ -88,6 +88,8 @@ export function DashboardProgressOverview() {
           ) : (
             <a
               href={TTA_SHOP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`Purchase access to ${course.title}`}
             >
