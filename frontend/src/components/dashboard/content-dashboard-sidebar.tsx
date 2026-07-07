@@ -1,6 +1,6 @@
 import { UserButton } from '@clerk/react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ChevronRight,
   KeyRound,
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const [adminCheckEnabled, setAdminCheckEnabled] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const selectedSettingsTool = useRouterState({
     select: (state) => {
@@ -25,7 +26,12 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
       return tool === 'access-codes' || tool === 'upload-resources' ? tool : undefined;
     },
   });
-  const currentUser = useCurrentUser();
+  const currentUser = useCurrentUser({ enabled: adminCheckEnabled });
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setAdminCheckEnabled(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const dashboardActive = pathname === '/dashboard' || pathname === '/dashboard/';
   const settingsActive =
