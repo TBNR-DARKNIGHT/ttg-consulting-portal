@@ -12,6 +12,10 @@ export function hasApiBaseUrl(): boolean {
   return Boolean(API_BASE?.trim());
 }
 
+export function getApiUrl(path: string): string {
+  return buildApiUrl(path);
+}
+
 export async function apiFetchPublic<T>(
   path: string,
   options: RequestInit = {},

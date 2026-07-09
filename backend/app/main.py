@@ -13,6 +13,7 @@ from app.config import settings
 from app.middleware.logging import LoggingMiddleware, configure_logging
 from app.routers import (
     admin,
+    analytics,
     dev_authz,
     dev_storage,
     entitlements,
@@ -92,6 +93,7 @@ app.add_middleware(LoggingMiddleware)
 
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
 app.include_router(entitlements.router, prefix="/api/v1", tags=["entitlements"])
 app.include_router(integrations.router, prefix="/api/v1", tags=["integrations"])
 app.include_router(webhooks.router, prefix="/api/v1", tags=["webhooks"])

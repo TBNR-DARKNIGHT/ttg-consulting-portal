@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router';
+import { ActivityTracker } from '@/components/analytics/activity-tracker';
 import { Toaster } from '@/components/ui/sonner';
 
 export const Route = createRootRoute({
@@ -22,6 +23,7 @@ function RootLayout() {
 
   return (
     <>
+      <ActivityTracker />
       <Outlet />
       <Toaster
         position="bottom-right"
