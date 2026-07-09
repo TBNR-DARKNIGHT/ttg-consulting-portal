@@ -19,6 +19,7 @@ AnalyticsEventType = Literal[
 class AnalyticsEventIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    event_id: UUID = Field(alias="eventId")
     event_type: AnalyticsEventType = Field(alias="eventType")
     session_id: UUID = Field(alias="sessionId")
     anonymous_id: UUID = Field(alias="anonymousId")

@@ -37,6 +37,7 @@ async def test_capture_events_stores_authenticated_user_context() -> None:
     user_id = uuid4()
     session_id = uuid4()
     anonymous_id = uuid4()
+    event_id = uuid4()
     client = FakeAnalyticsClient()
 
     accepted = await capture_events(
@@ -44,6 +45,7 @@ async def test_capture_events_stores_authenticated_user_context() -> None:
             AnalyticsEventIn.model_validate(
                 {
                     "eventType": "resource_view",
+                    "eventId": str(event_id),
                     "sessionId": str(session_id),
                     "anonymousId": str(anonymous_id),
                     "pagePath": "/dashboard/resources/aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
@@ -59,6 +61,7 @@ async def test_capture_events_stores_authenticated_user_context() -> None:
 
     assert accepted == 1
     assert client.query.rows is not None
+    assert client.query.rows[0]["event_id"] == str(event_id)
     assert client.query.rows[0]["user_id"] == str(user_id)
     assert client.query.rows[0]["clerk_user_id"] == "user_clerk"
     assert client.query.rows[0]["resource_id"] == "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
@@ -85,6 +88,7 @@ async def test_analytics_endpoint_accepts_anonymous_events(
             "events": [
                 {
                     "eventType": "page_view",
+                    "eventId": str(uuid4()),
                     "sessionId": str(uuid4()),
                     "anonymousId": str(uuid4()),
                     "pagePath": "/",
@@ -102,6 +106,7 @@ async def test_analytics_endpoint_accepts_anonymous_events(
 async def test_analytics_endpoint_limits_batch_size(client) -> None:
     event = {
         "eventType": "click",
+        "eventId": str(uuid4()),
         "sessionId": str(uuid4()),
         "anonymousId": str(uuid4()),
         "pagePath": "/",

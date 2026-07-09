@@ -41,6 +41,7 @@ def _event_row(
     user_agent: str | None,
 ) -> dict[str, object]:
     row = {
+        "event_id": str(event.event_id),
         "event_type": event.event_type,
         "session_id": str(event.session_id),
         "anonymous_id": str(event.anonymous_id),

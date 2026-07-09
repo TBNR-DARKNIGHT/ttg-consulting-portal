@@ -80,6 +80,7 @@ export function ActivityTracker() {
       void captureAnalyticsEvents(
         [baseAnalyticsEvent(eventType, { durationMs: sessionDuration() })],
         getTokenRef.current,
+        { preferBeacon: eventType === 'session_end' },
       );
     };
 

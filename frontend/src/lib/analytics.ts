@@ -9,6 +9,7 @@ export type AnalyticsEventType =
   | 'resource_view';
 
 export interface AnalyticsEvent {
+  eventId: string;
   eventType: AnalyticsEventType;
   sessionId: string;
   anonymousId: string;
@@ -25,7 +26,10 @@ const anonymousIdKey = 'bg_analytics_anonymous_id';
 const sessionIdKey = 'bg_analytics_session_id';
 const sessionStartKey = 'bg_analytics_session_started_at';
 const sessionStartedKey = 'bg_analytics_session_start_sent';
+const pendingEventsKey = 'bg_analytics_pending_events';
+const maxPendingEvents = 100;
 const memoryStorage = new Map<string, string>();
+let flushInProgress = false;
 
 function createId(): string {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -102,23 +106,93 @@ export function extractResourceId(pathname: string): string | undefined {
 export async function captureAnalyticsEvents(
   events: AnalyticsEvent[],
   getToken: () => Promise<string | null>,
+  options: { preferBeacon?: boolean } = {},
 ): Promise<void> {
   if (!hasApiBaseUrl() || events.length === 0) return;
 
+  queueAnalyticsEvents(events);
+  await flushAnalyticsEvents(getToken, options);
+}
+
+function readPendingEvents(): AnalyticsEvent[] {
+  const raw = readStorage(window.localStorage, pendingEventsKey);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? (parsed as AnalyticsEvent[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePendingEvents(events: AnalyticsEvent[]): void {
+  writeStorage(
+    window.localStorage,
+    pendingEventsKey,
+    JSON.stringify(events.slice(-maxPendingEvents)),
+  );
+}
+
+function queueAnalyticsEvents(events: AnalyticsEvent[]): void {
+  const pending = readPendingEvents();
+  const byId = new Map(pending.map((event) => [event.eventId, event]));
+  for (const event of events) {
+    byId.set(event.eventId, event);
+  }
+  writePendingEvents([...byId.values()]);
+}
+
+async function flushAnalyticsEvents(
+  getToken: () => Promise<string | null>,
+  options: { preferBeacon?: boolean },
+): Promise<void> {
+  if (flushInProgress) return;
+  const pending = readPendingEvents();
+  if (pending.length === 0) return;
+
+  const batch = pending.slice(0, 25);
+  const body = JSON.stringify({ events: batch });
+  if (options.preferBeacon && navigator.sendBeacon) {
+    const queued = navigator.sendBeacon(
+      getApiUrl('/analytics/events'),
+      new Blob([body], { type: 'application/json' }),
+    );
+    if (queued) {
+      removePendingEvents(batch);
+      return;
+    }
+  }
+
+  flushInProgress = true;
+  let sentSuccessfully = false;
   try {
     const token = await getToken();
-    await fetch(getApiUrl('/analytics/events'), {
+    const response = await fetch(getApiUrl('/analytics/events'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ events }),
+      body,
       keepalive: true,
     });
+    if (response.ok) {
+      removePendingEvents(batch);
+      sentSuccessfully = true;
+    }
   } catch {
     // Analytics must never interrupt the user experience.
+  } finally {
+    flushInProgress = false;
+    if (sentSuccessfully && readPendingEvents().length > 0) {
+      void flushAnalyticsEvents(getToken, {});
+    }
   }
+}
+
+function removePendingEvents(sent: AnalyticsEvent[]): void {
+  const sentIds = new Set(sent.map((event) => event.eventId));
+  writePendingEvents(readPendingEvents().filter((event) => !sentIds.has(event.eventId)));
 }
 
 export function baseAnalyticsEvent(
@@ -127,6 +201,7 @@ export function baseAnalyticsEvent(
 ): AnalyticsEvent {
   const resourceId = extractResourceId(window.location.pathname);
   return {
+    eventId: createId(),
     eventType,
     sessionId: getSessionId(),
     anonymousId: getAnonymousId(),
