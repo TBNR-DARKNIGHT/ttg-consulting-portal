@@ -9,14 +9,17 @@ import { useEntitlements, useRedeemAccessCode } from '@/hooks/use-entitlements';
 import { TTA_SHOP_URL } from '@/lib/tta-shop';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { AdminHomePage } from '@/components/admin/access-code-administration';
+import { AdminAnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { AdminResourcesPage } from '@/components/admin/resource-uploader';
 
 export const Route = createFileRoute('/dashboard/settings')({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { tool?: 'access-codes' | 'upload-resources' } => {
+  ): { tool?: 'access-codes' | 'upload-resources' | 'analytics' } => {
     const tool = search.tool;
-    return tool === 'access-codes' || tool === 'upload-resources' ? { tool } : {};
+    return tool === 'access-codes' || tool === 'upload-resources' || tool === 'analytics'
+      ? { tool }
+      : {};
   },
   component: DashboardSettingsPage,
 });
@@ -31,6 +34,7 @@ function DashboardSettingsPage() {
   const isAdmin = currentUser.data?.role === 'ADMIN';
 
   if (isAdmin && tool === 'access-codes') return <AdminHomePage />;
+  if (isAdmin && tool === 'analytics') return <AdminAnalyticsDashboard />;
   if (isAdmin && tool === 'upload-resources') return <AdminResourcesPage />;
 
   const submitCode = (event: FormEvent<HTMLFormElement>) => {

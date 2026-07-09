@@ -217,6 +217,88 @@ export interface TtaCodeBatch {
   sheetTab: string;
 }
 
+export interface AdminAnalyticsKpi {
+  label: string;
+  value: string;
+  detail: string | null;
+  tone: string;
+}
+
+export interface AdminAnalyticsTrendPoint {
+  date: string;
+  activeUsers: number;
+  sessions: number;
+  pageViews: number;
+  resourceViews: number;
+  clicks: number;
+}
+
+export interface AdminAnalyticsResourceMetric {
+  resourceId: string | null;
+  title: string;
+  courseId: string | null;
+  type: string | null;
+  views: number;
+  uniqueUsers: number;
+  viewsPerUser: number;
+}
+
+export interface AdminAnalyticsUserMetric {
+  userId: string;
+  label: string;
+  email: string | null;
+  sessions: number;
+  events: number;
+  resourceViews: number;
+  clicks: number;
+  avgSessionTimeMs: number;
+  lastSeenAt: string | null;
+  paidCourses: string[];
+}
+
+export interface AdminAnalyticsPageMetric {
+  path: string;
+  views: number;
+  uniqueUsers: number;
+}
+
+export interface AdminAnalyticsClickMetric {
+  label: string;
+  clicks: number;
+  path: string | null;
+}
+
+export interface AdminAnalyticsReferrerMetric {
+  source: string;
+  visits: number;
+}
+
+export interface AdminAnalyticsEventMetric {
+  eventType: string;
+  occurredAt: string;
+  userLabel: string;
+  pagePath: string;
+  resourceTitle: string | null;
+}
+
+export interface AdminAnalyticsSummary {
+  rangeDays: number;
+  generatedAt: string;
+  eventCount: number;
+  userCount: number;
+  paidUserCount: number;
+  activeUserCount: number;
+  kpis: AdminAnalyticsKpi[];
+  trend: AdminAnalyticsTrendPoint[];
+  topResources: AdminAnalyticsResourceMetric[];
+  topUsers: AdminAnalyticsUserMetric[];
+  lowEngagementUsers: AdminAnalyticsUserMetric[];
+  topPages: AdminAnalyticsPageMetric[];
+  topClicks: AdminAnalyticsClickMetric[];
+  topReferrers: AdminAnalyticsReferrerMetric[];
+  recentEvents: AdminAnalyticsEventMetric[];
+}
+
 export function getCurrentUser(
   getToken: () => Promise<string | null>,
 ): Promise<CurrentUserResponse> {
@@ -227,6 +309,16 @@ export function getAdminAccessCodes(
   getToken: () => Promise<string | null>,
 ): Promise<AdminAccessCode[]> {
   return apiFetch<AdminAccessCode[]>("/admin/access-codes", getToken);
+}
+
+export function getAdminAnalytics(
+  rangeDays: number,
+  getToken: () => Promise<string | null>,
+): Promise<AdminAnalyticsSummary> {
+  return apiFetch<AdminAnalyticsSummary>(
+    `/admin/analytics?range_days=${encodeURIComponent(String(rangeDays))}`,
+    getToken,
+  );
 }
 
 export function createAdminAccessCode(

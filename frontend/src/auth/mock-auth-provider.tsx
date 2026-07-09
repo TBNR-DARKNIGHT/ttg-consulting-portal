@@ -2,11 +2,25 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { PortalAuthContext } from './auth-context';
 import type { PortalAuthContextValue, PortalTier, PortalUser } from './types';
 
-const MOCK_USER: PortalUser = {
-  id: 'user-mock-demo',
-  email: 'parent@example.com',
-  firstName: 'Demo',
-  lastName: 'Parent',
+const MOCK_USERS: Record<PortalTier, PortalUser> = {
+  free: {
+    id: 'user-mock-free',
+    email: 'free.parent@example.com',
+    firstName: 'Free',
+    lastName: 'Parent',
+  },
+  paid: {
+    id: 'user-mock-paid',
+    email: 'paid.parent@example.com',
+    firstName: 'Paid',
+    lastName: 'Parent',
+  },
+  admin: {
+    id: 'user-mock-admin',
+    email: 'admin@example.com',
+    firstName: 'Demo',
+    lastName: 'Admin',
+  },
 };
 
 export function MockAuthProvider({ children }: { children: ReactNode }) {
@@ -28,9 +42,9 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isLoaded: true,
       isSignedIn,
-      user: isSignedIn ? MOCK_USER : null,
+      user: isSignedIn ? MOCK_USERS[tier] : null,
       tier: isSignedIn ? tier : 'free',
-      getToken: async () => (isSignedIn && tier === 'paid' ? devBearerToken : null),
+      getToken: async () => (isSignedIn && tier !== 'free' ? devBearerToken : null),
       signIn,
       signOut,
     }),

@@ -3,6 +3,8 @@ import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-ro
 import { useEffect } from 'react';
 import { usePortalAuth } from '@/auth/auth-context';
 import { getAuthMode, usesDemoAuthProvider } from '@/auth/env';
+import { BarChart3, BookOpen, Crown } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -42,50 +44,69 @@ function MockLoginView({ mode }: { mode: 'mock' | 'public' }) {
         </Link>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-20">
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-5xl">
           <div className="mb-8 text-center">
             <p className="text-xs uppercase tracking-[0.2em] font-medium text-brand-indigo mb-3">{badge}</p>
             <h1 className="font-serif text-2xl font-bold text-brand-dark mb-2">Sign In</h1>
             <p className="text-sm text-brand-dark/70">{blurb}</p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="rounded-2xl border border-brand-grey bg-white/80 p-8 shadow-sm">
-              <h2 className="font-serif text-xl font-bold text-brand-dark mb-2">Course 1 (Free)</h2>
-              <p className="text-sm text-brand-dark/70 mb-6">
-                Free resources for signed-in users. PDFs live under{' '}
-                <span className="font-mono">course-1/pdf/</span> in the{' '}
-                <span className="font-mono">resources-public</span> bucket.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11"
-                onClick={() => void signIn('free')}
-              >
-                Continue (Free)
-              </Button>
-            </Card>
-
-            <Card className="rounded-2xl border border-brand-grey bg-white/80 p-8 shadow-sm">
-              <h2 className="font-serif text-xl font-bold text-brand-dark mb-2">Course 2 (Paid)</h2>
-              <p className="text-sm text-brand-dark/70 mb-6">
-                Premium resources. PDFs live under{' '}
-                <span className="font-mono">course-2/pdf/</span> in the{' '}
-                <span className="font-mono">resources-paid</span> bucket.
-              </p>
-              <Button
-                type="button"
-                className="w-full h-11"
-                onClick={() => void signIn('paid')}
-              >
-                Continue (Paid)
-              </Button>
-            </Card>
+          <div className="grid gap-4 md:grid-cols-3">
+            <DemoPersonaCard
+              icon={BookOpen}
+              title="Free User"
+              description="Preview the default parent experience with Course 1 resources only."
+              buttonLabel="Continue as Free"
+              variant="outline"
+              onSelect={() => void signIn('free')}
+            />
+            <DemoPersonaCard
+              icon={Crown}
+              title="Paid User"
+              description="Preview a parent account with Course 1 and Course 2 unlocked."
+              buttonLabel="Continue as Paid"
+              onSelect={() => void signIn('paid')}
+            />
+            <DemoPersonaCard
+              icon={BarChart3}
+              title="Admin User"
+              description="Preview admin tools, access-code management, uploads, and analytics."
+              buttonLabel="Continue as Admin"
+              onSelect={() => void signIn('admin')}
+            />
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function DemoPersonaCard({
+  icon: Icon,
+  title,
+  description,
+  buttonLabel,
+  variant = 'default',
+  onSelect,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  variant?: 'default' | 'outline';
+  onSelect: () => void;
+}) {
+  return (
+    <Card className="rounded-2xl border border-brand-grey bg-white/80 p-6 shadow-sm">
+      <div className="mb-4 grid size-10 place-items-center rounded-full bg-brand-indigo/10 text-brand-indigo">
+        <Icon className="size-5" aria-hidden />
+      </div>
+      <h2 className="font-serif text-xl font-bold text-brand-dark mb-2">{title}</h2>
+      <p className="text-sm text-brand-dark/70 mb-6">{description}</p>
+      <Button type="button" variant={variant} className="h-11 w-full" onClick={onSelect}>
+        {buttonLabel}
+      </Button>
+    </Card>
   );
 }
 

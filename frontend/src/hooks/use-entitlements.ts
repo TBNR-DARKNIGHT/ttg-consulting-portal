@@ -17,7 +17,7 @@ export function useEntitlements() {
     enabled: isSignedIn,
     queryFn: async () => {
       if (demo) {
-        return { courses: tier === 'paid' ? PAID_COURSES : FREE_COURSES };
+        return { courses: tier === 'paid' || tier === 'admin' ? PAID_COURSES : FREE_COURSES };
       }
       return getEntitlements(getToken);
     },

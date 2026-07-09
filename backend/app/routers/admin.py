@@ -21,13 +21,14 @@ from app.models.admin import (
     DeleteRevokedAccessCodesOut,
     DocumentUploadTargetOut,
     IssuedAccessCodeOut,
-    ResetTtaOrderNumberingOut,
     ReplaceDocumentUploadIn,
+    ResetTtaOrderNumberingOut,
     ResourceMetadataUpdateIn,
     ResourceUploadOptionsOut,
     ResourceUploadOut,
     TtaCodeBatchOut,
 )
+from app.models.analytics import AnalyticsSummaryOut
 from app.models.schemas import ApiResponse, ClerkUser
 from app.services.admin_access_codes import (
     ActiveTtaCodesExistError,
@@ -43,13 +44,14 @@ from app.services.admin_access_codes import (
     revoke_access_code,
     revoke_all_active_access_codes,
 )
+from app.services.admin_analytics import AdminAnalyticsError, get_admin_analytics_summary
 from app.services.admin_resource_uploads import (
     ResourceUploadError,
-    begin_pdf_upload,
     begin_pdf_replacement,
+    begin_pdf_upload,
     begin_video_upload,
-    complete_pdf_upload,
     complete_pdf_replacement,
+    complete_pdf_upload,
     complete_video_upload,
     delete_resource,
     ingest_link,
@@ -80,6 +82,20 @@ async def get_me(user: ClerkUser = Depends(get_current_user)) -> ApiResponse[Cur
             role=user.role.value,
         )
     )
+
+
+@router.get(
+    "/admin/analytics",
+    response_model=ApiResponse[AnalyticsSummaryOut],
+    dependencies=[Depends(require_admin)],
+)
+async def get_admin_analytics(range_days: int = 30) -> ApiResponse[AnalyticsSummaryOut]:
+    try:
+        return ApiResponse(
+            data=await get_admin_analytics_summary(range_days=range_days)
+        )
+    except AdminAnalyticsError as exc:
+        raise HTTPException(status_code=503, detail="Analytics unavailable") from exc
 
 
 @router.get(

@@ -5,7 +5,7 @@ export interface PortalUser {
   lastName: string | null;
 }
 
-export type PortalTier = 'free' | 'paid';
+export type PortalTier = 'free' | 'paid' | 'admin';
 
 export interface PortalAuthContextValue {
   isLoaded: boolean;

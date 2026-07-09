@@ -3,6 +3,7 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import {
   ChevronRight,
+  BarChart3,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -23,7 +24,9 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
   const selectedSettingsTool = useRouterState({
     select: (state) => {
       const tool = state.location.search.tool;
-      return tool === 'access-codes' || tool === 'upload-resources' ? tool : undefined;
+      return tool === 'access-codes' || tool === 'upload-resources' || tool === 'analytics'
+        ? tool
+        : undefined;
     },
   });
   const currentUser = useCurrentUser({ enabled: adminCheckEnabled });
@@ -117,6 +120,20 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
               >
                 <Settings className="size-3.5 shrink-0 opacity-80" aria-hidden />
                 General
+              </Link>
+              <Link
+                to="/dashboard/settings"
+                search={{ tool: 'analytics' }}
+                onClick={onNavigate}
+                className={cn(
+                  'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+                  selectedSettingsTool === 'analytics'
+                    ? 'bg-brand-indigo/10 font-medium text-brand-indigo'
+                    : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground',
+                )}
+              >
+                <BarChart3 className="size-3.5 shrink-0 opacity-80" aria-hidden />
+                Analytics
               </Link>
               <Link
                 to="/dashboard/settings"

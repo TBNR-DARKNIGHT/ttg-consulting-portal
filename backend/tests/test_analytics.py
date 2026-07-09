@@ -8,6 +8,7 @@ import pytest
 from app.models.analytics import AnalyticsEventIn
 from app.models.schemas import ClerkUser
 from app.routers import analytics as analytics_router
+from app.services.admin_analytics import get_admin_analytics_summary
 from app.services.analytics import capture_events
 
 
@@ -30,6 +31,103 @@ class FakeAnalyticsClient:
     def table(self, name: str) -> FakeAnalyticsInsert:
         assert name == "analytics_events"
         return self.query
+
+
+class FakeSelectQuery:
+    def __init__(self, rows: list[dict[str, object]]) -> None:
+        self.rows = rows
+
+    def select(self, _columns: str) -> "FakeSelectQuery":
+        return self
+
+    def gte(self, _field: str, _value: object) -> "FakeSelectQuery":
+        return self
+
+    def order(self, _field: str, desc: bool = False) -> "FakeSelectQuery":
+        return self
+
+    def limit(self, _limit: int) -> "FakeSelectQuery":
+        return self
+
+    def execute(self):
+        return SimpleNamespace(data=self.rows)
+
+
+class FakeAdminAnalyticsClient:
+    def __init__(self) -> None:
+        self.rows = {
+            "analytics_events": [
+                {
+                    "event_id": str(uuid4()),
+                    "event_type": "session_start",
+                    "session_id": "11111111-1111-4111-8111-111111111111",
+                    "anonymous_id": str(uuid4()),
+                    "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                    "occurred_at": "2026-07-09T00:00:00+00:00",
+                    "page_path": "/dashboard",
+                },
+                {
+                    "event_id": str(uuid4()),
+                    "event_type": "resource_view",
+                    "session_id": "11111111-1111-4111-8111-111111111111",
+                    "anonymous_id": str(uuid4()),
+                    "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                    "occurred_at": "2026-07-09T00:01:00+00:00",
+                    "page_path": "/dashboard/resources/bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+                    "resource_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+                },
+                {
+                    "event_id": str(uuid4()),
+                    "event_type": "session_end",
+                    "session_id": "11111111-1111-4111-8111-111111111111",
+                    "anonymous_id": str(uuid4()),
+                    "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                    "occurred_at": "2026-07-09T00:12:00+00:00",
+                    "page_path": "/dashboard",
+                    "duration_ms": 720000,
+                },
+            ],
+            "users": [
+                {
+                    "id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                    "clerk_user_id": "user_paid",
+                    "email": "paid@example.com",
+                    "first_name": "Paid",
+                    "last_name": "Parent",
+                    "role": "CLIENT",
+                    "status": "ACTIVE",
+                },
+                {
+                    "id": "cccccccc-cccc-4ccc-cccc-cccccccccccc",
+                    "clerk_user_id": "user_inactive",
+                    "email": "inactive@example.com",
+                    "first_name": "Quiet",
+                    "last_name": "Parent",
+                    "role": "CLIENT",
+                    "status": "ACTIVE",
+                },
+            ],
+            "course_entitlements": [
+                {
+                    "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                    "course_id": "course-2",
+                    "granted_at": "2026-07-08T00:00:00+00:00",
+                    "revoked_at": None,
+                }
+            ],
+            "resources": [
+                {
+                    "id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+                    "title": "Interview Practice",
+                    "course_id": "course-2",
+                    "type": "video",
+                    "topic": "Interview Preparation",
+                }
+            ],
+        }
+
+    def table(self, name: str) -> FakeSelectQuery:
+        return FakeSelectQuery(self.rows[name])
 
 
 @pytest.mark.asyncio
@@ -65,6 +163,24 @@ async def test_capture_events_stores_authenticated_user_context() -> None:
     assert client.query.rows[0]["user_id"] == str(user_id)
     assert client.query.rows[0]["clerk_user_id"] == "user_clerk"
     assert client.query.rows[0]["resource_id"] == "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+
+
+@pytest.mark.asyncio
+async def test_admin_analytics_summary_rolls_up_core_metrics() -> None:
+    summary = await get_admin_analytics_summary(
+        range_days=30,
+        client=FakeAdminAnalyticsClient(),  # type: ignore[arg-type]
+    )
+
+    assert summary.event_count == 3
+    assert summary.user_count == 2
+    assert summary.paid_user_count == 1
+    assert summary.active_user_count == 1
+    assert summary.top_resources[0].title == "Interview Practice"
+    assert summary.top_resources[0].views == 1
+    assert summary.top_users[0].label == "Paid Parent"
+    assert summary.top_users[0].avg_session_time_ms == 720000
+    assert summary.low_engagement_users[0].email == "inactive@example.com"
 
 
 @pytest.mark.asyncio
