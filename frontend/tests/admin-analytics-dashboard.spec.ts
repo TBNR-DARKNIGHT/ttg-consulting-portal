@@ -89,7 +89,7 @@ async function mockAdminApi(page: Page) {
                 paidCourses: [],
               },
             ],
-            topPages: [{ path: '/portal', views: 22, uniqueUsers: 14 }],
+            topPages: [{ label: 'Portal', path: '/portal', views: 22, uniqueUsers: 14 }],
             topClicks: [{ label: 'Purchase Access', clicks: 8, path: '/dashboard/settings' }],
             topReferrers: [{ source: 'https://google.com', visits: 6 }],
             recentEvents: [
@@ -140,6 +140,6 @@ test('renders the admin analytics dashboard prototype', async ({ page }) => {
   await expect(page.getByText('Most Viewed Resources')).toBeVisible();
   await expect(page.getByText('Interview Practice').first()).toBeVisible();
   await expect(page.getByText('Follow-up Queue')).toBeVisible();
-  await expect(page.getByText('Quiet Parent')).toBeVisible();
+  await expect(page.locator('main')).toContainText('Quiet Parent');
   await expect(page.getByText('Recent Activity')).toBeVisible();
 });

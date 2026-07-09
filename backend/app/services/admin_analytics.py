@@ -5,13 +5,17 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import structlog
 from supabase import Client
 
+from app.config import settings
 from app.models.analytics import (
     AnalyticsClickMetricOut,
     AnalyticsEventMetricOut,
+    AnalyticsIgnoredUserCreateIn,
+    AnalyticsIgnoredUserOut,
     AnalyticsKpiOut,
     AnalyticsPageMetricOut,
     AnalyticsReferrerMetricOut,
@@ -80,6 +84,101 @@ def _percent(value: float) -> str:
     return f"{value:.1f}%"
 
 
+TRACKING_QUERY_PREFIXES = ("utm_",)
+TRACKING_QUERY_KEYS = {"fbclid", "gclid", "msclkid", "igshid", "mc_cid", "mc_eid"}
+
+PAGE_LABELS = {
+    "/": "Home",
+    "/portal": "Portal",
+    "/group-programme": "Group Programme",
+    "/young-explorers": "Young Explorers",
+    "/consult": "Consult",
+    "/about": "About",
+    "/auth/login": "Login",
+    "/auth/sign-up": "Sign Up",
+    "/auth/complete": "Auth Complete",
+    "/dashboard": "Dashboard",
+    "/dashboard/settings": "Dashboard Settings",
+    "/dashboard/resources": "Dashboard Resources",
+}
+
+
+def _site_hosts() -> set[str]:
+    hosts = {"beyondgrades.sg", "www.beyondgrades.sg"}
+    for value in (settings.frontend_url,):
+        parsed = urlparse(value)
+        if parsed.hostname:
+            hosts.add(parsed.hostname.lower())
+    return hosts
+
+
+def _is_same_site_referrer(referrer: str) -> bool:
+    parsed = urlparse(referrer)
+    return bool(parsed.hostname and parsed.hostname.lower() in _site_hosts())
+
+
+def _clean_page_path(raw_path: str) -> str:
+    parsed = urlparse(raw_path)
+    path = parsed.path or "/"
+    filtered_query = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if key not in TRACKING_QUERY_KEYS
+        and not any(key.startswith(prefix) for prefix in TRACKING_QUERY_PREFIXES)
+    ]
+    return urlunparse(("", "", path, "", urlencode(filtered_query), ""))
+
+
+def _page_label(clean_path: str) -> str:
+    parsed = urlparse(clean_path)
+    path = parsed.path or "/"
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    if path == "/dashboard/settings" and query.get("tool"):
+        tool = query["tool"].replace("-", " ").title()
+        return f"Dashboard Settings: {tool}"
+    if path.startswith("/dashboard/resources/"):
+        return "Resource Detail"
+    if path.startswith("/dashboard/course/"):
+        suffix = path.split("/dashboard/course/", 1)[1]
+        course_id = suffix.split("/", 1)[0]
+        if path.endswith("/videos"):
+            return f"{course_id}: Videos"
+        if path.endswith("/resources"):
+            return f"{course_id}: Resources"
+        return f"{course_id}: Course Overview"
+    return PAGE_LABELS.get(path, path.strip("/").replace("-", " ").title() or "Home")
+
+
+def _ignored_keys(rows: list[dict[str, Any]]) -> tuple[set[str], set[str], set[str]]:
+    user_ids = {str(row["user_id"]) for row in rows if row.get("user_id")}
+    clerk_ids = {str(row["clerk_user_id"]) for row in rows if row.get("clerk_user_id")}
+    emails = {
+        str(row["email"]).strip().lower()
+        for row in rows
+        if row.get("email") and str(row["email"]).strip()
+    }
+    return user_ids, clerk_ids, emails
+
+
+def _is_ignored_event(
+    row: dict[str, Any],
+    *,
+    users_by_id: dict[str, dict[str, Any]],
+    ignored_user_ids: set[str],
+    ignored_clerk_ids: set[str],
+    ignored_emails: set[str],
+) -> bool:
+    user_id = str(row.get("user_id") or "")
+    clerk_id = str(row.get("clerk_user_id") or "")
+    user = users_by_id.get(user_id)
+    email = str(user.get("email") or "").strip().lower() if user else ""
+    return (
+        bool(user_id and user_id in ignored_user_ids)
+        or bool(clerk_id and clerk_id in ignored_clerk_ids)
+        or bool(email and email in ignored_emails)
+    )
+
+
 async def _select(
     client: Client,
     table: str,
@@ -115,7 +214,7 @@ async def get_admin_analytics_summary(
     since = now - timedelta(days=range_days)
 
     try:
-        events, users, entitlements, resources = await asyncio.gather(
+        events, users, entitlements, resources, ignored_users = await asyncio.gather(
             _select(
                 db,
                 "analytics_events",
@@ -141,6 +240,12 @@ async def get_admin_analytics_summary(
                 limit=10_000,
             ),
             _select(db, "resources", "id,title,course_id,type,topic", limit=5_000),
+            _select(
+                db,
+                "analytics_ignored_users",
+                "id,user_id,clerk_user_id,email,reason,created_at",
+                limit=5_000,
+            ),
         )
     except Exception as exc:
         logger.exception("Failed to load admin analytics summary")
@@ -149,6 +254,18 @@ async def get_admin_analytics_summary(
     events = list(reversed(events))
     users_by_id = {str(row["id"]): row for row in users if row.get("id")}
     resources_by_id = {str(row["id"]): row for row in resources if row.get("id")}
+    ignored_user_ids, ignored_clerk_ids, ignored_emails = _ignored_keys(ignored_users)
+    events = [
+        row
+        for row in events
+        if not _is_ignored_event(
+            row,
+            users_by_id=users_by_id,
+            ignored_user_ids=ignored_user_ids,
+            ignored_clerk_ids=ignored_clerk_ids,
+            ignored_emails=ignored_emails,
+        )
+    ]
 
     paid_courses_by_user: dict[str, list[str]] = defaultdict(list)
     for row in entitlements:
@@ -192,7 +309,7 @@ async def get_admin_analytics_summary(
         actor = _actor_id(row)
         session = str(row.get("session_id") or "")
         occurred = _parse_datetime(row.get("occurred_at"))
-        page_path = str(row.get("page_path") or "/")
+        page_path = _clean_page_path(str(row.get("page_path") or "/"))
         user_id = str(row.get("user_id") or actor)
         known_user = users_by_id.get(user_id)
         label = _display_user(known_user) if known_user else f"Visitor {actor[:8]}"
@@ -245,7 +362,7 @@ async def get_admin_analytics_summary(
             page_views[page_path] += 1
             page_users[page_path].add(actor)
             referrer = str(row.get("referrer") or "").strip()
-            if referrer:
+            if referrer and not _is_same_site_referrer(referrer):
                 referrers[referrer] += 1
         elif event_type == "click":
             aggregate.clicks += 1
@@ -426,6 +543,7 @@ async def get_admin_analytics_summary(
         low_engagement_users=low_engagement_users,
         top_pages=[
             AnalyticsPageMetricOut(
+                label=_page_label(path),
                 path=path,
                 views=views,
                 unique_users=len(page_users[path]),
@@ -442,3 +560,89 @@ async def get_admin_analytics_summary(
         ],
         recent_events=recent_events,
     )
+
+
+async def list_ignored_analytics_users(
+    *,
+    client: Client | None = None,
+) -> list[AnalyticsIgnoredUserOut]:
+    db = client or get_client()
+    try:
+        rows = await _select(
+            db,
+            "analytics_ignored_users",
+            "id,user_id,clerk_user_id,email,reason,created_at",
+            order="created_at",
+            desc=True,
+            limit=500,
+        )
+    except Exception as exc:
+        logger.exception("Failed to load analytics ignored users")
+        raise AdminAnalyticsError("Unable to load ignored users") from exc
+
+    return [
+        AnalyticsIgnoredUserOut(
+            id=str(row["id"]),
+            user_id=str(row["user_id"]) if row.get("user_id") else None,
+            clerk_user_id=str(row["clerk_user_id"]) if row.get("clerk_user_id") else None,
+            email=str(row["email"]).strip().lower() if row.get("email") else None,
+            reason=str(row.get("reason") or ""),
+            created_at=str(row.get("created_at") or ""),
+        )
+        for row in rows
+    ]
+
+
+async def add_ignored_analytics_user(
+    body: AnalyticsIgnoredUserCreateIn,
+    *,
+    actor_user_id: str | None = None,
+    client: Client | None = None,
+) -> AnalyticsIgnoredUserOut:
+    db = client or get_client()
+    payload = {
+        "user_id": body.user_id.strip() if body.user_id else None,
+        "clerk_user_id": body.clerk_user_id.strip() if body.clerk_user_id else None,
+        "email": body.email.strip().lower() if body.email else None,
+        "reason": body.reason.strip(),
+        "created_by_user_id": actor_user_id,
+    }
+    payload = {key: value for key, value in payload.items() if value not in {None, ""}}
+    if not any(key in payload for key in ("user_id", "clerk_user_id", "email")):
+        raise AdminAnalyticsError("Provide a user id, Clerk id, or email")
+
+    try:
+        response = await asyncio.to_thread(
+            lambda: db.table("analytics_ignored_users").insert(payload).execute()
+        )
+    except Exception as exc:
+        logger.exception("Failed to add ignored analytics user")
+        raise AdminAnalyticsError("Unable to add ignored user") from exc
+
+    row = (response.data or [{}])[0]
+    return AnalyticsIgnoredUserOut(
+        id=str(row["id"]),
+        user_id=str(row["user_id"]) if row.get("user_id") else None,
+        clerk_user_id=str(row["clerk_user_id"]) if row.get("clerk_user_id") else None,
+        email=str(row["email"]).strip().lower() if row.get("email") else None,
+        reason=str(row.get("reason") or ""),
+        created_at=str(row.get("created_at") or ""),
+    )
+
+
+async def delete_ignored_analytics_user(
+    ignored_user_id: str,
+    *,
+    client: Client | None = None,
+) -> None:
+    db = client or get_client()
+    try:
+        await asyncio.to_thread(
+            lambda: db.table("analytics_ignored_users")
+            .delete()
+            .eq("id", ignored_user_id)
+            .execute()
+        )
+    except Exception as exc:
+        logger.exception("Failed to delete ignored analytics user")
+        raise AdminAnalyticsError("Unable to delete ignored user") from exc

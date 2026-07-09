@@ -87,6 +87,7 @@ class AnalyticsUserMetricOut(AnalyticsModel):
 
 
 class AnalyticsPageMetricOut(AnalyticsModel):
+    label: str
     path: str
     views: int
     unique_users: int
@@ -101,6 +102,22 @@ class AnalyticsClickMetricOut(AnalyticsModel):
 class AnalyticsReferrerMetricOut(AnalyticsModel):
     source: str
     visits: int
+
+
+class AnalyticsIgnoredUserOut(AnalyticsModel):
+    id: str
+    user_id: str | None = None
+    clerk_user_id: str | None = None
+    email: str | None = None
+    reason: str
+    created_at: str
+
+
+class AnalyticsIgnoredUserCreateIn(AnalyticsModel):
+    user_id: str | None = Field(default=None, max_length=100)
+    clerk_user_id: str | None = Field(default=None, max_length=200)
+    email: str | None = Field(default=None, max_length=320)
+    reason: str = Field(default="", max_length=500)
 
 
 class AnalyticsEventMetricOut(AnalyticsModel):

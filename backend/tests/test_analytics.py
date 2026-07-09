@@ -86,6 +86,16 @@ class FakeAdminAnalyticsClient:
                     "page_path": "/dashboard",
                     "duration_ms": 720000,
                 },
+                {
+                    "event_id": str(uuid4()),
+                    "event_type": "page_view",
+                    "session_id": "11111111-1111-4111-8111-111111111111",
+                    "anonymous_id": str(uuid4()),
+                    "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                    "occurred_at": "2026-07-09T00:13:00+00:00",
+                    "page_path": "/portal?utm_medium=paid&utm_source=ig&tab=overview",
+                    "referrer": "https://www.beyondgrades.sg/auth/sign-up",
+                },
             ],
             "users": [
                 {
@@ -124,6 +134,7 @@ class FakeAdminAnalyticsClient:
                     "topic": "Interview Preparation",
                 }
             ],
+            "analytics_ignored_users": [],
         }
 
     def table(self, name: str) -> FakeSelectQuery:
@@ -172,7 +183,7 @@ async def test_admin_analytics_summary_rolls_up_core_metrics() -> None:
         client=FakeAdminAnalyticsClient(),  # type: ignore[arg-type]
     )
 
-    assert summary.event_count == 3
+    assert summary.event_count == 4
     assert summary.user_count == 2
     assert summary.paid_user_count == 1
     assert summary.active_user_count == 1
@@ -181,6 +192,9 @@ async def test_admin_analytics_summary_rolls_up_core_metrics() -> None:
     assert summary.top_users[0].label == "Paid Parent"
     assert summary.top_users[0].avg_session_time_ms == 720000
     assert summary.low_engagement_users[0].email == "inactive@example.com"
+    assert summary.top_pages[0].path == "/portal?tab=overview"
+    assert summary.top_pages[0].label == "Portal"
+    assert summary.top_referrers == []
 
 
 @pytest.mark.asyncio

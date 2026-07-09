@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
   BarChart3,
@@ -7,11 +7,12 @@ import {
   Eye,
   MousePointerClick,
   RefreshCw,
+  Trash2,
   TrendingUp,
   UserCheck,
   Users,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { usePortalAuth } from '@/auth/auth-context';
 import { getAuthMode, usesDemoAuthProvider } from '@/auth/env';
 import { Badge } from '@/components/ui/badge';
@@ -23,9 +24,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  createAdminAnalyticsIgnoredUser,
+  deleteAdminAnalyticsIgnoredUser,
   getAdminAnalytics,
+  getAdminAnalyticsIgnoredUsers,
   type AdminAnalyticsKpi,
   type AdminAnalyticsSummary,
   type AdminAnalyticsTrendPoint,
@@ -111,7 +116,7 @@ function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
         paidCourses: [],
       },
     ],
-    topPages: [{ path: '/portal', views: 22, uniqueUsers: 14 }],
+    topPages: [{ label: 'Portal', path: '/portal', views: 22, uniqueUsers: 14 }],
     topClicks: [{ label: 'Purchase Access', clicks: 8, path: '/dashboard/settings' }],
     topReferrers: [{ source: 'https://google.com', visits: 6 }],
     recentEvents: [
@@ -187,29 +192,49 @@ function exportCsv(summary: AdminAnalyticsSummary) {
 function MiniTrend({ trend }: { trend: AdminAnalyticsTrendPoint[] }) {
   const max = maxTrendValue(trend);
   const compact = trend.length > 45 ? trend.filter((_, index) => index % 3 === 0) : trend;
+  const labelEvery = compact.length > 31 ? 5 : compact.length > 14 ? 3 : 1;
+
+  const formatTrendDate = (value: string) =>
+    new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(`${value}T00:00:00`));
+
+  const renderBar = (
+    point: AdminAnalyticsTrendPoint,
+    metric: string,
+    value: number,
+    color: string,
+  ) => (
+    <span className="group/bar relative flex h-full w-2 items-end justify-center">
+      <span
+        className={cn('w-1.5 rounded-t transition-opacity group-hover/bar:opacity-80', color)}
+        title={`${formatTrendDate(point.date)}: ${metric} ${value}`}
+        style={{ height: `${Math.max(3, (value / max) * 100)}%` }}
+      />
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-max max-w-36 -translate-x-1/2 rounded-md border border-border bg-white px-2 py-1.5 text-left text-[11px] leading-4 text-foreground shadow-lg group-hover/bar:block">
+        <span className="block font-medium">{formatTrendDate(point.date)}</span>
+        <span className="block text-muted-foreground">{metric}</span>
+        <span className="block font-semibold">{value}</span>
+      </span>
+    </span>
+  );
 
   return (
-    <div className="h-52 rounded-md border border-border bg-white p-4">
+    <div className="h-60 overflow-visible rounded-md border border-border bg-white p-4">
       <div className="flex h-full items-end gap-1">
-        {compact.map((point) => (
+        {compact.map((point, index) => (
           <div key={point.date} className="flex min-w-0 flex-1 flex-col items-center gap-1">
             <div className="flex h-40 w-full items-end justify-center gap-0.5">
-              <span
-                className="w-1.5 rounded-t bg-brand-indigo"
-                title={`${point.date}: ${point.activeUsers} active users`}
-                style={{ height: `${Math.max(3, (point.activeUsers / max) * 100)}%` }}
-              />
-              <span
-                className="w-1.5 rounded-t bg-emerald-500"
-                title={`${point.date}: ${point.resourceViews} resource views`}
-                style={{ height: `${Math.max(3, (point.resourceViews / max) * 100)}%` }}
-              />
-              <span
-                className="w-1.5 rounded-t bg-amber-500"
-                title={`${point.date}: ${point.clicks} clicks`}
-                style={{ height: `${Math.max(3, (point.clicks / max) * 100)}%` }}
-              />
+              {renderBar(point, 'Active users', point.activeUsers, 'bg-brand-indigo')}
+              {renderBar(point, 'Resource views', point.resourceViews, 'bg-emerald-500')}
+              {renderBar(point, 'Clicks', point.clicks, 'bg-amber-500')}
             </div>
+            <span className="h-7 text-[10px] leading-3 text-muted-foreground">
+              {index % labelEvery === 0 || index === compact.length - 1
+                ? formatTrendDate(point.date)
+                : ''}
+            </span>
           </div>
         ))}
       </div>
@@ -219,6 +244,39 @@ function MiniTrend({ trend }: { trend: AdminAnalyticsTrendPoint[] }) {
 
 function EmptyState({ label }: { label: string }) {
   return <p className="py-6 text-sm text-muted-foreground">{label}</p>;
+}
+
+function AnalyticsListCard({
+  title,
+  description,
+  children,
+  className,
+  contentClassName,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+  contentClassName?: string;
+}) {
+  return (
+    <Card className={cn('flex h-[26rem] flex-col overflow-hidden shadow-sm', className)}>
+      <CardHeader className="shrink-0">
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent className="min-h-0 flex-1 px-6">
+        <div
+          className={cn(
+            'h-full overflow-y-auto overscroll-contain rounded-md border border-border bg-muted/20 p-4 [scrollbar-gutter:stable]',
+            contentClassName,
+          )}
+        >
+          {children}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function UserRows({ users }: { users: AdminAnalyticsUserMetric[] }) {
@@ -264,7 +322,10 @@ function UserRows({ users }: { users: AdminAnalyticsUserMetric[] }) {
 
 export function AdminAnalyticsDashboard() {
   const { getToken } = usePortalAuth();
+  const queryClient = useQueryClient();
   const [rangeDays, setRangeDays] = useState(30);
+  const [ignoreTarget, setIgnoreTarget] = useState('');
+  const [ignoreReason, setIgnoreReason] = useState('');
   const demo = usesDemoAuthProvider(getAuthMode());
   const analytics = useQuery({
     queryKey: ['admin-analytics', rangeDays],
@@ -276,6 +337,41 @@ export function AdminAnalyticsDashboard() {
   });
 
   const summary = analytics.data;
+  const ignoredUsers = useQuery({
+    queryKey: ['admin-analytics-ignored-users'],
+    queryFn: () => (demo ? Promise.resolve([]) : getAdminAnalyticsIgnoredUsers(getToken)),
+    staleTime: 60_000,
+  });
+  const createIgnoredUser = useMutation({
+    mutationFn: () => {
+      const target = ignoreTarget.trim();
+      const input = target.includes('@') ? { email: target } : { userId: target };
+      return createAdminAnalyticsIgnoredUser(
+        {
+          ...input,
+          ...(ignoreReason.trim() ? { reason: ignoreReason.trim() } : {}),
+        },
+        getToken,
+      );
+    },
+    onSuccess: async () => {
+      setIgnoreTarget('');
+      setIgnoreReason('');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-analytics-ignored-users'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-analytics'] }),
+      ]);
+    },
+  });
+  const deleteIgnoredUser = useMutation({
+    mutationFn: (id: string) => deleteAdminAnalyticsIgnoredUser(id, getToken),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-analytics-ignored-users'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-analytics'] }),
+      ]);
+    },
+  });
   const generatedAt = useMemo(
     () => (summary ? formatDate(summary.generatedAt) : ''),
     [summary],
@@ -335,21 +431,27 @@ export function AdminAnalyticsDashboard() {
             {summary.kpis.map((kpi, index) => {
               const Icon = kpiIcons[index] ?? TrendingUp;
               return (
-                <Card key={kpi.label} className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-muted-foreground">{kpi.label}</p>
+                <Card key={kpi.label} className="aspect-square py-0 shadow-sm">
+                  <CardContent className="grid h-full grid-rows-[2.5rem_1fr_2rem] gap-2 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="line-clamp-2 text-[15px] font-medium leading-5 text-muted-foreground">
+                        {kpi.label}
+                      </p>
                       <Icon className="size-4 text-brand-indigo" aria-hidden />
                     </div>
-                    <p className="mt-3 text-2xl font-semibold tracking-tight">{kpi.value}</p>
-                    {kpi.detail && <p className="mt-1 text-xs text-muted-foreground">{kpi.detail}</p>}
+                    <p className="self-center text-3xl font-semibold leading-none tracking-tight">
+                      {kpi.value}
+                    </p>
+                    <p className="line-clamp-2 self-end text-[13px] leading-4 text-muted-foreground">
+                      {kpi.detail ?? ''}
+                    </p>
                   </CardContent>
                 </Card>
               );
             })}
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
+          <section>
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle>Engagement Trend</CardTitle>
@@ -366,29 +468,98 @@ export function AdminAnalyticsDashboard() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Follow-up Queue</CardTitle>
-                <CardDescription>
-                  Registered users with no or low activity in this period.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserRows users={summary.lowEngagementUsers.slice(0, 5)} />
-              </CardContent>
-            </Card>
           </section>
 
           <section className="grid gap-6 xl:grid-cols-2">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Most Viewed Resources</CardTitle>
-                <CardDescription>
-                  Content demand by unique users and repeat views.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            <AnalyticsListCard
+              title="Follow-up Queue"
+              description="Registered users with no or low activity in this period."
+              className="h-[24rem]"
+            >
+              <UserRows users={summary.lowEngagementUsers} />
+            </AnalyticsListCard>
+
+            <AnalyticsListCard
+              title="Ignored Users"
+              description="Exclude internal or test accounts from analytics rollups."
+              className="h-[24rem]"
+            >
+              {demo ? (
+                <p className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                  Ignore-list changes are available with the live admin API.
+                </p>
+              ) : (
+                <form
+                  className="space-y-3"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (ignoreTarget.trim()) createIgnoredUser.mutate();
+                  }}
+                >
+                  <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                    <Input
+                      aria-label="Ignored user email or id"
+                      placeholder="Email or internal user ID"
+                      value={ignoreTarget}
+                      onChange={(event) => setIgnoreTarget(event.target.value)}
+                    />
+                    <Input
+                      aria-label="Ignore reason"
+                      placeholder="Reason"
+                      value={ignoreReason}
+                      onChange={(event) => setIgnoreReason(event.target.value)}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={!ignoreTarget.trim() || createIgnoredUser.isPending}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </form>
+              )}
+              <div className="mt-4 space-y-2">
+                {ignoredUsers.isLoading && (
+                  <p className="text-sm text-muted-foreground">Loading ignored users...</p>
+                )}
+                {(ignoredUsers.data ?? []).length === 0 && !ignoredUsers.isLoading && (
+                  <p className="text-sm text-muted-foreground">No ignored users yet.</p>
+                )}
+                {(ignoredUsers.data ?? []).map((ignored) => (
+                  <div
+                    key={ignored.id}
+                    className="flex items-start justify-between gap-3 rounded-md border border-border p-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">
+                        {ignored.email ?? ignored.userId ?? ignored.clerkUserId}
+                      </p>
+                      {ignored.reason && (
+                        <p className="mt-1 text-xs text-muted-foreground">{ignored.reason}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove ignored user"
+                      disabled={deleteIgnoredUser.isPending}
+                      onClick={() => deleteIgnoredUser.mutate(ignored.id)}
+                    >
+                      <Trash2 className="size-4" aria-hidden />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </AnalyticsListCard>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2">
+            <AnalyticsListCard
+              title="Most Viewed Resources"
+              description="Content demand by unique users and repeat views."
+              className="h-[30rem]"
+            >
                 {summary.topResources.length === 0 ? (
                   <EmptyState label="No resource views captured yet." />
                 ) : (
@@ -419,42 +590,31 @@ export function AdminAnalyticsDashboard() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </AnalyticsListCard>
 
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Most Engaged Users</CardTitle>
-                <CardDescription>
-                  Useful for identifying warm leads, motivated families, and success stories.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserRows users={summary.topUsers.slice(0, 5)} />
-              </CardContent>
-            </Card>
+            <AnalyticsListCard
+              title="Most Engaged Users"
+              description="Useful for identifying warm leads, motivated families, and success stories."
+              className="h-[30rem]"
+            >
+              <UserRows users={summary.topUsers} />
+            </AnalyticsListCard>
           </section>
 
           <section className="grid gap-6 xl:grid-cols-3">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Top Pages</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <AnalyticsListCard title="Top Pages" className="h-[24rem]" contentClassName="space-y-2">
                 {summary.topPages.length === 0 ? <EmptyState label="No page views yet." /> : summary.topPages.map((page) => (
                   <div key={page.path} className="flex items-start justify-between gap-3 text-sm">
-                    <span className="min-w-0 truncate text-muted-foreground">{page.path}</span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium text-foreground">{page.label}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{page.path}</span>
+                    </span>
                     <span className="font-medium">{page.views}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+            </AnalyticsListCard>
 
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Top Clicks</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <AnalyticsListCard title="Top Clicks" className="h-[24rem]" contentClassName="space-y-2">
                 {summary.topClicks.length === 0 ? <EmptyState label="No clicks yet." /> : summary.topClicks.map((click) => (
                   <div key={`${click.label}-${click.path}`} className="text-sm">
                     <div className="flex items-start justify-between gap-3">
@@ -464,32 +624,23 @@ export function AdminAnalyticsDashboard() {
                     {click.path && <p className="truncate text-xs text-muted-foreground">{click.path}</p>}
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+            </AnalyticsListCard>
 
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle>Referrers</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <AnalyticsListCard title="Referrers" className="h-[24rem]" contentClassName="space-y-2">
                 {summary.topReferrers.length === 0 ? <EmptyState label="No external referrers captured yet." /> : summary.topReferrers.map((referrer) => (
                   <div key={referrer.source} className="flex items-start justify-between gap-3 text-sm">
                     <span className="min-w-0 truncate text-muted-foreground">{referrer.source}</span>
                     <span className="font-medium">{referrer.visits}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+            </AnalyticsListCard>
           </section>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
-                Raw-event feed for sanity-checking what the tracker is capturing.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <AnalyticsListCard
+            title="Recent Activity"
+            description="Raw-event feed for sanity-checking what the tracker is capturing."
+            className="h-[32rem]"
+          >
               {summary.recentEvents.length === 0 ? (
                 <EmptyState label="No events captured yet." />
               ) : (
@@ -506,8 +657,7 @@ export function AdminAnalyticsDashboard() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </AnalyticsListCard>
         </>
       )}
     </main>

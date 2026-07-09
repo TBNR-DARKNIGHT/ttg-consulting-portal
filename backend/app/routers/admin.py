@@ -28,7 +28,11 @@ from app.models.admin import (
     ResourceUploadOut,
     TtaCodeBatchOut,
 )
-from app.models.analytics import AnalyticsSummaryOut
+from app.models.analytics import (
+    AnalyticsIgnoredUserCreateIn,
+    AnalyticsIgnoredUserOut,
+    AnalyticsSummaryOut,
+)
 from app.models.schemas import ApiResponse, ClerkUser
 from app.services.admin_access_codes import (
     ActiveTtaCodesExistError,
@@ -44,7 +48,13 @@ from app.services.admin_access_codes import (
     revoke_access_code,
     revoke_all_active_access_codes,
 )
-from app.services.admin_analytics import AdminAnalyticsError, get_admin_analytics_summary
+from app.services.admin_analytics import (
+    AdminAnalyticsError,
+    add_ignored_analytics_user,
+    delete_ignored_analytics_user,
+    get_admin_analytics_summary,
+    list_ignored_analytics_users,
+)
 from app.services.admin_resource_uploads import (
     ResourceUploadError,
     begin_pdf_replacement,
@@ -96,6 +106,53 @@ async def get_admin_analytics(range_days: int = 30) -> ApiResponse[AnalyticsSumm
         )
     except AdminAnalyticsError as exc:
         raise HTTPException(status_code=503, detail="Analytics unavailable") from exc
+
+
+@router.get(
+    "/admin/analytics/ignored-users",
+    response_model=ApiResponse[list[AnalyticsIgnoredUserOut]],
+    dependencies=[Depends(require_admin)],
+)
+async def get_ignored_analytics_users() -> ApiResponse[list[AnalyticsIgnoredUserOut]]:
+    try:
+        return ApiResponse(data=await list_ignored_analytics_users())
+    except AdminAnalyticsError as exc:
+        raise HTTPException(status_code=503, detail="Ignored users unavailable") from exc
+
+
+@router.post(
+    "/admin/analytics/ignored-users",
+    response_model=ApiResponse[AnalyticsIgnoredUserOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_ignored_analytics_user(
+    body: AnalyticsIgnoredUserCreateIn,
+    user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[AnalyticsIgnoredUserOut]:
+    try:
+        return ApiResponse(
+            data=await add_ignored_analytics_user(
+                body,
+                actor_user_id=str(_user_id(user)),
+            )
+        )
+    except AdminAnalyticsError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete(
+    "/admin/analytics/ignored-users/{ignored_user_id}",
+    response_model=ApiResponse[None],
+)
+async def remove_ignored_analytics_user(
+    ignored_user_id: str,
+    _user: ClerkUser = Depends(require_admin),
+) -> ApiResponse[None]:
+    try:
+        await delete_ignored_analytics_user(ignored_user_id)
+        return ApiResponse(data=None)
+    except AdminAnalyticsError as exc:
+        raise HTTPException(status_code=503, detail="Unable to remove ignored user") from exc
 
 
 @router.get(

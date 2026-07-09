@@ -257,6 +257,7 @@ export interface AdminAnalyticsUserMetric {
 }
 
 export interface AdminAnalyticsPageMetric {
+  label: string;
   path: string;
   views: number;
   uniqueUsers: number;
@@ -299,6 +300,15 @@ export interface AdminAnalyticsSummary {
   recentEvents: AdminAnalyticsEventMetric[];
 }
 
+export interface AdminAnalyticsIgnoredUser {
+  id: string;
+  userId: string | null;
+  clerkUserId: string | null;
+  email: string | null;
+  reason: string;
+  createdAt: string;
+}
+
 export function getCurrentUser(
   getToken: () => Promise<string | null>,
 ): Promise<CurrentUserResponse> {
@@ -318,6 +328,38 @@ export function getAdminAnalytics(
   return apiFetch<AdminAnalyticsSummary>(
     `/admin/analytics?range_days=${encodeURIComponent(String(rangeDays))}`,
     getToken,
+  );
+}
+
+export function getAdminAnalyticsIgnoredUsers(
+  getToken: () => Promise<string | null>,
+): Promise<AdminAnalyticsIgnoredUser[]> {
+  return apiFetch<AdminAnalyticsIgnoredUser[]>("/admin/analytics/ignored-users", getToken);
+}
+
+export function createAdminAnalyticsIgnoredUser(
+  input: {
+    userId?: string;
+    clerkUserId?: string;
+    email?: string;
+    reason?: string;
+  },
+  getToken: () => Promise<string | null>,
+): Promise<AdminAnalyticsIgnoredUser> {
+  return apiFetch<AdminAnalyticsIgnoredUser>("/admin/analytics/ignored-users", getToken, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteAdminAnalyticsIgnoredUser(
+  ignoredUserId: string,
+  getToken: () => Promise<string | null>,
+): Promise<null> {
+  return apiFetch<null>(
+    `/admin/analytics/ignored-users/${encodeURIComponent(ignoredUserId)}`,
+    getToken,
+    { method: "DELETE" },
   );
 }
 
