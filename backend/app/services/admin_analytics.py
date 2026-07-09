@@ -117,6 +117,25 @@ def _is_same_site_referrer(referrer: str) -> bool:
     return bool(parsed.hostname and parsed.hostname.lower() in _site_hosts())
 
 
+def _canonical_referrer_source(referrer: str) -> str:
+    parsed = urlparse(referrer)
+    if not parsed.hostname:
+        return referrer.strip()
+
+    host = parsed.hostname.lower()
+    if host.startswith("www."):
+        host = host[4:]
+
+    port = ""
+    if parsed.port and not (
+        (parsed.scheme == "http" and parsed.port == 80)
+        or (parsed.scheme == "https" and parsed.port == 443)
+    ):
+        port = f":{parsed.port}"
+
+    return urlunparse(("https", f"{host}{port}", parsed.path or "", "", parsed.query, ""))
+
+
 def _clean_page_path(raw_path: str) -> str:
     parsed = urlparse(raw_path)
     path = parsed.path or "/"
@@ -151,13 +170,34 @@ def _page_label(clean_path: str) -> str:
 
 def _ignored_keys(rows: list[dict[str, Any]]) -> tuple[set[str], set[str], set[str]]:
     user_ids = {str(row["user_id"]) for row in rows if row.get("user_id")}
-    clerk_ids = {str(row["clerk_user_id"]) for row in rows if row.get("clerk_user_id")}
+    clerk_ids = {
+        str(row["clerk_user_id"]).strip().lower()
+        for row in rows
+        if row.get("clerk_user_id") and str(row["clerk_user_id"]).strip()
+    }
     emails = {
         str(row["email"]).strip().lower()
         for row in rows
         if row.get("email") and str(row["email"]).strip()
     }
     return user_ids, clerk_ids, emails
+
+
+def _is_ignored_user(
+    row: dict[str, Any],
+    *,
+    ignored_user_ids: set[str],
+    ignored_clerk_ids: set[str],
+    ignored_emails: set[str],
+) -> bool:
+    user_id = str(row.get("id") or row.get("user_id") or "")
+    clerk_id = str(row.get("clerk_user_id") or "").strip().lower()
+    email = str(row.get("email") or "").strip().lower()
+    return (
+        bool(user_id and user_id in ignored_user_ids)
+        or bool(clerk_id and clerk_id in ignored_clerk_ids)
+        or bool(email and email in ignored_emails)
+    )
 
 
 def _is_ignored_event(
@@ -169,7 +209,7 @@ def _is_ignored_event(
     ignored_emails: set[str],
 ) -> bool:
     user_id = str(row.get("user_id") or "")
-    clerk_id = str(row.get("clerk_user_id") or "")
+    clerk_id = str(row.get("clerk_user_id") or "").strip().lower()
     user = users_by_id.get(user_id)
     email = str(user.get("email") or "").strip().lower() if user else ""
     return (
@@ -252,9 +292,19 @@ async def get_admin_analytics_summary(
         raise AdminAnalyticsError("Unable to load analytics") from exc
 
     events = list(reversed(events))
-    users_by_id = {str(row["id"]): row for row in users if row.get("id")}
-    resources_by_id = {str(row["id"]): row for row in resources if row.get("id")}
     ignored_user_ids, ignored_clerk_ids, ignored_emails = _ignored_keys(ignored_users)
+    users_by_id = {
+        str(row["id"]): row
+        for row in users
+        if row.get("id")
+        and not _is_ignored_user(
+            row,
+            ignored_user_ids=ignored_user_ids,
+            ignored_clerk_ids=ignored_clerk_ids,
+            ignored_emails=ignored_emails,
+        )
+    }
+    resources_by_id = {str(row["id"]): row for row in resources if row.get("id")}
     events = [
         row
         for row in events
@@ -271,7 +321,12 @@ async def get_admin_analytics_summary(
     for row in entitlements:
         user_id = str(row.get("user_id") or "")
         course_id = str(row.get("course_id") or "")
-        if user_id and course_id and course_id != "course-1" and row.get("revoked_at") is None:
+        if (
+            user_id in users_by_id
+            and course_id
+            and course_id != "course-1"
+            and row.get("revoked_at") is None
+        ):
             paid_courses_by_user[user_id].append(course_id)
 
     event_types = Counter(str(row.get("event_type") or "") for row in events)
@@ -363,7 +418,7 @@ async def get_admin_analytics_summary(
             page_users[page_path].add(actor)
             referrer = str(row.get("referrer") or "").strip()
             if referrer and not _is_same_site_referrer(referrer):
-                referrers[referrer] += 1
+                referrers[_canonical_referrer_source(referrer)] += 1
         elif event_type == "click":
             aggregate.clicks += 1
             metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}

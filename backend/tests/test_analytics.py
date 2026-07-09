@@ -198,6 +198,64 @@ async def test_admin_analytics_summary_rolls_up_core_metrics() -> None:
 
 
 @pytest.mark.asyncio
+async def test_admin_analytics_summary_merges_referrer_protocols() -> None:
+    client = FakeAdminAnalyticsClient()
+    client.rows["analytics_events"].extend(
+        [
+            {
+                "event_id": str(uuid4()),
+                "event_type": "page_view",
+                "session_id": "22222222-2222-4222-8222-222222222222",
+                "anonymous_id": str(uuid4()),
+                "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                "occurred_at": "2026-07-09T00:14:00+00:00",
+                "page_path": "/portal",
+                "referrer": "http://www.example.com/course?campaign=dsa",
+            },
+            {
+                "event_id": str(uuid4()),
+                "event_type": "page_view",
+                "session_id": "22222222-2222-4222-8222-222222222222",
+                "anonymous_id": str(uuid4()),
+                "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                "occurred_at": "2026-07-09T00:15:00+00:00",
+                "page_path": "/portal",
+                "referrer": "https://example.com/course?campaign=dsa",
+            },
+        ]
+    )
+
+    summary = await get_admin_analytics_summary(
+        range_days=30,
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.top_referrers[0].source == "https://example.com/course?campaign=dsa"
+    assert summary.top_referrers[0].visits == 2
+
+
+@pytest.mark.asyncio
+async def test_admin_analytics_summary_excludes_ignored_users_from_follow_up_queue() -> None:
+    client = FakeAdminAnalyticsClient()
+    client.rows["analytics_ignored_users"] = [
+        {
+            "id": str(uuid4()),
+            "email": "inactive@example.com",
+            "reason": "Internal test user",
+            "created_at": "2026-07-09T00:00:00+00:00",
+        }
+    ]
+
+    summary = await get_admin_analytics_summary(
+        range_days=30,
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.user_count == 1
+    assert all(user.email != "inactive@example.com" for user in summary.low_engagement_users)
+
+
+@pytest.mark.asyncio
 async def test_analytics_endpoint_accepts_anonymous_events(
     client,
     monkeypatch: pytest.MonkeyPatch,

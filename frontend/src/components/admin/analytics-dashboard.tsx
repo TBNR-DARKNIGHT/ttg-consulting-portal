@@ -472,6 +472,88 @@ export function AdminAnalyticsDashboard() {
 
           <section className="grid gap-6 xl:grid-cols-2">
             <AnalyticsListCard
+              title="Most Viewed Resources"
+              description="Content demand by unique users and repeat views."
+              className="h-[30rem]"
+            >
+                {summary.topResources.length === 0 ? (
+                  <EmptyState label="No resource views captured yet." />
+                ) : (
+                  <div className="space-y-3">
+                    {summary.topResources.map((resource) => (
+                      <div key={resource.resourceId ?? resource.title} className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{resource.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {resource.courseId ?? 'No course'} · {resource.type ?? 'resource'}
+                            </p>
+                          </div>
+                          <p className="text-sm font-semibold">{resource.views}</p>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-brand-indigo"
+                            style={{
+                              width: `${Math.min(100, resource.views * 8)}%`,
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {resource.uniqueUsers} unique users · {resource.viewsPerUser} views/user
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </AnalyticsListCard>
+
+            <AnalyticsListCard
+              title="Most Engaged Users"
+              description="Useful for identifying warm leads, motivated families, and success stories."
+              className="h-[30rem]"
+            >
+              <UserRows users={summary.topUsers} />
+            </AnalyticsListCard>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-3">
+            <AnalyticsListCard title="Top Pages" className="h-[24rem]" contentClassName="space-y-2">
+                {summary.topPages.length === 0 ? <EmptyState label="No page views yet." /> : summary.topPages.map((page) => (
+                  <div key={page.path} className="flex items-start justify-between gap-3 text-sm">
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium text-foreground">{page.label}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{page.path}</span>
+                    </span>
+                    <span className="font-medium">{page.views}</span>
+                  </div>
+                ))}
+            </AnalyticsListCard>
+
+            <AnalyticsListCard title="Top Clicks" className="h-[24rem]" contentClassName="space-y-2">
+                {summary.topClicks.length === 0 ? <EmptyState label="No clicks yet." /> : summary.topClicks.map((click) => (
+                  <div key={`${click.label}-${click.path}`} className="text-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="min-w-0 truncate font-medium">{click.label}</span>
+                      <span>{click.clicks}</span>
+                    </div>
+                    {click.path && <p className="truncate text-xs text-muted-foreground">{click.path}</p>}
+                  </div>
+                ))}
+            </AnalyticsListCard>
+
+            <AnalyticsListCard title="Referrers" className="h-[24rem]" contentClassName="space-y-2">
+                {summary.topReferrers.length === 0 ? <EmptyState label="No external referrers captured yet." /> : summary.topReferrers.map((referrer) => (
+                  <div key={referrer.source} className="flex items-start justify-between gap-3 text-sm">
+                    <span className="min-w-0 truncate text-muted-foreground">{referrer.source}</span>
+                    <span className="font-medium">{referrer.visits}</span>
+                  </div>
+                ))}
+            </AnalyticsListCard>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2">
+            <AnalyticsListCard
               title="Follow-up Queue"
               description="Registered users with no or low activity in this period."
               className="h-[24rem]"
@@ -551,88 +633,6 @@ export function AdminAnalyticsDashboard() {
                   </div>
                 ))}
               </div>
-            </AnalyticsListCard>
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-2">
-            <AnalyticsListCard
-              title="Most Viewed Resources"
-              description="Content demand by unique users and repeat views."
-              className="h-[30rem]"
-            >
-                {summary.topResources.length === 0 ? (
-                  <EmptyState label="No resource views captured yet." />
-                ) : (
-                  <div className="space-y-3">
-                    {summary.topResources.map((resource) => (
-                      <div key={resource.resourceId ?? resource.title} className="space-y-1.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium">{resource.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {resource.courseId ?? 'No course'} · {resource.type ?? 'resource'}
-                            </p>
-                          </div>
-                          <p className="text-sm font-semibold">{resource.views}</p>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-brand-indigo"
-                            style={{
-                              width: `${Math.min(100, resource.views * 8)}%`,
-                            }}
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {resource.uniqueUsers} unique users · {resource.viewsPerUser} views/user
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-            </AnalyticsListCard>
-
-            <AnalyticsListCard
-              title="Most Engaged Users"
-              description="Useful for identifying warm leads, motivated families, and success stories."
-              className="h-[30rem]"
-            >
-              <UserRows users={summary.topUsers} />
-            </AnalyticsListCard>
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-3">
-            <AnalyticsListCard title="Top Pages" className="h-[24rem]" contentClassName="space-y-2">
-                {summary.topPages.length === 0 ? <EmptyState label="No page views yet." /> : summary.topPages.map((page) => (
-                  <div key={page.path} className="flex items-start justify-between gap-3 text-sm">
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium text-foreground">{page.label}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{page.path}</span>
-                    </span>
-                    <span className="font-medium">{page.views}</span>
-                  </div>
-                ))}
-            </AnalyticsListCard>
-
-            <AnalyticsListCard title="Top Clicks" className="h-[24rem]" contentClassName="space-y-2">
-                {summary.topClicks.length === 0 ? <EmptyState label="No clicks yet." /> : summary.topClicks.map((click) => (
-                  <div key={`${click.label}-${click.path}`} className="text-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="min-w-0 truncate font-medium">{click.label}</span>
-                      <span>{click.clicks}</span>
-                    </div>
-                    {click.path && <p className="truncate text-xs text-muted-foreground">{click.path}</p>}
-                  </div>
-                ))}
-            </AnalyticsListCard>
-
-            <AnalyticsListCard title="Referrers" className="h-[24rem]" contentClassName="space-y-2">
-                {summary.topReferrers.length === 0 ? <EmptyState label="No external referrers captured yet." /> : summary.topReferrers.map((referrer) => (
-                  <div key={referrer.source} className="flex items-start justify-between gap-3 text-sm">
-                    <span className="min-w-0 truncate text-muted-foreground">{referrer.source}</span>
-                    <span className="font-medium">{referrer.visits}</span>
-                  </div>
-                ))}
             </AnalyticsListCard>
           </section>
 
