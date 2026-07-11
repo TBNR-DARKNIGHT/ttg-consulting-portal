@@ -229,18 +229,34 @@ async def _select(
     desc: bool = False,
     since: datetime | None = None,
 ) -> list[dict[str, Any]]:
-    def run():
+    page_size = min(limit or 1000, 1000)
+    rows: list[dict[str, Any]] = []
+
+    def run_page(start: int, end: int):
         query = client.table(table).select(columns)
         if since is not None:
             query = query.gte("occurred_at", since.isoformat())
         if order is not None:
             query = query.order(order, desc=desc)
-        if limit is not None:
-            query = query.limit(limit)
+        query = query.range(start, end)
         return query.execute()
 
-    response = await asyncio.to_thread(run)
-    return list(response.data or [])
+    while limit is None or len(rows) < limit:
+        start = len(rows)
+        remaining = limit - start if limit is not None else page_size
+        current_page_size = min(page_size, remaining)
+        response = await asyncio.to_thread(
+            lambda start=start, current_page_size=current_page_size: run_page(
+                start,
+                start + current_page_size - 1,
+            )
+        )
+        page = list(response.data or [])
+        rows.extend(page)
+        if len(page) < current_page_size:
+            break
+
+    return rows
 
 
 async def get_admin_analytics_summary(

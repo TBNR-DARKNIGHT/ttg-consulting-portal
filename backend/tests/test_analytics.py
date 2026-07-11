@@ -36,21 +36,51 @@ class FakeAnalyticsClient:
 class FakeSelectQuery:
     def __init__(self, rows: list[dict[str, object]]) -> None:
         self.rows = rows
+        self.gte_filter: tuple[str, object] | None = None
+        self.order_field: str | None = None
+        self.order_desc = False
+        self.range_start = 0
+        self.range_end = 999
 
     def select(self, _columns: str) -> "FakeSelectQuery":
         return self
 
-    def gte(self, _field: str, _value: object) -> "FakeSelectQuery":
+    def gte(self, field: str, value: object) -> "FakeSelectQuery":
+        self.gte_filter = (field, value)
         return self
 
-    def order(self, _field: str, desc: bool = False) -> "FakeSelectQuery":
+    def order(self, field: str, desc: bool = False) -> "FakeSelectQuery":
+        self.order_field = field
+        self.order_desc = desc
         return self
 
-    def limit(self, _limit: int) -> "FakeSelectQuery":
+    def limit(self, limit: int) -> "FakeSelectQuery":
+        self.range_start = 0
+        self.range_end = limit - 1
+        return self
+
+    def range(self, start: int, end: int) -> "FakeSelectQuery":
+        self.range_start = start
+        self.range_end = end
         return self
 
     def execute(self):
-        return SimpleNamespace(data=self.rows)
+        rows = list(self.rows)
+        if self.gte_filter is not None:
+            field, value = self.gte_filter
+            threshold = value.isoformat() if hasattr(value, "isoformat") else value
+            rows = [
+                row
+                for row in rows
+                if row.get(field) is not None and str(row[field]) >= str(threshold)
+            ]
+        if self.order_field is not None:
+            rows = sorted(
+                rows,
+                key=lambda row: row.get(self.order_field) or "",
+                reverse=self.order_desc,
+            )
+        return SimpleNamespace(data=rows[self.range_start : self.range_end + 1])
 
 
 class FakeAdminAnalyticsClient:
@@ -253,6 +283,31 @@ async def test_admin_analytics_summary_excludes_ignored_users_from_follow_up_que
 
     assert summary.user_count == 1
     assert all(user.email != "inactive@example.com" for user in summary.low_engagement_users)
+
+
+@pytest.mark.asyncio
+async def test_admin_analytics_summary_pages_beyond_supabase_default_row_cap() -> None:
+    client = FakeAdminAnalyticsClient()
+    client.rows["analytics_events"] = [
+        {
+            "event_id": str(uuid4()),
+            "event_type": "page_view",
+            "session_id": "33333333-3333-4333-8333-333333333333",
+            "anonymous_id": str(uuid4()),
+            "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+            "occurred_at": f"2026-07-09T00:{index % 60:02d}:00+00:00",
+            "page_path": "/portal",
+        }
+        for index in range(1205)
+    ]
+
+    summary = await get_admin_analytics_summary(
+        range_days=30,
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.event_count == 1205
+    assert summary.top_pages[0].views == 1205
 
 
 @pytest.mark.asyncio
