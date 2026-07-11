@@ -286,6 +286,76 @@ async def test_admin_analytics_summary_excludes_ignored_users_from_follow_up_que
 
 
 @pytest.mark.asyncio
+async def test_admin_analytics_summary_excludes_ignored_user_activity_from_rollups() -> None:
+    client = FakeAdminAnalyticsClient()
+    client.rows["users"].append(
+        {
+            "id": "dddddddd-dddd-4ddd-dddd-dddddddddddd",
+            "clerk_user_id": "user_internal",
+            "email": "internal@example.com",
+            "first_name": "Internal",
+            "last_name": "Tester",
+            "role": "CLIENT",
+            "status": "ACTIVE",
+        }
+    )
+    client.rows["analytics_ignored_users"] = [
+        {
+            "id": str(uuid4()),
+            "email": "internal@example.com",
+            "reason": "Internal test user",
+            "created_at": "2026-07-09T00:00:00+00:00",
+        }
+    ]
+    client.rows["analytics_events"].extend(
+        [
+            {
+                "event_id": str(uuid4()),
+                "event_type": "page_view",
+                "session_id": "44444444-4444-4444-8444-444444444444",
+                "anonymous_id": str(uuid4()),
+                "user_id": "dddddddd-dddd-4ddd-dddd-dddddddddddd",
+                "occurred_at": "2026-07-09T00:20:00+00:00",
+                "page_path": "/ignored-page",
+                "referrer": "https://example.com/internal",
+            },
+            {
+                "event_id": str(uuid4()),
+                "event_type": "resource_view",
+                "session_id": "44444444-4444-4444-8444-444444444444",
+                "anonymous_id": str(uuid4()),
+                "user_id": "dddddddd-dddd-4ddd-dddd-dddddddddddd",
+                "occurred_at": "2026-07-09T00:21:00+00:00",
+                "page_path": "/dashboard/resources/bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+                "resource_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+            },
+            {
+                "event_id": str(uuid4()),
+                "event_type": "click",
+                "session_id": "44444444-4444-4444-8444-444444444444",
+                "anonymous_id": str(uuid4()),
+                "user_id": "dddddddd-dddd-4ddd-dddd-dddddddddddd",
+                "occurred_at": "2026-07-09T00:22:00+00:00",
+                "page_path": "/ignored-page",
+                "metadata": {"analyticsId": "ignored-cta"},
+            },
+        ]
+    )
+
+    summary = await get_admin_analytics_summary(
+        range_days=30,
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.event_count == 4
+    assert all(page.path != "/ignored-page" for page in summary.top_pages)
+    assert summary.top_referrers == []
+    assert all(click.label != "ignored-cta" for click in summary.top_clicks)
+    assert summary.top_resources[0].views == 1
+    assert all(user.email != "internal@example.com" for user in summary.top_users)
+
+
+@pytest.mark.asyncio
 async def test_admin_analytics_summary_pages_beyond_supabase_default_row_cap() -> None:
     client = FakeAdminAnalyticsClient()
     client.rows["analytics_events"] = [

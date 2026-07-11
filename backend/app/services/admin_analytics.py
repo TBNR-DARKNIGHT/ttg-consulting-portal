@@ -309,11 +309,11 @@ async def get_admin_analytics_summary(
 
     events = list(reversed(events))
     ignored_user_ids, ignored_clerk_ids, ignored_emails = _ignored_keys(ignored_users)
+    all_users_by_id = {str(row["id"]): row for row in users if row.get("id")}
     users_by_id = {
-        str(row["id"]): row
-        for row in users
-        if row.get("id")
-        and not _is_ignored_user(
+        user_id: row
+        for user_id, row in all_users_by_id.items()
+        if not _is_ignored_user(
             row,
             ignored_user_ids=ignored_user_ids,
             ignored_clerk_ids=ignored_clerk_ids,
@@ -326,7 +326,7 @@ async def get_admin_analytics_summary(
         for row in events
         if not _is_ignored_event(
             row,
-            users_by_id=users_by_id,
+            users_by_id=all_users_by_id,
             ignored_user_ids=ignored_user_ids,
             ignored_clerk_ids=ignored_clerk_ids,
             ignored_emails=ignored_emails,
