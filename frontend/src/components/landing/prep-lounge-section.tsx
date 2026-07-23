@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { CheckCircle2, Lock, PlayCircle } from 'lucide-react';
+import { CheckCircle2, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { publicStorageUrl } from '@/lib/public-assets';
 
@@ -66,7 +66,7 @@ export function PrepLoungeSection() {
             </p>
 
             <Button asChild size="lg" className="h-12 rounded-full px-7">
-              <Link to="/auth/sign-up">Start your journey for free</Link>
+              <Link to="/dashboard">Start your journey</Link>
             </Button>
           </div>
 
@@ -107,15 +107,15 @@ export function PrepLoungeSection() {
 
                       <div className="flex items-center justify-between rounded-xl border border-brand-grey bg-white px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-grey/60 text-brand-dark/70">
-                            <Lock className="h-4 w-4" />
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-indigo/10 text-brand-indigo">
+                            <PlayCircle className="h-4 w-4" />
                           </div>
                           <div>
                             <div className="text-sm font-semibold text-brand-dark">Course 2</div>
-                            <div className="text-xs text-brand-dark/60">Interview Prep (Locked)</div>
+                            <div className="text-xs text-brand-dark/60">Interview Prep</div>
                           </div>
                         </div>
-                        <span className="text-xs font-medium text-brand-dark/55">Locked</span>
+                        <span className="text-xs font-medium text-brand-dark/65">Available</span>
                       </div>
 
                       <div className="flex items-center justify-between rounded-xl border border-brand-grey bg-white px-4 py-3">
@@ -139,7 +139,7 @@ export function PrepLoungeSection() {
               </div>
 
               <div className="mt-4 text-xs text-brand-dark/55 text-center">
-                Preview of your dashboard after you sign up
+                Preview of the open learning dashboard
               </div>
             </div>
           </div>

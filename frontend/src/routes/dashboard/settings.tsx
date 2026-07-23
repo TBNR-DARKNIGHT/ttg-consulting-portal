@@ -1,6 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
+import { usePortalAuth } from '@/auth/auth-context';
 import { getAuthMode, usesDemoAuthProvider } from '@/auth/env';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/dashboard/settings')({
 });
 
 function DashboardSettingsPage() {
+  const { isLoaded, isSignedIn } = usePortalAuth();
   const { courses, hasCourseAccess, isLoading } = useEntitlements();
   const redeem = useRedeemAccessCode();
   const currentUser = useCurrentUser();
@@ -32,6 +34,18 @@ function DashboardSettingsPage() {
   const [code, setCode] = useState('');
   const demoMode = usesDemoAuthProvider(getAuthMode());
   const isAdmin = currentUser.data?.role === 'ADMIN';
+
+  if (!isLoaded) {
+    return (
+      <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </main>
+    );
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/auth/login" replace />;
+  }
 
   if (isAdmin && tool === 'access-codes') return <AdminHomePage />;
   if (isAdmin && tool === 'analytics') return <AdminAnalyticsDashboard />;
@@ -71,8 +85,7 @@ function DashboardSettingsPage() {
           <CardHeader>
             <CardTitle>Course Access</CardTitle>
             <CardDescription>
-              The Free Course is included with every account. Redeem the single-use code supplied
-              after purchase to unlock Paid Courses.
+              Accounts remain available for saved progress, admin tools, and future paid courses.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">

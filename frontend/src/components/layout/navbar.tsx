@@ -68,14 +68,8 @@ export function Navbar() {
             </div>
           ) : (
             <>
-              <Link
-                to="/auth/login"
-                className="px-2 py-2 text-[13px] font-medium text-brand-dark/65 transition-colors hover:text-brand-indigo"
-              >
-                Log In
-              </Link>
               <Button asChild size="sm" className="h-9 rounded-md px-5 text-[13px]">
-                <Link to="/portal">Get Started</Link>
+                <Link to="/dashboard">Open Dashboard</Link>
               </Button>
             </>
           )}
@@ -128,14 +122,9 @@ export function Navbar() {
                 </div>
               ) : (
                 <div className="mt-4 grid gap-2">
-                  <Button asChild variant="outline">
-                    <Link to="/auth/login" onClick={() => setOpen(false)}>
-                      Log In
-                    </Link>
-                  </Button>
                   <Button asChild>
-                    <Link to="/portal" onClick={() => setOpen(false)}>
-                      Get Started
+                    <Link to="/dashboard" onClick={() => setOpen(false)}>
+                      Open Dashboard
                     </Link>
                   </Button>
                 </div>

@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { usePortalAuth } from '@/auth/auth-context';
 import { ContentDashboardShell } from '@/components/dashboard/content-dashboard-shell';
 
@@ -7,7 +7,7 @@ export const Route = createFileRoute('/dashboard')({
 });
 
 function DashboardLayout() {
-  const { isLoaded, isSignedIn } = usePortalAuth();
+  const { isLoaded } = usePortalAuth();
 
   if (!isLoaded) {
     return (
@@ -15,10 +15,6 @@ function DashboardLayout() {
         Loading…
       </div>
     );
-  }
-
-  if (!isSignedIn) {
-    return <Navigate to="/auth/login" replace />;
   }
 
   return (

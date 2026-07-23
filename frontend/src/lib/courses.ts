@@ -2,6 +2,7 @@ import type { ContentTopic } from '@/types';
 
 export const COURSE_IDS = ['course-1', 'course-2'] as const;
 export type CourseId = (typeof COURSE_IDS)[number];
+export const PUBLIC_COURSE_IDS: readonly CourseId[] = COURSE_IDS;
 
 export const COURSE_2_MODULES = [
   { id: 'module-1', title: 'Module 1: The Research Edge' },
@@ -27,13 +28,13 @@ export const COURSES: readonly CourseDefinition[] = [
   {
     id: 'course-1',
     title: 'Online Seminar',
-    shortLabel: 'Free Course',
+    shortLabel: 'Course',
     topics: [],
   },
   {
     id: 'course-2',
     title: 'Ace Your DSA Interview',
-    shortLabel: 'Paid Course',
+    shortLabel: 'Course',
     topics: [],
   },
 ] as const;

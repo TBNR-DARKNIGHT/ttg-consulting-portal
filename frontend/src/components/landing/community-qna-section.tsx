@@ -74,10 +74,10 @@ export function CommunityQnaSection() {
 
         <div className="mt-8 flex flex-col items-center gap-3 text-center">
           <p className="text-sm text-brand-dark/75">
-            Sign up to access all community answers
+            Explore the current learning resources in the dashboard
           </p>
           <Button asChild size="lg" className="h-11 px-7">
-            <Link to="/auth/sign-up">Join Free</Link>
+            <Link to="/dashboard">Open Dashboard</Link>
           </Button>
         </div>
       </div>

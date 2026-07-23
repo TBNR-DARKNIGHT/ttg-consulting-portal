@@ -1,10 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowRight, BookOpen, LockKeyhole, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { usePortalAuth } from '@/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEntitlements } from '@/hooks/use-entitlements';
-import { TTA_SHOP_URL } from '@/lib/tta-shop';
 
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardHomePage,
@@ -12,11 +10,9 @@ export const Route = createFileRoute('/dashboard/')({
 
 function DashboardHomePage() {
   const { user } = usePortalAuth();
-  const { hasCourseAccess, isLoading } = useEntitlements();
   const first =
     user?.firstName?.trim() ||
-    (user?.email ? user.email.split('@')[0] : null) ||
-    'there';
+    (user?.email ? user.email.split('@')[0] : null);
   const wave = String.fromCodePoint(0x1f44b);
 
   return (
@@ -27,11 +23,11 @@ function DashboardHomePage() {
             Your learning dashboard
           </p>
           <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            Welcome Back, {first} {wave}
+            Welcome{first ? ` Back, ${first}` : ''} {wave}
           </h1>
           <p className="mt-3 leading-7 text-muted-foreground">
-            Start by choosing one of the courses below. Explore the free course first, or take the
-            complete guided programme when you are ready to prepare more deeply.
+            Start by choosing one of the courses below. Both courses are open to explore, and an
+            account is only needed for saved progress and account tools.
           </p>
         </header>
 
@@ -43,7 +39,7 @@ function DashboardHomePage() {
               <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-brand-sage/20 text-brand-dark">
                 <BookOpen className="size-5" aria-hidden />
               </div>
-              <CardDescription>Free Course</CardDescription>
+              <CardDescription>Open Course</CardDescription>
               <CardTitle className="font-serif text-xl">Online Seminar</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col">
@@ -53,7 +49,7 @@ function DashboardHomePage() {
               </p>
               <Button asChild className="mt-6 w-fit">
                 <Link to="/dashboard/course/$courseId" params={{ courseId: 'course-1' }}>
-                  Start Free Course
+                  Start Course
                   <ArrowRight aria-hidden />
                 </Link>
               </Button>
@@ -66,7 +62,7 @@ function DashboardHomePage() {
               <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-brand-indigo/10 text-brand-indigo">
                 <Sparkles className="size-5" aria-hidden />
               </div>
-              <CardDescription>Complete Course</CardDescription>
+              <CardDescription>Open Course</CardDescription>
               <CardTitle className="font-serif text-xl">Ace Your DSA Interview</CardTitle>
             </CardHeader>
             <CardContent className="relative flex flex-1 flex-col">
@@ -74,31 +70,12 @@ function DashboardHomePage() {
                 Work through four focused modules covering research, school-fit answers, your story
                 bank, and how to close an interview with confidence.
               </p>
-              {isLoading ? (
-                <Button className="mt-6 w-fit" disabled>
-                  Checking access…
-                </Button>
-              ) : hasCourseAccess('course-2') ? (
-                <Button asChild className="mt-6 w-fit">
-                  <Link to="/dashboard/course/$courseId" params={{ courseId: 'course-2' }}>
-                    Continue Course
-                    <ArrowRight aria-hidden />
-                  </Link>
-                </Button>
-              ) : (
-                <div className="mt-6">
-                  <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <LockKeyhole className="size-3.5" aria-hidden />
-                    One purchase unlocks all course materials.
-                  </p>
-                  <Button asChild className="w-fit">
-                    <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer">
-                      Get Full Course Access
-                      <ArrowRight aria-hidden />
-                    </a>
-                  </Button>
-                </div>
-              )}
+              <Button asChild className="mt-6 w-fit">
+                <Link to="/dashboard/course/$courseId" params={{ courseId: 'course-2' }}>
+                  Start Course
+                  <ArrowRight aria-hidden />
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         </section>

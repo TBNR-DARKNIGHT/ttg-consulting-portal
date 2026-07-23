@@ -33,14 +33,14 @@ function PortalPage() {
               <br />
               <em className="font-normal text-[#a8a8f0]">In One Place.</em>
             </h1>
-            <p className="mt-5 max-w-[480px] font-light leading-[1.7] text-white/65">
-              Free to join. Immediately useful. And when you are ready to go deeper, we will be
-              here.
+            <p className="mt-5 max-w-[520px] font-light leading-[1.7] text-white/65">
+              Open to explore immediately. Start with the seminar resources or go straight into the
+              full DSA interview course.
             </p>
 
             <div className="mt-12 max-w-[560px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.05]">
               <p className="border-b border-white/10 px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40">
-                DSA Seminar · Preview
+                DSA Seminar Preview
               </p>
               {PORTAL_HEADER_IMAGE ? (
                 <img
@@ -57,13 +57,10 @@ function PortalPage() {
 
             <div className="mt-9 flex flex-wrap items-center gap-6">
               <Link
-                to="/auth/sign-up"
+                to="/dashboard"
                 className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90"
               >
-                Create Your Free Account
-              </Link>
-              <Link to="/auth/login" className="text-sm text-white/60 hover:text-white">
-                Already a member? Log in →
+                Open the Dashboard
               </Link>
             </div>
           </div>

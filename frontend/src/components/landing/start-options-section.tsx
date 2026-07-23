@@ -5,9 +5,9 @@ const options = [
   {
     badge: 'Self-paced',
     title: 'Explore at Your Own Pace',
-    body: "Free to join. Access our DSA seminar clips, Opportunities Directory, and practical guides the moment you sign up. Premium courses are available when you're ready.",
-    cta: 'Join the Portal Free',
-    to: '/portal',
+    body: "Open the dashboard and access our DSA seminar clips, Opportunities Directory, practical guides, and current courses without a signup step.",
+    cta: 'Open the Dashboard',
+    to: '/dashboard',
     imagePath: 'landing/explore_at_own_pace.jpeg',
   },
   {

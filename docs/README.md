@@ -19,6 +19,7 @@ Welcome to the TTG Consulting Portal documentation. This directory contains comp
 - [Contributing](./getting-started/contributing.md)
 - [Product Overview](./prd/overview.md)
 - [Architecture Overview](./architecture/overview.md)
+- [Open Course Access](./architecture/open-course-access.md)
 - [API Overview](./api/overview.md)
 - [Testing Strategy](./testing/strategy.md)
 

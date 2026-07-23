@@ -145,6 +145,13 @@ async def get_current_user(request: Request) -> ClerkUser:
         raise HTTPException(status_code=401, detail="Authentication failed")
 
 
+async def get_optional_current_user(request: Request) -> ClerkUser | None:
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return None
+    return await get_current_user(request)
+
+
 def get_supabase(
     _user: ClerkUser = Depends(get_current_user),  # noqa: ARG001
 ) -> Client:

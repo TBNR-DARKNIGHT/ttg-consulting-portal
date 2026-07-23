@@ -29,15 +29,15 @@ export function PortalFreeResourcesSection() {
     <section className="border-b border-brand-dark/15 bg-brand-grey" aria-labelledby="portal-free-resources-heading">
       <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
         <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">
-          Free on Signup
+          Open Resources
         </p>
         <h2 id="portal-free-resources-heading" className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">
           Three resources, available
           <br />
-          <em className="font-normal text-brand-indigo">the moment you join.</em>
+          <em className="font-normal text-brand-indigo">ready when you are.</em>
         </h2>
         <p className="mb-12 mt-5 max-w-[640px] leading-[1.7] text-brand-dark/70">
-          No payment required. Create your account and access all three immediately.
+          No payment or account required. Open the dashboard and start with any resource.
         </p>
         <div className="grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-3">
           {resources.map(({ badge, title, description, Icon }) => (

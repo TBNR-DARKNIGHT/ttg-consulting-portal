@@ -161,8 +161,9 @@ CREATE TABLE resources (
 - Course 1: `resources-public` / `course-1/...`
 - Course 2: `resources-paid` / `course-2/...`
 
-Course membership is stored explicitly in `course_id` so backend entitlement checks do not depend
-on topic mappings or storage-path naming conventions.
+Course membership is stored explicitly in `course_id` so backend access checks do not depend on
+topic mappings or storage-path naming conventions. Current open access is controlled by the
+backend `PUBLIC_COURSE_IDS` setting, not by changing every resource row from `paid` to `public`.
 
 Course 2 module metadata is stored in `course_modules`. The composite foreign key from
 `resources(course_id, module_id)` ensures that an optional module belongs to the resource's course.
@@ -196,8 +197,9 @@ CREATE INDEX idx_content_is_public ON content(is_public);
 
 ### CourseEntitlement
 
-Grants lifetime access to a paid course. Course 1 is implicitly available to every authenticated
-portal user and does not require an entitlement row.
+Grants lifetime access to a paid course. Courses listed in `PUBLIC_COURSE_IDS` are available even
+without an authenticated account and do not require an entitlement row. Entitlements remain the
+mechanism for future non-public paid courses.
 
 ```sql
 CREATE TABLE course_entitlements (
@@ -309,18 +311,20 @@ ORDER BY l.created_at DESC;
 | Bucket | Purpose | Access |
 |--------|---------|--------|
 | `resources-public` | Dashboard **public PDFs** | Backend catalog allowlist by `resource_id`; bucket remains public |
-| `resources-paid` | Dashboard **paid PDFs** (private bucket) | Clerk JWT + course entitlement + resource-ID API |
+| `resources-paid` | Dashboard PDFs that should remain privately stored | Backend resource policy + signed/download API |
 | `student-videos` | MapleBear student recordings | Signed URLs, consultant upload, parent read |
 | `public-assets` | Marketing / About page images | Public read |
 
-**Course videos (DSA / interview modules)** use **Mux Video**, not Supabase object storage: each `resources` row stores a **Mux playback ID** and whether playback is **public** or **signed** (JWT minted by `GET /api/v1/playback/mux-token`). Playback IDs are synced from Mux via `python -m app.scripts.sync_mux` (set asset **Passthrough** to the resource id). **PDFs** use `bucket` + `file_path` pointing at Supabase Storage. See [API overview](../api/overview.md) and [Mux secure playback](https://www.mux.com/docs/guides/secure-video-playback).
+**Course videos (DSA / interview modules)** use **Mux Video**, not Supabase object storage: each `resources` row stores a **Mux playback ID** and whether playback is **public** or **signed** (JWT minted by `GET /api/v1/playback/mux-token`). Signed playback can still be used for currently open courses; the backend mints tokens for resources allowed by `PUBLIC_COURSE_IDS`. Playback IDs are synced from Mux via `python -m app.scripts.sync_mux` (set asset **Passthrough** to the resource id). **PDFs** use `bucket` + `file_path` pointing at Supabase Storage. See [API overview](../api/overview.md), [Open Course Access](../architecture/open-course-access.md), and [Mux secure playback](https://www.mux.com/docs/guides/secure-video-playback).
 
 ---
 
 ## Row Level Security (RLS) Policies
 
 - **users**: Backend endpoints resolve the verified Clerk `sub` through `clerk_user_id`; they never trust a user ID supplied by the browser.
-- **resources**: Public catalog metadata may be listed, but paid files and playback tokens require an active `course_entitlements` row.
+- **resources**: Public catalog metadata may be listed. Files and playback tokens are served when
+  the resource belongs to a course in `PUBLIC_COURSE_IDS`, the user is an admin, or the user has an
+  active entitlement for a non-public paid course.
 - **course_entitlements**: Users may read their own access through a backend endpoint. Only trusted backend/admin workflows may grant or revoke.
 - **access_codes**: No direct client access. Only the service-role backend may create, inspect, or atomically redeem codes.
 - **admin_audit_log**: No direct client access. Service-role/admin operations append records;
@@ -341,7 +345,7 @@ checks are therefore mandatory even when RLS is enabled.
 - 3 students across programmes
 - 5 sample videos with feedback
 - 10 content items (mix of free and paid)
-- 1 Course 2 entitlement for the TTA client
+- 1 future paid-course entitlement for the TTA client
 - 1 unused and 1 redeemed Course 2 access code (non-production fixtures only)
 
 ---

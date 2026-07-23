@@ -6,6 +6,7 @@ import {
   BarChart3,
   KeyRound,
   LayoutDashboard,
+  LogIn,
   LogOut,
   Settings,
   UploadCloud,
@@ -30,6 +31,7 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
     },
   });
   const currentUser = useCurrentUser({ enabled: adminCheckEnabled });
+  const { isSignedIn } = usePortalAuth();
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setAdminCheckEnabled(true));
@@ -60,7 +62,7 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
 
       <DashboardCourseSidebarSection onNavigate={onNavigate} />
 
-      {isAdmin ? (
+      {!isSignedIn ? null : isAdmin ? (
         <div className="rounded-md">
           <div
             className={cn(
@@ -186,10 +188,25 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
 }
 
 export function DashboardAccountControl() {
-  const { signOut, user } = usePortalAuth();
+  const { isSignedIn, signOut, user } = usePortalAuth();
   const usesClerk = getAuthMode() === 'clerk';
   const displayName =
     [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'Account';
+
+  if (!isSignedIn) {
+    return (
+      <Button
+        asChild
+        variant="ghost"
+        className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+      >
+        <Link to="/auth/login">
+          <LogIn className="size-4" aria-hidden />
+          Sign in
+        </Link>
+      </Button>
+    );
+  }
 
   return usesClerk ? (
     <div className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2">

@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     environment: str = "development"
     app_version: str = "0.1.0"
+    public_course_ids: str = "course-1,course-2"
 
     # Server-to-server authentication for Zapier purchase fulfilment.
     zapier_webhook_secret: str = ""

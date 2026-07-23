@@ -6,11 +6,11 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
 from app.config import settings
-from app.dependencies import get_current_user
-from app.models.enums import UserRole
+from app.dependencies import get_optional_current_user
 from app.models.schemas import ApiResponse, ClerkUser
 from app.routers.resources import find_resource
-from app.services.entitlements import EntitlementServiceError, has_course_access
+from app.services.course_access_policy import can_user_access_resource
+from app.services.entitlements import EntitlementServiceError
 from app.services.mux_playback_token import (
     mint_mux_thumbnail_token,
     mint_mux_video_playback_token,
@@ -32,7 +32,7 @@ class MuxPlaybackTokenOut(BaseModel):
 async def mux_playback_token(
     resource_id: str = Query(..., description="Dashboard resource id, e.g. res-009"),
     expires_in: int = Query(3600, ge=60, le=86400, description="JWT lifetime in seconds"),
-    user: ClerkUser = Depends(get_current_user),
+    user: ClerkUser | None = Depends(get_optional_current_user),
 ) -> ApiResponse[MuxPlaybackTokenOut]:
     """
     Mint a Mux Video playback JWT for catalog entries that use **signed** playback IDs.
@@ -58,17 +58,12 @@ async def mux_playback_token(
             detail="Video playback is not provisioned for this resource",
         )
 
-    if resource.access == "paid" and user.role is not UserRole.ADMIN:
-        if not resource.course_id:
-            raise HTTPException(status_code=500, detail="Resource course is not configured")
-        if user.internal_user_id is None:
-            raise HTTPException(status_code=503, detail="User profile unavailable")
-        try:
-            allowed = await has_course_access(user.internal_user_id, resource.course_id)
-        except EntitlementServiceError as exc:
-            raise HTTPException(status_code=503, detail="Course access unavailable") from exc
-        if not allowed:
-            raise HTTPException(status_code=403, detail="Course access required")
+    try:
+        allowed = await can_user_access_resource(resource, user)
+    except EntitlementServiceError as exc:
+        raise HTTPException(status_code=503, detail="Course access unavailable") from exc
+    if not allowed:
+        raise HTTPException(status_code=403, detail="Course access required")
 
     kid = settings.mux_signing_key_id.strip()
     secret = settings.mux_signing_private_key.strip()
@@ -102,7 +97,7 @@ async def mux_playback_token(
 async def mux_thumbnail_token(
     resource_id: str = Query(..., description="Dashboard video resource id"),
     expires_in: int = Query(3600, ge=60, le=86400),
-    user: ClerkUser = Depends(get_current_user),
+    user: ClerkUser | None = Depends(get_optional_current_user),
 ) -> ApiResponse[MuxPlaybackTokenOut]:
     """Mint the distinct JWT required to load an image for a signed Mux video."""
     resource = find_resource(resource_id)
@@ -115,17 +110,12 @@ async def mux_thumbnail_token(
     if not resource.mux_playback_id:
         raise HTTPException(status_code=404, detail="Video playback is not provisioned")
 
-    if resource.access == "paid" and user.role is not UserRole.ADMIN:
-        if not resource.course_id:
-            raise HTTPException(status_code=500, detail="Resource course is not configured")
-        if user.internal_user_id is None:
-            raise HTTPException(status_code=503, detail="User profile unavailable")
-        try:
-            allowed = await has_course_access(user.internal_user_id, resource.course_id)
-        except EntitlementServiceError as exc:
-            raise HTTPException(status_code=503, detail="Course access unavailable") from exc
-        if not allowed:
-            raise HTTPException(status_code=403, detail="Course access required")
+    try:
+        allowed = await can_user_access_resource(resource, user)
+    except EntitlementServiceError as exc:
+        raise HTTPException(status_code=503, detail="Course access unavailable") from exc
+    if not allowed:
+        raise HTTPException(status_code=403, detail="Course access required")
 
     kid = settings.mux_signing_key_id.strip()
     secret = settings.mux_signing_private_key.strip()

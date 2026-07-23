@@ -183,7 +183,7 @@ function ResourceDetailPage() {
             {resource.title}
           </h1>
           <p className="text-sm text-muted-foreground">
-            This resource is part of Course 2. Redeem your purchase code to unlock it.
+            This resource requires course access. Sign in or redeem an access code to unlock it.
           </p>
           <Button variant="outline" asChild>
             <Link

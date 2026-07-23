@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import {
   PortalMuxPreviewCard,
@@ -5,7 +6,6 @@ import {
   PortalPreviewCardSkeleton,
 } from '@/components/portal/portal-mux-preview-card';
 import { usePortalCoursePreviews } from '@/hooks/use-portal-course-previews';
-import { TTA_SHOP_URL } from '@/lib/tta-shop';
 
 const PREVIEW_SLOT_COUNT = 3;
 const PARENT_OVERVIEW_GUIDE_URL =
@@ -24,26 +24,26 @@ export function PortalPremiumCourseSection() {
   return (
     <section className="border-b border-brand-dark/15 bg-brand-cream" aria-labelledby="portal-premium-course-heading">
       <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
-        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Premium Course</p>
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Full Course</p>
         <div className="grid items-start gap-10 md:grid-cols-2 md:gap-16">
           <div>
             <h2 id="portal-premium-course-heading" className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">
-              Ace Your DSA Interview — <em className="font-normal text-brand-indigo">Our Most Complete Preparation Resource</em>
+              Ace Your DSA Interview <em className="font-normal text-brand-indigo">is open now.</em>
             </h2>
             <p className="mt-4 text-[15px] leading-[1.7] text-brand-dark/70">
-              This is what proper preparation looks like. Watch a preview and see how our coaches
-              break down the questions most students get wrong.
+              This is what proper preparation looks like. Preview the coaching style here, then
+              continue into the full course from the dashboard.
             </p>
             <p className="mt-4 text-[15px] leading-[1.7] text-brand-dark/70">
-              Four modules taking your child from research to interview close, paired with companion
+              Four modules take your child from research to interview close, paired with companion
               worksheets and a dedicated Parent Overview Guide.
             </p>
             <a href={PARENT_OVERVIEW_GUIDE_URL} download="Course Overview Parents.pdf" className="mt-5 inline-flex text-[13px] font-semibold text-brand-dark/60 hover:text-brand-indigo">
-              ← Download the Parent Overview Guide
+              Download the Parent Overview Guide
             </a>
-            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer" className="mt-7 hidden w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:block">
-              Unlock the Full Course
-            </a>
+            <Link to="/dashboard" className="mt-7 hidden w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:block">
+              Open the Full Course
+            </Link>
           </div>
           <div>
             {error ? (
@@ -60,9 +60,9 @@ export function PortalPremiumCourseSection() {
                 return <PortalMuxPreviewCard key={slot.key} preview={slot.preview} isOfflineDemo={isOfflineDemo} />;
               })}
             </div>
-            <a href={TTA_SHOP_URL} target="_blank" rel="noopener noreferrer" className="mt-6 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:hidden">
-              Unlock the Full Course
-            </a>
+            <Link to="/dashboard" className="mt-6 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:hidden">
+              Open the Full Course
+            </Link>
           </div>
         </div>
       </div>

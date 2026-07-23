@@ -6,7 +6,7 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_optional_current_user
 from app.main import app
 from app.models.enums import UserRole
 from app.models.resource import ResourceItem
@@ -15,24 +15,15 @@ from app.routers import resources
 
 
 @pytest.mark.asyncio
-async def test_list_resources_requires_auth(client: AsyncClient) -> None:
+async def test_list_resources_allows_anonymous_catalog_access(client: AsyncClient) -> None:
     response = await client.get("/api/v1/resources")
-    assert response.status_code == 401
+    assert response.status_code == 200
+    assert isinstance(response.json()["data"], list)
 
 
 @pytest.mark.asyncio
 async def test_list_resources_returns_seed_catalog(client: AsyncClient) -> None:
-    async def _user() -> ClerkUser:
-        return ClerkUser(clerk_id="user_test", email="parent@example.com")
-
-    app.dependency_overrides[get_current_user] = _user
-    try:
-        response = await client.get(
-            "/api/v1/resources",
-            headers={"Authorization": "Bearer test-token"},
-        )
-    finally:
-        app.dependency_overrides.pop(get_current_user, None)
+    response = await client.get("/api/v1/resources")
 
     assert response.status_code == 200
     body = response.json()
@@ -53,7 +44,7 @@ def _paid_resource() -> ResourceItem:
     return ResourceItem(
         id="paid-resource",
         title="Paid resource",
-        course_id="course-2",
+        course_id="course-3",
         type="video",
         topic="Interview Preparation",
         description="Visible preview copy",
@@ -72,23 +63,16 @@ def _paid_resource() -> ResourceItem:
 
 
 @pytest.mark.asyncio
-async def test_list_resources_redacts_paid_delivery_metadata_for_free_user(
+async def test_list_resources_redacts_paid_delivery_metadata_for_non_public_course(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    async def free_user() -> ClerkUser:
-        return ClerkUser(clerk_id="user_free", internal_user_id=uuid4())
-
     async def free_entitlements(_user_id):
-        return ["course-1"]
+        pytest.fail("Anonymous catalog access should not query entitlements")
 
-    app.dependency_overrides[get_current_user] = free_user
     monkeypatch.setattr(resources, "list_resources", lambda: [_paid_resource()])
     monkeypatch.setattr(resources, "list_entitlements", free_entitlements)
-    try:
-        response = await client.get("/api/v1/resources")
-    finally:
-        app.dependency_overrides.pop(get_current_user, None)
+    response = await client.get("/api/v1/resources")
 
     assert response.status_code == 200
     item = response.json()["data"][0]
@@ -109,7 +93,7 @@ async def test_list_resources_redacts_paid_delivery_metadata_for_free_user(
 @pytest.mark.parametrize(
     ("role", "courses"),
     [
-        (UserRole.CLIENT, ["course-1", "course-2"]),
+        (UserRole.CLIENT, ["course-1", "course-3"]),
         (UserRole.ADMIN, None),
     ],
 )
@@ -127,13 +111,13 @@ async def test_list_resources_keeps_paid_delivery_metadata_for_authorized_users(
             pytest.fail("Admin catalog access must not query entitlements")
         return courses
 
-    app.dependency_overrides[get_current_user] = authorized_user
+    app.dependency_overrides[get_optional_current_user] = authorized_user
     monkeypatch.setattr(resources, "list_resources", lambda: [_paid_resource()])
     monkeypatch.setattr(resources, "list_entitlements", entitlements)
     try:
         response = await client.get("/api/v1/resources")
     finally:
-        app.dependency_overrides.pop(get_current_user, None)
+        app.dependency_overrides.pop(get_optional_current_user, None)
 
     assert response.status_code == 200
     item = response.json()["data"][0]

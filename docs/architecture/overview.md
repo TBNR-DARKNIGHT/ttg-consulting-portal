@@ -136,17 +136,22 @@ service-role client bypasses RLS, so every user/resource boundary is also enforc
 
 **Supabase Service Role Key**: The current scaffold uses the Supabase service role key (bypasses RLS) for all authenticated requests. Each endpoint **must** resolve the verified Clerk JWT `sub` through `users.clerk_user_id` and scope queries to the resulting internal user UUID. Access-code creation and redemption are backend-only operations; clients never receive direct table access. Per-user Supabase JWTs for full RLS enforcement are planned for a later phase.
 
-**Authorization**: Application-managed uppercase roles (`CLIENT`, `CONSULTANT`, `ADMIN`) plus
-course entitlements for paid content. Clerk authenticates the identity; Supabase `users.role`
-authorizes portal operations.
+**Authorization**: Application-managed uppercase roles (`CLIENT`, `CONSULTANT`, `ADMIN`), a
+configurable public-course allowlist, and course entitlements for future paid content. Clerk
+authenticates the identity; Supabase `users.role` authorizes portal operations.
 - Enforced at API layer (FastAPI deps) + database layer (Supabase RLS)
 - `require_admin` reloads the synchronized Supabase role and protects every `/api/v1/admin/*`
   operation. Hiding `/admin` in the SPA is not a security control.
-- Course 1 is implicit for authenticated users; Course 2 requires an active `course_entitlements` row
-- Paid PDFs and signed Mux tokens resolve the resource and course server-side before authorization
+- `PUBLIC_COURSE_IDS` currently makes Course 1 and Course 2 accessible without login/payment.
+- Paid PDFs and signed Mux tokens resolve the resource and course server-side before authorization;
+  public-course resources are allowed even for anonymous users.
+- Non-public paid courses still require an active `course_entitlements` row or admin role.
 - Access-code create, revoke, and reissue operations use service-role-only PostgreSQL functions;
   reissue revokes the old unused code and inserts its replacement in one transaction.
 - Admin mutations append operational records to `admin_audit_log`.
+
+See [Open Course Access](./open-course-access.md) for the current no-login course policy and how to
+restore entitlement gating later.
 
 **Data Protection:**
 - HTTPS in transit, Supabase encryption at rest
