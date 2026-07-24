@@ -60,7 +60,7 @@ function PortalPage() {
                 to="/dashboard"
                 className="rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90"
               >
-                Open the Dashboard
+                Acess Free Resources
               </Link>
             </div>
           </div>

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
@@ -28,6 +30,10 @@ class MuxPlaybackTokenOut(BaseModel):
     expires_at: int
 
 
+async def _find_resource(resource_id: str):
+    return await asyncio.to_thread(find_resource, resource_id)
+
+
 @router.get("/playback/mux-token", response_model=ApiResponse[MuxPlaybackTokenOut])
 async def mux_playback_token(
     resource_id: str = Query(..., description="Dashboard resource id, e.g. res-009"),
@@ -39,7 +45,7 @@ async def mux_playback_token(
 
     Public playback IDs do not need a token; use Mux Player with `playbackId` only.
     """
-    resource = find_resource(resource_id)
+    resource = await _find_resource(resource_id)
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
 
@@ -100,7 +106,7 @@ async def mux_thumbnail_token(
     user: ClerkUser | None = Depends(get_optional_current_user),
 ) -> ApiResponse[MuxPlaybackTokenOut]:
     """Mint the distinct JWT required to load an image for a signed Mux video."""
-    resource = find_resource(resource_id)
+    resource = await _find_resource(resource_id)
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
     if resource.type != "video":

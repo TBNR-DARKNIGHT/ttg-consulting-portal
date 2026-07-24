@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 from app.config import settings
 from app.models.enums import UserRole
 from app.models.resource import ResourceItem
@@ -7,6 +9,7 @@ from app.models.schemas import ClerkUser
 from app.services.entitlements import EntitlementServiceError, has_course_access
 
 
+@lru_cache(maxsize=1)
 def public_course_ids() -> set[str]:
     return {
         course_id.strip()

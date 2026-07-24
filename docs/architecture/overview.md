@@ -199,4 +199,5 @@ restore entitlement gating later.
 - [Data Models](../data/models.md)
 - [API Overview](../api/overview.md)
 - [Deployment Guide](../deployment/environments.md)
+- [Performance and Cleanup Changes](./performance-and-cleanup-2026-07-24.md)
 - [PRD Overview](../prd/overview.md)

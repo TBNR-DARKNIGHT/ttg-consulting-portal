@@ -12,11 +12,13 @@ export function TtaFamilyNoteSection() {
         <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.02em] text-brand-dark md:text-[40px]">
           Already a TTA family?
           <br />
-          <em className="font-normal text-brand-indigo">You can start now.</em>
+          <em className="font-normal text-brand-indigo">Your child’s DSA journey starts here.</em>
         </h2>
         <p className="mt-3 leading-[1.7] text-brand-dark/70">
-          The current Beyond Grades courses are open to explore. If your family needs account help
-          or programme support, our client services team can point you in the right direction.
+          As a Think Teach Academy family, you have exclusive access to a complimentary DSA consultation session with the Beyond Grades team.
+        </p>
+        <p className="mt-3 leading-[1.7] text-brand-dark/70">
+          Reach out to our client services team to book your free session.
         </p>
         <a
           href={TTA_CLIENT_SERVICES_WA}

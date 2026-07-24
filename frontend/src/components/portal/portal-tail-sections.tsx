@@ -40,7 +40,7 @@ export function PortalHowItWorksSection() {
 }
 
 export function PortalBeginTodaySection() {
-  return <section className="border-b border-brand-dark/15 bg-brand-cream text-center"><div className="mx-auto max-w-[560px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Begin Today</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">The dashboard is open.<br /><em className="font-normal text-brand-indigo">The frameworks are ready.</em></h2><p className="mt-4 leading-[1.7] text-brand-dark/70">Start exploring the resources and courses today.</p><Link to="/dashboard" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Open the Dashboard</Link></div></section>;
+  return <section className="border-b border-brand-dark/15 bg-brand-cream text-center"><div className="mx-auto max-w-[560px] px-5 py-16 md:px-8 md:py-20"><p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Begin Today</p><h2 className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">The dashboard is open.<br /><em className="font-normal text-brand-indigo">The frameworks are ready.</em></h2><p className="mt-4 leading-[1.7] text-brand-dark/70">Start exploring the resources and courses today.</p><Link to="/dashboard" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Acess Free Resources</Link></div></section>;
 }
 
 export function PortalTtaMembersSection() {

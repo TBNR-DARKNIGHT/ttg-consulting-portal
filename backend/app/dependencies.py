@@ -17,7 +17,7 @@ from app.models.schemas import ClerkUser
 from app.services.edxp_authz import EdxpAuthzError
 from app.services.edxp_authz import authorize as edxp_authorize
 from app.services.supabase import get_client as get_supabase_client
-from app.services.user_sync import UserSyncError, sync_authenticated_user
+from app.services.user_sync import UserSyncError, cached_sync_authenticated_user
 
 logger = structlog.get_logger()
 
@@ -121,7 +121,7 @@ async def get_current_user(request: Request) -> ClerkUser:
             first_name=payload.get("first_name"),
             last_name=payload.get("last_name"),
         )
-        return await sync_authenticated_user(clerk_user)
+        return await cached_sync_authenticated_user(clerk_user)
     except HTTPException:
         raise
     except jwt.ExpiredSignatureError:

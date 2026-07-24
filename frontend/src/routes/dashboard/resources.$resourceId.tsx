@@ -1,13 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useMemo } from 'react';
-import MuxPlayer from '@mux/mux-player-react';
 import { usePortalAuth } from '@/auth/auth-context';
-import { MuxPublicPlayer } from '@/components/mux/mux-public-player';
 import { ResourceLoadingState } from '@/components/dashboard/resource-loading-state';
 import { Button } from '@/components/ui/button';
 import { getMuxPlaybackToken, getPaidStorageUrl, getPublicStorageUrl } from '@/lib/api';
-import { muxEnvKey } from '@/lib/mux';
 import { publicBucketStorageUrl } from '@/lib/public-assets';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
@@ -17,6 +14,16 @@ import { ArrowLeft, Download } from 'lucide-react';
 const PdfDocumentViewer = lazy(() =>
   import('@/components/pdf/pdf-document-viewer').then((module) => ({
     default: module.PdfDocumentViewer,
+  })),
+);
+const MuxPublicPlayer = lazy(() =>
+  import('@/components/mux/mux-public-player').then((module) => ({
+    default: module.MuxPublicPlayer,
+  })),
+);
+const MuxSignedPlayer = lazy(() =>
+  import('@/components/mux/mux-signed-player').then((module) => ({
+    default: module.MuxSignedPlayer,
   })),
 );
 
@@ -150,7 +157,6 @@ function ResourceDetailPage() {
     return base && path ? `${base}${path}` : null;
   }, [resource]);
 
-  const muxEnvKeyValue = muxEnvKey();
   const downloadFilename = `${resource?.title ?? 'resource'}.pdf`.replace(
     /[<>:"/\\|?*]/g,
     '-',
@@ -284,29 +290,34 @@ function ResourceDetailPage() {
               </div>
             )}
             {videoReadySigned && playbackJwt && (
-              <MuxPlayer
-                className="aspect-video w-full"
-                playbackId={resource.muxPlaybackId}
-                tokens={{ playback: playbackJwt }}
-                metadataVideoTitle={resource.title}
-                {...(muxEnvKeyValue ? { envKey: muxEnvKeyValue } : {})}
-                playsInline
-                onError={() => {
-                  void queryClient.invalidateQueries({
-                    queryKey: ['mux-playback-token', resourceId, canAccess],
-                  });
-                }}
-              />
+              <Suspense
+                fallback={<ResourceLoadingState label="Loading video player..." className="p-6" />}
+              >
+                <MuxSignedPlayer
+                  playbackId={resource.muxPlaybackId}
+                  playbackToken={playbackJwt}
+                  title={resource.title}
+                  onError={() => {
+                    void queryClient.invalidateQueries({
+                      queryKey: ['mux-playback-token', resourceId, canAccess],
+                    });
+                  }}
+                />
+              </Suspense>
             )}
           </div>
         )}
 
         {videoReadyPublic && resource.muxPlaybackId && (
           <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <MuxPublicPlayer
-              playbackId={resource.muxPlaybackId}
-              title={resource.title}
-            />
+            <Suspense
+              fallback={<ResourceLoadingState label="Loading video player..." className="p-6" />}
+            >
+              <MuxPublicPlayer
+                playbackId={resource.muxPlaybackId}
+                title={resource.title}
+              />
+            </Suspense>
           </div>
         )}
 

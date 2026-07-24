@@ -20,6 +20,7 @@ Welcome to the TTG Consulting Portal documentation. This directory contains comp
 - [Product Overview](./prd/overview.md)
 - [Architecture Overview](./architecture/overview.md)
 - [Open Course Access](./architecture/open-course-access.md)
+- [Performance and Cleanup Changes](./architecture/performance-and-cleanup-2026-07-24.md)
 - [API Overview](./api/overview.md)
 - [Testing Strategy](./testing/strategy.md)
 

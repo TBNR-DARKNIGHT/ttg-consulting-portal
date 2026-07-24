@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -10,9 +12,9 @@ from app.dependencies import get_optional_current_user, get_supabase_public
 from app.models.resource import ResourceItem
 from app.models.schemas import ApiResponse, ClerkUser
 from app.routers.resources import find_resource
+from app.services.admin_resource_uploads import pdf_thumbnail_path
 from app.services.course_access_policy import can_user_access_resource, is_public_resource
 from app.services.entitlements import EntitlementServiceError
-from app.services.admin_resource_uploads import pdf_thumbnail_path
 
 logger = structlog.get_logger()
 
@@ -42,8 +44,12 @@ def _get_public_pdf(resource_id: str) -> ResourceItem:
     return resource
 
 
+async def _get_public_pdf_async(resource_id: str) -> ResourceItem:
+    return await asyncio.to_thread(_get_public_pdf, resource_id)
+
+
 async def _get_authorized_paid_pdf(resource_id: str, user: ClerkUser | None) -> ResourceItem:
-    resource = find_resource(resource_id)
+    resource = await asyncio.to_thread(find_resource, resource_id)
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
     if resource.type != "pdf" or resource.access != "paid":
@@ -73,8 +79,10 @@ async def storage_public_url(
     resource_id: str = Query(..., description="Public PDF resource id"),
     supabase: Client = Depends(get_supabase_public),
 ) -> ApiResponse[StorageUrlResponse]:
-    resource = _get_public_pdf(resource_id)
-    public = supabase.storage.from_(resource.bucket).get_public_url(resource.file_path)
+    resource = await _get_public_pdf_async(resource_id)
+    public = await asyncio.to_thread(
+        lambda: supabase.storage.from_(resource.bucket).get_public_url(resource.file_path)
+    )
     if isinstance(public, dict):
         url = public.get("publicUrl") or public.get("publicURL") or public.get("public_url")
     else:
@@ -97,8 +105,10 @@ async def storage_public_download(
     resource_id: str = Query(..., description="Public PDF resource id"),
     supabase: Client = Depends(get_supabase_public),
 ) -> Response:
-    resource = _get_public_pdf(resource_id)
-    data = supabase.storage.from_(resource.bucket).download(resource.file_path)
+    resource = await _get_public_pdf_async(resource_id)
+    data = await asyncio.to_thread(
+        lambda: supabase.storage.from_(resource.bucket).download(resource.file_path)
+    )
     if not isinstance(data, (bytes, bytearray)):
         raise ValueError("Unexpected download response")
     filename = resource.file_path.rsplit("/", 1)[-1]
@@ -117,8 +127,10 @@ async def storage_paid_url(
     supabase: Client = Depends(get_supabase_public),
 ) -> ApiResponse[StorageUrlResponse]:
     resource = await _get_authorized_paid_pdf(resource_id, user)
-    signed = supabase.storage.from_(resource.bucket).create_signed_url(
-        resource.file_path, expires_in
+    signed = await asyncio.to_thread(
+        lambda: supabase.storage.from_(resource.bucket).create_signed_url(
+            resource.file_path, expires_in
+        )
     )
     if isinstance(signed, dict):
         url = signed.get("signedURL") or signed.get("signedUrl") or signed.get("signed_url")
@@ -145,7 +157,7 @@ async def storage_thumbnail_url(
     user: ClerkUser | None = Depends(get_optional_current_user),
     supabase: Client = Depends(get_supabase_public),
 ) -> ApiResponse[StorageUrlResponse]:
-    resource = find_resource(resource_id)
+    resource = await asyncio.to_thread(find_resource, resource_id)
     if not resource or resource.type != "pdf":
         raise HTTPException(status_code=404, detail="PDF resource not found")
     if not resource.file_path or not resource.bucket:
@@ -158,13 +170,17 @@ async def storage_thumbnail_url(
 
     path = pdf_thumbnail_path(resource.file_path)
     if resource.access == "paid":
-        result = supabase.storage.from_(resource.bucket).create_signed_url(path, expires_in)
+        result = await asyncio.to_thread(
+            lambda: supabase.storage.from_(resource.bucket).create_signed_url(path, expires_in)
+        )
         if isinstance(result, dict):
             url = result.get("signedURL") or result.get("signedUrl") or result.get("signed_url")
         else:
             url = str(result)
     else:
-        result = supabase.storage.from_(resource.bucket).get_public_url(path)
+        result = await asyncio.to_thread(
+            lambda: supabase.storage.from_(resource.bucket).get_public_url(path)
+        )
         if isinstance(result, dict):
             url = result.get("publicUrl") or result.get("publicURL") or result.get("public_url")
         else:
@@ -190,7 +206,9 @@ async def storage_paid_download(
     supabase: Client = Depends(get_supabase_public),
 ) -> Response:
     resource = await _get_authorized_paid_pdf(resource_id, user)
-    data = supabase.storage.from_(resource.bucket).download(resource.file_path)
+    data = await asyncio.to_thread(
+        lambda: supabase.storage.from_(resource.bucket).download(resource.file_path)
+    )
     if not isinstance(data, (bytes, bytearray)):
         raise ValueError("Unexpected download response")
     filename = resource.file_path.rsplit("/", 1)[-1]

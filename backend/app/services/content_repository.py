@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
+from threading import RLock
+from time import monotonic
 from typing import Any
 
 import structlog
@@ -13,6 +16,10 @@ from app.services.supabase import get_client
 logger = structlog.get_logger()
 
 _SEED_RESOURCES = [ResourceItem.model_validate(row) for row in RESOURCE_SEEDS]
+_RESOURCE_CACHE_TTL_SECONDS = 30.0
+_resource_cache: list[ResourceItem] | None = None
+_resource_cache_expires_at = 0.0
+_resource_cache_lock = RLock()
 
 
 def is_supabase_configured() -> bool:
@@ -98,17 +105,35 @@ def _fetch_from_supabase() -> list[ResourceItem]:
     return [_row_to_resource(row) for row in rows]
 
 
+def invalidate_resource_cache() -> None:
+    global _resource_cache, _resource_cache_expires_at
+    with _resource_cache_lock:
+        _resource_cache = None
+        _resource_cache_expires_at = 0.0
+
+
 def list_resources() -> list[ResourceItem]:
     """Return catalog from Supabase when configured and populated; else in-memory seeds."""
+    global _resource_cache, _resource_cache_expires_at
     if is_supabase_configured():
-        try:
-            rows = _fetch_from_supabase()
-            if rows:
-                return rows
-            logger.info("resources table empty; using in-memory seed catalog")
-        except Exception:
-            logger.exception("Failed to load resources from Supabase; using seed catalog")
+        now = monotonic()
+        with _resource_cache_lock:
+            if _resource_cache is not None and now < _resource_cache_expires_at:
+                return list(_resource_cache)
+            try:
+                rows = _fetch_from_supabase()
+                if rows:
+                    _resource_cache = rows
+                    _resource_cache_expires_at = now + _RESOURCE_CACHE_TTL_SECONDS
+                    return list(rows)
+                logger.info("resources table empty; using in-memory seed catalog")
+            except Exception:
+                logger.exception("Failed to load resources from Supabase; using seed catalog")
     return list(_SEED_RESOURCES)
+
+
+async def list_resources_async() -> list[ResourceItem]:
+    return await asyncio.to_thread(list_resources)
 
 
 def find_resource(resource_id: str) -> ResourceItem | None:
@@ -116,6 +141,10 @@ def find_resource(resource_id: str) -> ResourceItem | None:
         if item.id == resource_id:
             return item
     return None
+
+
+async def find_resource_async(resource_id: str) -> ResourceItem | None:
+    return await asyncio.to_thread(find_resource, resource_id)
 
 
 def list_video_resources() -> list[ResourceItem]:
@@ -150,6 +179,7 @@ def update_mux_playback(
     )
     if not response.data:
         raise ValueError(f"Resource not found in Supabase: {resource_id}")
+    invalidate_resource_cache()
 
 
 def demo_progress_for_user(clerk_id: str) -> list[ResourceProgressItem]:

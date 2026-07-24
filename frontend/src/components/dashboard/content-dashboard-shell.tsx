@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Menu } from 'lucide-react';
+import { Mail, Menu } from 'lucide-react';
 import {
   DashboardAccountControl,
   ContentDashboardNavLinks,
@@ -56,6 +56,23 @@ export function ContentDashboardShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
           <div className="min-w-0 truncate font-medium text-foreground">Dashboard</div>
+        </div>
+        <div className="border-b border-brand-indigo/15 bg-brand-indigo/[0.04] px-4 py-2">
+          <div className="mx-auto flex max-w-6xl flex-col items-start gap-2 text-sm text-brand-dark sm:flex-row sm:items-center sm:justify-center">
+            <span className="leading-snug">
+              Want a personalised DSA strategy? Book a consultation with us.
+            </span>
+            <Button
+              asChild
+              size="sm"
+              className="h-8 shrink-0 gap-1.5 rounded-md bg-brand-indigo px-3 text-xs font-semibold text-white hover:bg-brand-indigo/90"
+            >
+              <a href="mailto:beyondgrades@thinkteachacademy.com">
+                <Mail className="size-3.5" aria-hidden />
+                Book Now
+              </a>
+            </Button>
+          </div>
         </div>
         {children}
       </div>

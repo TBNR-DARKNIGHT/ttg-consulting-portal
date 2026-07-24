@@ -28,8 +28,10 @@ const sessionStartKey = 'bg_analytics_session_started_at';
 const sessionStartedKey = 'bg_analytics_session_start_sent';
 const pendingEventsKey = 'bg_analytics_pending_events';
 const maxPendingEvents = 100;
+const analyticsFlushDelayMs = 5_000;
 const memoryStorage = new Map<string, string>();
 let flushInProgress = false;
+let scheduledFlushId: ReturnType<typeof window.setTimeout> | null = null;
 
 function createId(): string {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -111,7 +113,11 @@ export async function captureAnalyticsEvents(
   if (!hasApiBaseUrl() || events.length === 0) return;
 
   queueAnalyticsEvents(events);
-  await flushAnalyticsEvents(getToken, options);
+  if (options.preferBeacon) {
+    await flushAnalyticsEvents(getToken, options);
+    return;
+  }
+  scheduleAnalyticsFlush(getToken);
 }
 
 function readPendingEvents(): AnalyticsEvent[] {
@@ -142,11 +148,26 @@ function queueAnalyticsEvents(events: AnalyticsEvent[]): void {
   writePendingEvents([...byId.values()]);
 }
 
+function scheduleAnalyticsFlush(getToken: () => Promise<string | null>): void {
+  if (scheduledFlushId !== null) return;
+
+  const pending = readPendingEvents();
+  const delay = pending.length >= 25 ? 0 : analyticsFlushDelayMs;
+  scheduledFlushId = window.setTimeout(() => {
+    scheduledFlushId = null;
+    void flushAnalyticsEvents(getToken, {});
+  }, delay);
+}
+
 async function flushAnalyticsEvents(
   getToken: () => Promise<string | null>,
   options: { preferBeacon?: boolean },
 ): Promise<void> {
   if (flushInProgress) return;
+  if (options.preferBeacon && scheduledFlushId !== null) {
+    window.clearTimeout(scheduledFlushId);
+    scheduledFlushId = null;
+  }
   const pending = readPendingEvents();
   if (pending.length === 0) return;
 

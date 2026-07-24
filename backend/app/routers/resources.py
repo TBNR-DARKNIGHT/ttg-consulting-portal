@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies import get_current_user, get_optional_current_user
 from app.models.enums import UserRole
 from app.models.resource import ResourceItem, ResourceProgressItem
 from app.models.schemas import ApiResponse, ClerkUser
+from app.services.content_repository import (
+    demo_progress_for_user,
+    find_resource,
+    list_resources,
+)
 from app.services.course_access_policy import is_public_resource
-from app.services.content_repository import demo_progress_for_user, find_resource, list_resources
 from app.services.entitlements import EntitlementServiceError, list_entitlements
 
 router = APIRouter()
@@ -33,7 +39,7 @@ def _redact_paid_delivery_metadata(resource: ResourceItem) -> ResourceItem:
 async def list_resources_endpoint(
     user: ClerkUser | None = Depends(get_optional_current_user),
 ) -> ApiResponse[list[ResourceItem]]:
-    resources = list_resources()
+    resources = await asyncio.to_thread(list_resources)
     if user is not None and user.role is UserRole.ADMIN:
         return ApiResponse(data=resources)
 

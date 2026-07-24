@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from threading import RLock
+from time import monotonic
 from typing import Any
 from urllib.parse import quote
 from uuid import UUID
@@ -19,6 +21,7 @@ logger = structlog.get_logger()
 
 DEFAULT_PORTAL_ROLE = UserRole.CLIENT.value
 DEFAULT_PORTAL_STATUS = "ACTIVE"
+AUTHENTICATED_USER_CACHE_TTL_SECONDS = 60.0
 
 
 class UserSyncError(RuntimeError):
@@ -30,6 +33,16 @@ class ClerkProfile:
     email: str
     first_name: str | None
     last_name: str | None
+
+
+@dataclass(frozen=True)
+class _CachedUser:
+    user: ClerkUser
+    expires_at: float
+
+
+_authenticated_user_cache: dict[tuple[str, str | None, str | None, str | None], _CachedUser] = {}
+_authenticated_user_cache_lock = RLock()
 
 
 def _first_row(response: Any) -> dict[str, Any] | None:
@@ -193,3 +206,29 @@ async def sync_authenticated_user(user: ClerkUser, *, client: Client | None = No
     except Exception as exc:
         logger.exception("Failed to synchronize Clerk user", clerk_user_id=user.clerk_id)
         raise UserSyncError("Unable to synchronize the authenticated user") from exc
+
+
+def _cache_key(user: ClerkUser) -> tuple[str, str | None, str | None, str | None]:
+    return (user.clerk_id, user.email, user.first_name, user.last_name)
+
+
+async def cached_sync_authenticated_user(user: ClerkUser) -> ClerkUser:
+    key = _cache_key(user)
+    now = monotonic()
+    with _authenticated_user_cache_lock:
+        cached = _authenticated_user_cache.get(key)
+        if cached is not None and now < cached.expires_at:
+            return cached.user
+
+    resolved = await sync_authenticated_user(user)
+    with _authenticated_user_cache_lock:
+        _authenticated_user_cache[key] = _CachedUser(
+            user=resolved,
+            expires_at=now + AUTHENTICATED_USER_CACHE_TTL_SECONDS,
+        )
+    return resolved
+
+
+def clear_authenticated_user_cache() -> None:
+    with _authenticated_user_cache_lock:
+        _authenticated_user_cache.clear()

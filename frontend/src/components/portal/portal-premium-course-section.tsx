@@ -42,7 +42,7 @@ export function PortalPremiumCourseSection() {
               Download the Parent Overview Guide
             </a>
             <Link to="/dashboard" className="mt-7 hidden w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:block">
-              Open the Full Course
+              Acess Free Resources
             </Link>
           </div>
           <div>
@@ -61,7 +61,7 @@ export function PortalPremiumCourseSection() {
               })}
             </div>
             <Link to="/dashboard" className="mt-6 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:hidden">
-              Open the Full Course
+              Acess Free Resources
             </Link>
           </div>
         </div>

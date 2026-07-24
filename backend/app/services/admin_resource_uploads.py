@@ -10,6 +10,7 @@ from uuid import UUID
 from storage3.types import CreateSignedUploadUrlOptions
 
 from app.models.admin import ResourceUploadMetadata
+from app.services.content_repository import invalidate_resource_cache
 from app.services.external_files import download_pdf, validate_public_https_url
 from app.services.mux_client import MuxClient, MuxClientError, resolve_playback
 from app.services.supabase import get_client
@@ -195,6 +196,7 @@ def update_resource_metadata(
     )
     if not result.data:
         raise ResourceUploadError("Resource not found")
+    invalidate_resource_cache()
     client.table("admin_audit_log").insert(
         {
             "actor_user_id": str(actor_user_id),
@@ -250,6 +252,7 @@ def delete_resource(resource_id: str) -> None:
     result = client.table("resources").delete().eq("id", resource_id).execute()
     if not result.data:
         raise ResourceUploadError("Resource record could not be deleted")
+    invalidate_resource_cache()
 
 
 def upload_pdf(
@@ -296,6 +299,7 @@ def _save_pdf_resource(
         result = client.table("resources").insert(row).execute()
     if not result.data:
         raise ResourceUploadError("The resource record could not be created")
+    invalidate_resource_cache()
     return UUID(str(result.data[0]["id"]))
 
 
@@ -422,6 +426,7 @@ def complete_pdf_replacement(resource_id: str, *, actor_user_id: UUID) -> None:
     )
     if not updated.data:
         raise ResourceUploadError("Resource not found")
+    invalidate_resource_cache()
     client.table("admin_audit_log").insert(
         {
             "actor_user_id": str(actor_user_id),
@@ -444,6 +449,7 @@ def begin_video_upload(metadata: ResourceUploadMetadata) -> tuple[UUID, str, str
     if not result.data:
         raise ResourceUploadError("The resource record could not be created")
     resource_id = UUID(str(result.data[0]["id"]))
+    invalidate_resource_cache()
     try:
         upload = MuxClient().create_direct_upload(
             passthrough=str(resource_id),
@@ -501,6 +507,7 @@ def ingest_link(
         except MuxClientError:
             pass
         client.table("resources").update(update).eq("id", str(resource_id)).execute()
+        invalidate_resource_cache()
     except Exception:
         client.table("resources").delete().eq("id", str(resource_id)).execute()
         raise
@@ -533,4 +540,5 @@ def complete_video_upload(resource_id: UUID, upload_id: str) -> str:
             "mux_playback_signed": signed,
         }
     ).eq("id", str(resource_id)).execute()
+    invalidate_resource_cache()
     return "ready" if asset.status == "ready" else "processing"

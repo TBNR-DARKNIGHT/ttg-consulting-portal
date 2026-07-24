@@ -59,7 +59,9 @@ function YoungExplorersPage() {
               self-expression in a joyful environment.
             </p>
             <a
-              href="#enrol"
+              href="https://www.mjceunos.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90"
             >
               Enquire with MapleBear
@@ -145,7 +147,7 @@ function YoungExplorersPage() {
             <h2 className="text-3xl font-bold leading-[1.2] text-white md:text-[40px]">Young Explorers runs at<br /><em className="font-normal text-[#a8a8f0]">MapleBear Student Care.</em></h2>
             <p className="mt-4 leading-[1.7] text-white/60">Reach out to the centre directly for programme availability and next steps. Our team is happy to answer any questions before you commit.</p>
             <p className="mt-3 text-[13px] text-white/35">Currently available at MapleBear Student Care (Eunos). Additional centres to be confirmed.</p>
-            <a href={MAPLEBEAR_WHATSAPP} target="_blank" rel="noopener noreferrer" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Enquire with MapleBear</a>
+            <a href="https://www.mjceunos.com" target="_blank" rel="noopener noreferrer" className="mt-8 inline-block rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90">Enquire with MapleBear</a>
           </div>
         </section>
 

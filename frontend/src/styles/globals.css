@@ -1,31 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
-
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
   :root {
-    /* Beyond Grades palette (raw hex) */
-    --color-indigo:     #4C5FD5; /* Primary — trust, confidence, intelligence */
-    --color-cream:      #F5F0E6; /* Secondary — warmth, approachability */
-    --color-light-grey: #E5E7EB; /* Neutral — backgrounds, layouts */
-    --color-sage:       #BFCBB2; /* Accent — growth, holistic development */
-    --color-dark:       #1A1A2E; /* Text/dark surfaces */
-    --color-white:      #FFFFFF;
-
-    /* Fonts */
-    --beyond-font-serif: 'Lora', Georgia, serif;
-    --beyond-font-sans:  'DM Sans', system-ui, sans-serif;
-
     --color-indigo: #5B5BD6;
     --color-cream: #F5F3EF;
     --color-light-grey: #EDEAE3;
+    --color-sage: #BFCBB2;
     --color-dark: #1B1F4B;
-    --beyond-font-serif: 'Playfair Display', Georgia, serif;
-    --beyond-font-sans: 'Inter', system-ui, sans-serif;
+    --color-white: #FFFFFF;
 
-    /* shadcn/ui tokens (HSL values; consumed via hsl(var(--token))) */
+    --beyond-font-serif: 'Playfair Display', Georgia, serif;
+    --beyond-font-sans: 'DM Sans', system-ui, sans-serif;
+
     --radius: 0.5rem;
     --background: 0 0% 100%;
     --foreground: 220 10% 15%;
@@ -33,21 +21,19 @@
     --card-foreground: 220 10% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 15%;
-    --primary: 220 62% 57%; /* #4C5FD5 */
+    --primary: 220 62% 57%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 40 33% 93%; /* #F5F0E6 */
+    --secondary: 40 33% 93%;
     --secondary-foreground: 220 10% 15%;
-    --muted: 220 9% 91%; /* #E5E7EB */
+    --muted: 220 9% 91%;
     --muted-foreground: 220 9% 46%;
-    --accent: 96 14% 77%; /* #BFCBB2 */
+    --accent: 96 14% 77%;
     --accent-foreground: 220 10% 15%;
     --destructive: #DC2626;
     --destructive-foreground: #FFFFFF;
     --border: 220 9% 91%;
     --input: 220 9% 91%;
     --ring: 220 62% 57%;
-
-    /* optional chart + sidebar tokens */
     --chart-1: 220 62% 57%;
     --chart-2: 96 14% 77%;
     --chart-3: 40 33% 93%;
