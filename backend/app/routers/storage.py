@@ -25,6 +25,29 @@ PAID_STORAGE_BUCKET = "resources-paid"
 PUBLIC_STORAGE_BUCKET = "resources-public"
 
 
+def _storage_url(result: object, keys: tuple[str, ...]) -> str:
+    if isinstance(result, dict):
+        return next((str(result[key]) for key in keys if result.get(key)), "")
+    return str(result)
+
+
+async def _create_public_url(supabase: Client, bucket: str, path: str) -> str:
+    result = await asyncio.to_thread(lambda: supabase.storage.from_(bucket).get_public_url(path))
+    return _storage_url(result, ("publicUrl", "publicURL", "public_url"))
+
+
+async def _create_signed_url(
+    supabase: Client,
+    bucket: str,
+    path: str,
+    expires_in: int,
+) -> str:
+    result = await asyncio.to_thread(
+        lambda: supabase.storage.from_(bucket).create_signed_url(path, expires_in)
+    )
+    return _storage_url(result, ("signedURL", "signedUrl", "signed_url"))
+
+
 def _require_paid_bucket(bucket: str) -> None:
     if bucket != PAID_STORAGE_BUCKET:
         raise HTTPException(
@@ -80,13 +103,7 @@ async def storage_public_url(
     supabase: Client = Depends(get_supabase_public),
 ) -> ApiResponse[StorageUrlResponse]:
     resource = await _get_public_pdf_async(resource_id)
-    public = await asyncio.to_thread(
-        lambda: supabase.storage.from_(resource.bucket).get_public_url(resource.file_path)
-    )
-    if isinstance(public, dict):
-        url = public.get("publicUrl") or public.get("publicURL") or public.get("public_url")
-    else:
-        url = str(public)
+    url = await _create_public_url(supabase, resource.bucket, resource.file_path)
     if not url:
         raise ValueError("Failed to create public URL")
 
@@ -127,15 +144,7 @@ async def storage_paid_url(
     supabase: Client = Depends(get_supabase_public),
 ) -> ApiResponse[StorageUrlResponse]:
     resource = await _get_authorized_paid_pdf(resource_id, user)
-    signed = await asyncio.to_thread(
-        lambda: supabase.storage.from_(resource.bucket).create_signed_url(
-            resource.file_path, expires_in
-        )
-    )
-    if isinstance(signed, dict):
-        url = signed.get("signedURL") or signed.get("signedUrl") or signed.get("signed_url")
-    else:
-        url = str(signed)
+    url = await _create_signed_url(supabase, resource.bucket, resource.file_path, expires_in)
     if not url:
         raise ValueError("Failed to create signed URL")
 
@@ -170,21 +179,9 @@ async def storage_thumbnail_url(
 
     path = pdf_thumbnail_path(resource.file_path)
     if resource.access == "paid":
-        result = await asyncio.to_thread(
-            lambda: supabase.storage.from_(resource.bucket).create_signed_url(path, expires_in)
-        )
-        if isinstance(result, dict):
-            url = result.get("signedURL") or result.get("signedUrl") or result.get("signed_url")
-        else:
-            url = str(result)
+        url = await _create_signed_url(supabase, resource.bucket, path, expires_in)
     else:
-        result = await asyncio.to_thread(
-            lambda: supabase.storage.from_(resource.bucket).get_public_url(path)
-        )
-        if isinstance(result, dict):
-            url = result.get("publicUrl") or result.get("publicURL") or result.get("public_url")
-        else:
-            url = str(result)
+        url = await _create_public_url(supabase, resource.bucket, path)
     if not url:
         raise ValueError("Failed to create thumbnail URL")
 
@@ -217,4 +214,3 @@ async def storage_paid_download(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-

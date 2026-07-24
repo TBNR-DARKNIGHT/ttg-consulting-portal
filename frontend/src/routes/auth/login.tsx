@@ -39,14 +39,19 @@ function MockLoginView({ mode }: { mode: 'mock' | 'public' }) {
   return (
     <div className="min-h-screen bg-brand-cream flex flex-col">
       <header className="border-b border-brand-grey px-6 py-4">
-        <Link to="/" className="text-sm text-brand-dark/70 hover:text-brand-indigo transition-colors">
+        <Link
+          to="/"
+          className="text-sm text-brand-dark/70 hover:text-brand-indigo transition-colors"
+        >
           Back to home
         </Link>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-20">
         <div className="w-full max-w-5xl">
           <div className="mb-8 text-center">
-            <p className="text-xs uppercase tracking-[0.2em] font-medium text-brand-indigo mb-3">{badge}</p>
+            <p className="text-xs uppercase tracking-[0.2em] font-medium text-brand-indigo mb-3">
+              {badge}
+            </p>
             <h1 className="font-serif text-2xl font-bold text-brand-dark mb-2">Sign In</h1>
             <p className="text-sm text-brand-dark/70">{blurb}</p>
           </div>
@@ -128,16 +133,15 @@ function ClerkSignInView() {
   return (
     <div className="min-h-screen bg-brand-cream flex flex-col">
       <header className="border-b border-brand-grey px-6 py-4">
-        <Link to="/" className="text-sm text-brand-dark/70 hover:text-brand-indigo transition-colors">
+        <Link
+          to="/"
+          className="text-sm text-brand-dark/70 hover:text-brand-indigo transition-colors"
+        >
           Back to home
         </Link>
       </header>
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <SignIn
-          routing="hash"
-          fallbackRedirectUrl="/auth/complete"
-          signUpUrl="/auth/sign-up"
-        />
+        <SignIn routing="hash" fallbackRedirectUrl="/auth/complete" signUpUrl="/auth/sign-up" />
       </div>
     </div>
   );

@@ -68,11 +68,7 @@ def _primary_email(payload: dict[str, Any]) -> str | None:
         return None
 
     primary = next(
-        (
-            item
-            for item in addresses
-            if isinstance(item, dict) and item.get("id") == primary_id
-        ),
+        (item for item in addresses if isinstance(item, dict) and item.get("id") == primary_id),
         None,
     )
     if primary is None:
@@ -163,7 +159,9 @@ async def sync_authenticated_user(user: ClerkUser, *, client: Client | None = No
         email = (
             user.email.strip().lower()
             if user.email
-            else profile.email if profile is not None else None
+            else profile.email
+            if profile is not None
+            else None
         )
         if not email:
             raise UserSyncError("The authenticated Clerk user has no email address")
@@ -173,9 +171,7 @@ async def sync_authenticated_user(user: ClerkUser, *, client: Client | None = No
         payload = {
             "clerk_user_id": user.clerk_id,
             "email": email,
-            "first_name": (
-                user.first_name if user.first_name is not None else profile_first_name
-            ),
+            "first_name": (user.first_name if user.first_name is not None else profile_first_name),
             "last_name": user.last_name if user.last_name is not None else profile_last_name,
             "role": DEFAULT_PORTAL_ROLE,
             "status": DEFAULT_PORTAL_STATUS,
@@ -184,9 +180,11 @@ async def sync_authenticated_user(user: ClerkUser, *, client: Client | None = No
         # Ignore a duplicate created by another simultaneous first request, then
         # resolve the authoritative row. This never overwrites role or status.
         await asyncio.to_thread(
-            lambda: db.table("users")
-            .upsert(payload, on_conflict="clerk_user_id", ignore_duplicates=True)
-            .execute()
+            lambda: (
+                db.table("users")
+                .upsert(payload, on_conflict="clerk_user_id", ignore_duplicates=True)
+                .execute()
+            )
         )
         created = await asyncio.to_thread(_get_local_user, db, user.clerk_id)
         if not created:

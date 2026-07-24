@@ -135,12 +135,7 @@ export function AdminResourcesPage() {
     setProgress(0);
     try {
       if (source === 'link') {
-        const result = await createAdminLinkUpload(
-          linkUrl.trim(),
-          linkType,
-          metadata,
-          getToken,
-        );
+        const result = await createAdminLinkUpload(linkUrl.trim(), linkType, metadata, getToken);
         toast.success(
           result.status === 'ready'
             ? 'Linked resource is ready'
@@ -149,7 +144,8 @@ export function AdminResourcesPage() {
         setLinkUrl('');
       } else if (isVideo && file) {
         const created = await createAdminVideoUpload(file, metadata, getToken);
-        if (!created.uploadUrl || !created.uploadId) throw new Error('Mux upload details were missing');
+        if (!created.uploadUrl || !created.uploadId)
+          throw new Error('Mux upload details were missing');
         await putFileWithProgress(created.uploadUrl, file, setProgress);
         let result = await completeAdminVideoUpload(created.resourceId, created.uploadId, getToken);
         for (
@@ -200,10 +196,7 @@ export function AdminResourcesPage() {
           <form className="space-y-5" onSubmit={submit}>
             <div className="space-y-3">
               <Label>Source</Label>
-              <Tabs
-                value={source}
-                onValueChange={(value) => setSource(value as 'file' | 'link')}
-              >
+              <Tabs value={source} onValueChange={(value) => setSource(value as 'file' | 'link')}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="file">
                     <UploadCloud className="size-4" /> Upload file
@@ -215,55 +208,57 @@ export function AdminResourcesPage() {
               </Tabs>
               {source === 'file' ? (
                 <>
-              <input
-                ref={inputRef}
-                className="sr-only"
-                type="file"
-                accept="application/pdf,video/*"
-                disabled={busy || Boolean(file)}
-                onChange={onFileChange}
-              />
-              <div
-                className={cn(
-                  'flex min-h-32 flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors',
-                  dragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/20',
-                )}
-                onDragEnter={(event) => {
-                  event.preventDefault();
-                  if (!file && !busy) setDragging(true);
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDragLeave={() => setDragging(false)}
-                onDrop={onDrop}
-                aria-disabled={busy || Boolean(file)}
-              >
-                <UploadCloud className="mb-3 size-7 text-muted-foreground" />
-                <p className="text-sm font-medium">
-                  {file ? 'One file selected' : 'Drop a PDF or video here'}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {file ? 'Upload it before selecting another file' : 'or choose one from your computer'}
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  disabled={busy || Boolean(file)}
-                  onClick={() => inputRef.current?.click()}
-                >
-                  Browse files
-                </Button>
-              </div>
-              {file && (
-                <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
-                  {isVideo ? <Video className="size-4" /> : <FileText className="size-4" />}
-                  <span className="min-w-0 flex-1 truncate">{file.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {(file.size / 1024 / 1024).toFixed(1)} MB
-                  </span>
-                </div>
-              )}
+                  <input
+                    ref={inputRef}
+                    className="sr-only"
+                    type="file"
+                    accept="application/pdf,video/*"
+                    disabled={busy || Boolean(file)}
+                    onChange={onFileChange}
+                  />
+                  <div
+                    className={cn(
+                      'flex min-h-32 flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors',
+                      dragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/20',
+                    )}
+                    onDragEnter={(event) => {
+                      event.preventDefault();
+                      if (!file && !busy) setDragging(true);
+                    }}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={onDrop}
+                    aria-disabled={busy || Boolean(file)}
+                  >
+                    <UploadCloud className="mb-3 size-7 text-muted-foreground" />
+                    <p className="text-sm font-medium">
+                      {file ? 'One file selected' : 'Drop a PDF or video here'}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {file
+                        ? 'Upload it before selecting another file'
+                        : 'or choose one from your computer'}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                      disabled={busy || Boolean(file)}
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      Browse files
+                    </Button>
+                  </div>
+                  {file && (
+                    <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
+                      {isVideo ? <Video className="size-4" /> : <FileText className="size-4" />}
+                      <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {(file.size / 1024 / 1024).toFixed(1)} MB
+                      </span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
@@ -299,7 +294,12 @@ export function AdminResourcesPage() {
 
             <div className="space-y-2">
               <Label htmlFor="resource-title">Title</Label>
-              <Input id="resource-title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                id="resource-title"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
@@ -358,7 +358,9 @@ export function AdminResourcesPage() {
               >
                 <option value="">No module</option>
                 {modules.map((item) => (
-                  <option key={item.id} value={item.id}>{item.title}</option>
+                  <option key={item.id} value={item.id}>
+                    {item.title}
+                  </option>
                 ))}
                 <option value={NEW_VALUE}>+ Create New Module</option>
               </select>
@@ -396,11 +398,7 @@ export function AdminResourcesPage() {
             )}
             <Button
               className="w-full sm:w-auto"
-              disabled={
-                busy ||
-                !title.trim() ||
-                (source === 'file' ? !file : !linkUrl.trim())
-              }
+              disabled={busy || !title.trim() || (source === 'file' ? !file : !linkUrl.trim())}
             >
               <UploadCloud className="mr-2 size-4" />
               {busy ? 'Adding resource…' : source === 'file' ? 'Upload resource' : 'Add from link'}

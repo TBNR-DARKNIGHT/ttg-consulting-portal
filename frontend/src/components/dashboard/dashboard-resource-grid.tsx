@@ -105,13 +105,7 @@ function AdaptiveResourceTitle({ children }: { children: ReactNode }) {
   );
 }
 
-function ResourceVideoThumbnail({
-  resource,
-  locked,
-}: {
-  resource: Resource;
-  locked: boolean;
-}) {
+function ResourceVideoThumbnail({ resource, locked }: { resource: Resource; locked: boolean }) {
   const { getToken } = usePortalAuth();
   const [imageFailed, setImageFailed] = useState(false);
   const [thumbnailRef, isNearViewport] = useNearViewport<HTMLDivElement>();
@@ -124,12 +118,13 @@ function ResourceVideoThumbnail({
   });
 
   const thumbnailUrl =
-    !locked && (resource.thumbnailUrl ??
-    (resource.muxPlaybackId && !resource.muxPlaybackSigned
-      ? muxThumbnailUrl(resource.muxPlaybackId, { width: 720 })
-      : resource.muxPlaybackId && tokenQuery.data?.token
-        ? muxSignedThumbnailUrl(resource.muxPlaybackId, tokenQuery.data.token)
-        : undefined));
+    !locked &&
+    (resource.thumbnailUrl ??
+      (resource.muxPlaybackId && !resource.muxPlaybackSigned
+        ? muxThumbnailUrl(resource.muxPlaybackId, { width: 720 })
+        : resource.muxPlaybackId && tokenQuery.data?.token
+          ? muxSignedThumbnailUrl(resource.muxPlaybackId, tokenQuery.data.token)
+          : undefined));
   const loading = signed && !locked && tokenQuery.isLoading;
 
   return (
@@ -156,9 +151,7 @@ function ResourceVideoThumbnail({
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
           <ImageOff className="size-6" aria-hidden />
-          <span className="text-xs">
-            {locked ? 'Preview locked' : 'Preview unavailable'}
-          </span>
+          <span className="text-xs">{locked ? 'Preview locked' : 'Preview unavailable'}</span>
         </div>
       )}
     </div>
@@ -182,8 +175,7 @@ function ResourcePdfThumbnail({ resource, locked }: { resource: Resource; locked
     enabled: isNearViewport && !locked && !resource.thumbnailUrl && !publicThumbnailUrl,
     staleTime: 14 * 60 * 1000,
   });
-  const thumbnailUrl =
-    resource.thumbnailUrl ?? (publicThumbnailUrl || thumbnailQuery.data?.url);
+  const thumbnailUrl = resource.thumbnailUrl ?? (publicThumbnailUrl || thumbnailQuery.data?.url);
 
   return (
     <div ref={thumbnailRef} className="group relative aspect-video overflow-hidden bg-muted">
@@ -231,12 +223,10 @@ function AdminResourceEditButton({ resource }: { resource: Resource }) {
         topic: topic.trim(),
         description: description.trim(),
       };
-      queryClient.setQueriesData<Resource[]>(
-        { queryKey: ['resources'] },
-        (resources) =>
-          resources?.map((item) =>
-            item.id === resource.id ? { ...item, ...updatedMetadata } : item,
-          ),
+      queryClient.setQueriesData<Resource[]>({ queryKey: ['resources'] }, (resources) =>
+        resources?.map((item) =>
+          item.id === resource.id ? { ...item, ...updatedMetadata } : item,
+        ),
       );
       await queryClient.invalidateQueries({ queryKey: ['resources'] });
       toast.success('Resource updated');
@@ -329,96 +319,99 @@ function AdminResourceEditButton({ resource }: { resource: Resource }) {
               </DialogFooter>
             </div>
           ) : (
-          <form className="space-y-4" onSubmit={submit}>
-            <DialogHeader>
-              <DialogTitle>Edit Resource</DialogTitle>
-            <DialogDescription>
-                Update the details shown to students or replace the PDF without changing them.
-            </DialogDescription>
-            {resource.type === 'pdf' && (
-              <div className="rounded-md border border-border p-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  className="sr-only"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = '';
-                    if (!file) return;
-                    if (file.type && file.type !== 'application/pdf') {
-                      toast.error('Choose a PDF file');
-                      return;
-                    }
-                    replaceMutation.mutate(file);
-                  }}
+            <form className="space-y-4" onSubmit={submit}>
+              <DialogHeader>
+                <DialogTitle>Edit Resource</DialogTitle>
+                <DialogDescription>
+                  Update the details shown to students or replace the PDF without changing them.
+                </DialogDescription>
+                {resource.type === 'pdf' && (
+                  <div className="rounded-md border border-border p-3">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="sr-only"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = '';
+                        if (!file) return;
+                        if (file.type && file.type !== 'application/pdf') {
+                          toast.error('Choose a PDF file');
+                          return;
+                        }
+                        replaceMutation.mutate(file);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      disabled={replaceMutation.isPending}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <FileUp className="mr-2 size-4" />
+                      {replaceMutation.isPending
+                        ? `Replacing PDF… ${replacementProgress}%`
+                        : 'Replace PDF file'}
+                    </Button>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Keeps the current title, topic, and description.
+                    </p>
+                  </div>
+                )}
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor={`resource-title-${resource.id}`}>Title</Label>
+                <Input
+                  id={`resource-title-${resource.id}`}
+                  value={title}
+                  maxLength={300}
+                  required
+                  onChange={(event) => setTitle(event.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`resource-topic-${resource.id}`}>Topic</Label>
+                <Input
+                  id={`resource-topic-${resource.id}`}
+                  value={topic}
+                  maxLength={100}
+                  required
+                  onChange={(event) => setTopic(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`resource-description-${resource.id}`}>Description</Label>
+                <Textarea
+                  id={`resource-description-${resource.id}`}
+                  rows={5}
+                  value={description}
+                  maxLength={2000}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </div>
+              <DialogFooter>
                 <Button
                   type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={replaceMutation.isPending}
-                  onClick={() => fileInputRef.current?.click()}
+                  variant="destructive"
+                  className="sm:mr-auto"
+                  disabled={updateMutation.isPending}
+                  onClick={() => setConfirmingDelete(true)}
                 >
-                  <FileUp className="mr-2 size-4" />
-                  {replaceMutation.isPending
-                    ? `Replacing PDF… ${replacementProgress}%`
-                    : 'Replace PDF file'}
+                  Delete
                 </Button>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Keeps the current title, topic, and description.
-                </p>
-              </div>
-            )}
-            </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor={`resource-title-${resource.id}`}>Title</Label>
-              <Input
-                id={`resource-title-${resource.id}`}
-                value={title}
-                maxLength={300}
-                required
-                onChange={(event) => setTitle(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={`resource-topic-${resource.id}`}>Topic</Label>
-              <Input
-                id={`resource-topic-${resource.id}`}
-                value={topic}
-                maxLength={100}
-                required
-                onChange={(event) => setTopic(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={`resource-description-${resource.id}`}>Description</Label>
-              <Textarea
-                id={`resource-description-${resource.id}`}
-                rows={5}
-                value={description}
-                maxLength={2000}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="destructive"
-                className="sm:mr-auto"
-                disabled={updateMutation.isPending}
-                onClick={() => setConfirmingDelete(true)}
-              >
-                Delete
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending || !title.trim() || !topic.trim()}>
-                {updateMutation.isPending ? 'Saving…' : 'Save changes'}
-              </Button>
-            </DialogFooter>
-          </form>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateMutation.isPending || !title.trim() || !topic.trim()}
+                >
+                  {updateMutation.isPending ? 'Saving…' : 'Save changes'}
+                </Button>
+              </DialogFooter>
+            </form>
           )}
         </DialogContent>
       </Dialog>
@@ -461,8 +454,7 @@ export function DashboardResourceGrid({
           (r) =>
             (r.courseId === courseId || (!r.courseId && topicSet.has(r.topic))) &&
             typeSet.has(r.type) &&
-            (moduleId === undefined ||
-              (moduleId === null ? !r.moduleId : r.moduleId === moduleId)),
+            (moduleId === undefined || (moduleId === null ? !r.moduleId : r.moduleId === moduleId)),
         )
         .sort((a, b) => {
           const typeOrder: Partial<Record<ResourceType, number>> = { pdf: 0, video: 1 };

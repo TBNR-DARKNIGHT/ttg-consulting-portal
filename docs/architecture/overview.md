@@ -48,6 +48,7 @@
 **Framework**: React 19.1 + TypeScript 5.9, bundled with Vite 7.3 (SWC)
 
 **Key Technologies:**
+
 - TanStack Router 1.157+ — file-based routing
 - TanStack Query 5.90+ — server state (stale-while-revalidate)
 - shadcn/ui (new-york) — component library
@@ -55,6 +56,7 @@
 - Clerk React SDK — authentication UI components
 
 **Directory Structure:**
+
 ```
 frontend/src/
   routes/              # File-based TanStack Router pages
@@ -68,6 +70,7 @@ frontend/src/
 ```
 
 **Key Patterns:**
+
 - All API data fetching through TanStack Query hooks
 - Clerk's `<SignIn/>`, `<UserButton/>` components for auth UI
 - Route guards via TanStack Router's `beforeLoad` for protected routes
@@ -80,6 +83,7 @@ frontend/src/
 **Framework**: FastAPI (Python >=3.10)
 
 **Directory Structure:**
+
 ```
 backend/app/
   routers/             # Route handlers (health, future endpoints)
@@ -93,6 +97,7 @@ backend/tests/         # pytest + httpx async tests
 ```
 
 **Key Patterns:**
+
 - Clerk JWT validated as FastAPI dependency injection (`Depends(get_current_user)`)
 - JWKS keys fetched from Clerk with 1-hour TTL cache and 10s HTTP timeout
 - Malformed JWKS responses and missing JWT claims handled gracefully (clean 401)
@@ -122,6 +127,7 @@ service-role client bypasses RLS, so every user/resource boundary is also enforc
 ## Security Architecture
 
 **Authentication**: Clerk (managed service)
+
 - JWT-based sign-up/sign-in; authenticated identities are synchronized to `public.users` on their first protected API request
 - 7-day session persistence
 - RS256 algorithm enforced (no algorithm confusion)
@@ -139,6 +145,7 @@ service-role client bypasses RLS, so every user/resource boundary is also enforc
 **Authorization**: Application-managed uppercase roles (`CLIENT`, `CONSULTANT`, `ADMIN`), a
 configurable public-course allowlist, and course entitlements for future paid content. Clerk
 authenticates the identity; Supabase `users.role` authorizes portal operations.
+
 - Enforced at API layer (FastAPI deps) + database layer (Supabase RLS)
 - `require_admin` reloads the synchronized Supabase role and protects every `/api/v1/admin/*`
   operation. Hiding `/admin` in the SPA is not a security control.
@@ -154,6 +161,7 @@ See [Open Course Access](./open-course-access.md) for the current no-login cours
 restore entitlement gating later.
 
 **Data Protection:**
+
 - HTTPS in transit, Supabase encryption at rest
 - Signed/expiring URLs for video/file access
 - Paid Mux assets must contain a signed playback ID and no public playback ID. Because a Mux asset
@@ -166,12 +174,12 @@ restore entitlement gating later.
 
 ## Integration Architecture
 
-| Service | Purpose | Integration Method |
-|---------|---------|-------------------|
-| Clerk | Auth, user management | JWT, React SDK, webhooks |
-| Supabase | Database, file storage | Python client, JS client |
-| TTA Shop | Payment processing | Manual (MVP), webhook (future) |
-| GHCR | Docker image registry | GitHub Actions push |
+| Service  | Purpose                | Integration Method             |
+| -------- | ---------------------- | ------------------------------ |
+| Clerk    | Auth, user management  | JWT, React SDK, webhooks       |
+| Supabase | Database, file storage | Python client, JS client       |
+| TTA Shop | Payment processing     | Manual (MVP), webhook (future) |
+| GHCR     | Docker image registry  | GitHub Actions push            |
 
 ---
 

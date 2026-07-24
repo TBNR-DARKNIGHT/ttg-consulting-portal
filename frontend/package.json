@@ -10,6 +10,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,json,css,md,html}\"",
+    "format:check": "prettier --ignore-path ../.prettierignore --check \"**/*.{ts,tsx,js,json,css,md,html}\"",
     "lint": "eslint src",
     "type-check": "tsc --noEmit -p tsconfig.app.json"
   },
@@ -40,6 +42,7 @@
     "eslint": "^9.0.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "prettier": "^3.8.1",
     "tailwindcss": "^4.1.0",
     "typescript": "~5.7.0",
     "typescript-eslint": "^8.57.2",

@@ -33,6 +33,7 @@ The education consulting market lacks centralized platforms combining service de
 ### Living Document
 
 This PRD is a living document that will evolve during development:
+
 - Update as requirements are refined
 - Document learnings from implementation
 - Track scope changes with justification
@@ -129,6 +130,7 @@ This PRD is a living document that will evolve during development:
 ## 3. Acceptance Criteria (Gherkin)
 
 ### Scenario: Returning User Login (US-1.4)
+
 ```gherkin
 Given a registered Clerk user with valid credentials
 When they enter their email and password on the Auth Page
@@ -138,6 +140,7 @@ And the user is redirected to the Content Dashboard
 ```
 
 ### Scenario: Failed Login
+
 ```gherkin
 Given a user with incorrect credentials
 When they attempt to log in
@@ -147,6 +150,7 @@ And a "Forgot Password" link is available triggering Clerk's reset flow
 ```
 
 ### Scenario: First Authenticated Portal Request (US-1.3)
+
 ```gherkin
 Given a user has authenticated successfully with Clerk
 When the frontend makes its first protected FastAPI request
@@ -156,6 +160,7 @@ And preserves server-managed role and status on later synchronizations
 ```
 
 ### Scenario: Admin Issues Access Code (US-1.2)
+
 ```gherkin
 Given a purchase is confirmed in TTA Shop
 And the signed-in user's synchronized portal role is ADMIN
@@ -166,6 +171,7 @@ And an access_code.created audit record identifies the administrator
 ```
 
 ### Scenario: Admin Revokes or Reissues an Unused Access Code
+
 ```gherkin
 Given an active access code was accidentally shared or lost
 And the code has not been redeemed
@@ -179,6 +185,7 @@ But a redeemed code cannot be revoked or reissued through this workflow
 ```
 
 ### Scenario: Redeem a Transferable Course 2 Access Code
+
 ```gherkin
 Given a qualifying purchase has produced an unused Course 2 redemption code
 And an authenticated portal user possesses that code
@@ -193,6 +200,7 @@ And the original entitlement remains associated with the first redeeming user
 ```
 
 ### Scenario: Parent Views Video Library (US-2.3)
+
 ```gherkin
 Given a logged-in MapleBear parent
 When they navigate to their child's video library
@@ -203,6 +211,7 @@ And they can only see videos for their own child
 ```
 
 ### Scenario: Consultant Uploads Recording (US-2.5)
+
 ```gherkin
 Given a logged-in consultant on the student management dashboard
 When they select a student and upload a video file
@@ -212,6 +221,7 @@ And the video is immediately available in the parent's library
 ```
 
 ### Scenario: Browse Free DSA Content (US-3.1)
+
 ```gherkin
 Given a visitor on the public DSA homepage
 When they browse the free content library
@@ -222,6 +232,7 @@ And no login is required
 ```
 
 ### Scenario: Phase 1 dashboard — course resources and in-app PDF (US-1.4)
+
 ```gherkin
 Given a logged-in TTA client on the Content Dashboard
 When they expand Course 2 in the sidebar and open Resources
@@ -265,12 +276,12 @@ public assets or playback IDs.
 
 ### States & Transitions
 
-| State | Description | Transitions To |
-|-------|-------------|----------------|
-| Visitor | Unauthenticated user browsing public pages | Registered |
-| Registered | Clerk user completing the configured verification flow | Active |
-| Active | Authenticated user with valid session | Logged Out, Suspended |
-| Logged Out | Session expired or user logged out | Active (re-login) |
+| State      | Description                                            | Transitions To        |
+| ---------- | ------------------------------------------------------ | --------------------- |
+| Visitor    | Unauthenticated user browsing public pages             | Registered            |
+| Registered | Clerk user completing the configured verification flow | Active                |
+| Active     | Authenticated user with valid session                  | Logged Out, Suspended |
+| Logged Out | Session expired or user logged out                     | Active (re-login)     |
 
 ### Business Rules
 
@@ -289,13 +300,13 @@ public assets or playback IDs.
 
 ### Permissions
 
-| Role | Capabilities |
-|------|-------------|
-| **Visitor** | Browse public pages, view free DSA content |
-| **MapleBear Parent** | View own child's video library and feedback |
-| **TTA Client** | Access purchased DSA content and resources |
+| Role                   | Capabilities                                           |
+| ---------------------- | ------------------------------------------------------ |
+| **Visitor**            | Browse public pages, view free DSA content             |
+| **MapleBear Parent**   | View own child's video library and feedback            |
+| **TTA Client**         | Access purchased DSA content and resources             |
 | **Consultant/Teacher** | Upload videos, add/edit feedback for assigned students |
-| **Admin** | Issue/revoke access, manage users, manage all content |
+| **Admin**              | Issue/revoke access, manage users, manage all content  |
 
 ---
 
@@ -310,6 +321,7 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 ### Technology Stack
 
 **Frontend:**
+
 - React 19.1 + TypeScript 5.7
 - Vite 6.x (SWC bundler via @vitejs/plugin-react-swc)
 - TanStack Router 1.114+ (file-based routing via @tanstack/router-plugin)
@@ -318,6 +330,7 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 - ESLint 9 (flat config) with typescript-eslint, react-hooks, react-refresh plugins
 
 **Backend:**
+
 - FastAPI (Python >=3.10)
 - Supabase (PostgreSQL database + file storage)
 - Clerk JWT validation on all protected endpoints
@@ -326,17 +339,18 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 
 **Frontend authentication modes (implemented shell):**
 
-| Mode | Configuration | Runtime behaviour |
-|------|---------------|-------------------|
-| **Clerk (default)** | `VITE_AUTH_MODE` unset, or any value other than `mock` / `public` (after normalisation); `VITE_CLERK_PUBLISHABLE_KEY` required | `ClerkProvider` plus a thin bridge into a shared portal auth context; `getToken()` supplies JWT for `apiFetch` |
-| **Mock (local demo)** | `VITE_AUTH_MODE=mock` (case-insensitive); **rejected** in production builds (`import.meta.env.PROD`) | `MockAuthProvider` only; demo action on `/auth/login`; `/dashboard` shows static lists; fixture data when API base URL is unset or mode is mock |
-| **Public (hosted preview)** | `VITE_AUTH_MODE=public` (case-insensitive); **allowed** in production builds | Same as mock for auth and fixture data; login UI labelled as preview; use for temporary static hosts (e.g. Vercel) **without** Clerk |
+| Mode                        | Configuration                                                                                                                  | Runtime behaviour                                                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Clerk (default)**         | `VITE_AUTH_MODE` unset, or any value other than `mock` / `public` (after normalisation); `VITE_CLERK_PUBLISHABLE_KEY` required | `ClerkProvider` plus a thin bridge into a shared portal auth context; `getToken()` supplies JWT for `apiFetch`                                  |
+| **Mock (local demo)**       | `VITE_AUTH_MODE=mock` (case-insensitive); **rejected** in production builds (`import.meta.env.PROD`)                           | `MockAuthProvider` only; demo action on `/auth/login`; `/dashboard` shows static lists; fixture data when API base URL is unset or mode is mock |
+| **Public (hosted preview)** | `VITE_AUTH_MODE=public` (case-insensitive); **allowed** in production builds                                                   | Same as mock for auth and fixture data; login UI labelled as preview; use for temporary static hosts (e.g. Vercel) **without** Clerk            |
 
 **SPA routes (Phase 1 shell):** `/` (landing), `/auth/login` (Clerk embedded sign-in or demo flow for mock/public), `/auth/sign-up` (Clerk only; in mock/public redirect to login), `/dashboard` (post-login shell; redirects to login if unauthenticated). **Authenticated dashboard routes** include: `/dashboard` (progress overview), `/dashboard/course/{courseId}/resources` and `/dashboard/course/{courseId}/videos` (course-scoped lists), `/dashboard/resources/{resourceId}` (in-app PDF/detail view), `/dashboard/settings`; legacy `/dashboard/resources` (no id) redirects to a default course resources list. Parent `/dashboard/resources` renders an **outlet** so `/dashboard/resources/{resourceId}` is reachable (child detail route must not be shadowed by a blanket redirect).
 
 **Client data loading:** TanStack Query keys for resources and progress include a **`mock` vs `live`** segment so switching fixture vs API source during development does not reuse stale cached rows.
 
 **Deployment:**
+
 - **Frontend (optional / temporary)**: Static SPA on **Vercel** — set project **Root Directory** to `frontend`, output `dist`, `npm run build`; `frontend/vercel.json` rewrites all paths to `index.html` for TanStack Router; `package.json` **`engines.node`** should satisfy toolchain requirements; set env vars in Vercel (see [Deployment & Environments](../deployment/environments.md)). **`VITE_*` variables are inlined at build time** — redeploy after changing them.
 - **Backend (Vercel Functions)**: Deploy FastAPI as a **separate Vercel project** with **Root Directory** set to `backend/`. The backend project exposes an ASGI entrypoint at `backend/api/index.py` and uses `backend/vercel.json` to route requests into the function. Configure backend env vars in Vercel (Preview + Production): `ENVIRONMENT=production`, `FRONTEND_URL=<SPA origin>`, optional `FRONTEND_URL_REGEX=<preview origin regex>`, plus Supabase/Clerk secrets. When using `FRONTEND_URL_REGEX`, keep it **anchored and project-scoped** (do not allow arbitrary `*.vercel.app`), especially if credentialed requests are enabled.
 - Docker images pushed to GitHub Container Registry (GHCR)
@@ -354,24 +368,30 @@ Decoupled frontend (React SPA) + backend API (FastAPI) with Supabase for databas
 ### API Endpoints (Phase 1 — TTA Consulting)
 
 #### Authentication dependency
+
 **Purpose**: Every protected `/api/v1` endpoint validates the Clerk bearer token and synchronizes
 the verified Clerk subject to `public.users`. There is no separate `/api/auth/validate` route.
 
 **Errors**:
+
 - `401`: Missing, invalid, or expired token
 - `503`: Clerk profile or local user synchronization unavailable
 
 #### `GET /api/v1/me/entitlements`
+
 **Purpose**: Return the authenticated user's course access. Course 1 is implicit.
 
 #### `POST /api/v1/entitlements/redeem`
+
 **Purpose**: Normalize and hash a submitted code, then atomically consume it and grant its course
 entitlement through the backend-only PostgreSQL RPC.
 
 #### `GET /api/content`
+
 **Purpose**: List content available to authenticated user
 
 **Response** (200 OK):
+
 ```json
 {
   "data": [
@@ -389,68 +409,71 @@ entitlement through the backend-only PostgreSQL RPC.
 ```
 
 #### `GET /api/students/{student_id}/videos`
+
 **Purpose**: Get video library for a specific student (MapleBear)
 
 #### `POST /api/students/{student_id}/videos`
+
 **Purpose**: Upload a video recording for a student (consultant only)
 
 #### `PUT /api/videos/{video_id}/feedback`
+
 **Purpose**: Add or update feedback on a video (consultant only)
 
 ### Data Models
 
 ```typescript
 interface User {
-  id: string;                    // Internal Supabase UUID
-  clerkUserId: string;           // Clerk subject, e.g. user_...
+  id: string; // Internal Supabase UUID
+  clerkUserId: string; // Clerk subject, e.g. user_...
   email: string;
   firstName: string;
   lastName: string;
   role: 'CLIENT' | 'CONSULTANT' | 'ADMIN';
   status: 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED';
-  createdAt: string;             // ISO8601
+  createdAt: string; // ISO8601
   updatedAt: string;
 }
 
 interface Student {
-  id: string;                    // UUID
+  id: string; // UUID
   firstName: string;
   lastName: string;
   programme: 'MAPLEBEAR_SC' | 'MAPLEBEAR_YE';
-  parentId: string;              // FK to User
-  consultantId: string;          // FK to User
+  parentId: string; // FK to User
+  consultantId: string; // FK to User
   createdAt: string;
 }
 
 interface Video {
-  id: string;                    // UUID
-  studentId: string;             // FK to Student
+  id: string; // UUID
+  studentId: string; // FK to Student
   title: string;
-  sessionDate: string;           // ISO8601
-  fileUrl: string;               // Supabase Storage URL
+  sessionDate: string; // ISO8601
+  fileUrl: string; // Supabase Storage URL
   durationSeconds: number;
-  feedback: string | null;       // Max 500 chars, editable by consultant
-  uploadedById: string;          // FK to User (consultant)
+  feedback: string | null; // Max 500 chars, editable by consultant
+  uploadedById: string; // FK to User (consultant)
   createdAt: string;
 }
 
 interface Content {
-  id: string;                    // UUID
+  id: string; // UUID
   title: string;
   type: 'video' | 'article' | 'download';
   topic: 'dsa-pathways' | 'interview-preparation' | 'timelines-deadlines';
   fileUrl: string;
   thumbnailUrl: string | null;
   durationSeconds: number | null;
-  isPublic: boolean;             // Free vs paid
+  isPublic: boolean; // Free vs paid
   createdAt: string;
 }
 
 interface UserContentAccess {
-  userId: string;                // FK to User
-  contentId: string;             // FK to Content
+  userId: string; // FK to User
+  contentId: string; // FK to Content
   grantedAt: string;
-  grantedById: string;           // FK to User (admin)
+  grantedById: string; // FK to User (admin)
 }
 ```
 
@@ -468,12 +491,12 @@ interface UserContentAccess {
 
 ### Events/Webhooks
 
-| Event | Trigger | Payload | Consumers |
-|-------|---------|---------|-----------|
-| Purchase confirmed | TTA Shop payment success | Order details, customer email | Admin notification |
-| Access code issued | Admin runs backend generator | Order ID, Course 2 | Purchaser receives plaintext code once |
-| Access code redeemed | Authenticated user submits unused code | Internal user ID, course ID | Atomic entitlement grant |
-| Video uploaded | Consultant uploads recording | Video ID, student ID | Parent notification (future) |
+| Event                | Trigger                                | Payload                       | Consumers                              |
+| -------------------- | -------------------------------------- | ----------------------------- | -------------------------------------- |
+| Purchase confirmed   | TTA Shop payment success               | Order details, customer email | Admin notification                     |
+| Access code issued   | Admin runs backend generator           | Order ID, Course 2            | Purchaser receives plaintext code once |
+| Access code redeemed | Authenticated user submits unused code | Internal user ID, course ID   | Atomic entitlement grant               |
+| Video uploaded       | Consultant uploads recording           | Video ID, student ID          | Parent notification (future)           |
 
 ---
 
@@ -482,6 +505,7 @@ interface UserContentAccess {
 ### Key Pages
 
 **1. Landing & Promotional Home Page** (public)
+
 - Publicly accessible, no login required
 - Primary CTA with clear links to services
 - Displays all visible products clearly
@@ -493,6 +517,7 @@ interface UserContentAccess {
   - Multi-column footer: resources/platform/company/contact + social links; privacy/terms in bottom row
 
 **2. Auth Page** (single entry point)
+
 - Clerk sign-in/sign-up components and configured verification methods
 - "Sign In" primary CTA and password-reset flow
 - TTA/consulting portal branding
@@ -500,6 +525,7 @@ interface UserContentAccess {
 - **Mock / public demo only**: a labelled prototype control (e.g. “Continue as test parent”) replaces real credentials; copy must state no real session (local **Demo mode** vs hosted **Preview** per `VITE_AUTH_MODE`)
 
 **3. Content Dashboard** (authenticated)
+
 - Personalized greeting ("Welcome back, [First Name]")
 - **Dashboard home**: Progress summary per course (e.g. completion counts / bars), not a duplicate course library
 - **Sidebar (desktop) / sheet (mobile)**: Primary navigation with **Dashboard**, expandable **Course 1** and **Course 2** sections (accordion), each offering **Resources** (PDFs and other file-backed materials for that course) and **Video**; **Account Settings**; **Logout** pinned to the bottom of the column
@@ -511,6 +537,7 @@ interface UserContentAccess {
 - **Account Settings → Course access** submits transferable codes and refreshes entitlement/resource queries immediately after redemption
 
 **4. MapleBear Parent Dashboard** (authenticated)
+
 - Child's name and programme displayed
 - Video library with all recordings
 - Each entry: date, session title/topic, duration
@@ -518,6 +545,7 @@ interface UserContentAccess {
 - Consultant feedback below each video (or "Feedback pending")
 
 **5. Consultant Dashboard** (authenticated)
+
 - Student management view showing all assigned students
 - Upload interface with student dropdown
 - Required fields: session date, session title/topic
@@ -531,6 +559,7 @@ interface UserContentAccess {
 4. **Success**: Confirmation toast for uploads and actions
 
 ### Responsive Behavior
+
 - **Desktop**: Full sidebar navigation, multi-column content grid
 - **Mobile**: Top bar with **hamburger** opening a **sheet** that mirrors sidebar links (including course accordions and logout at bottom), single-column content stack, touch-optimized video player when applicable
 
@@ -582,6 +611,7 @@ interface UserContentAccess {
 ## 9. Testing Strategy
 
 ### Unit Tests
+
 - [x] Clerk-to-Supabase user synchronization
 - [x] Entitlement lookup, code hashing, and RPC error mapping
 - [x] Paid PDF and signed Mux access denial
@@ -592,6 +622,7 @@ interface UserContentAccess {
 - [ ] (Optional, when Vitest is added) Frontend `VITE_AUTH_MODE` / mock-vs-live data source helpers — case normalisation and alignment with `getAuthMode()` (`mock`, `public`, `clerk`)
 
 ### Integration Tests
+
 - [x] Authenticated user sync: Clerk subject -> internal Supabase user
 - [x] Redemption: unused code -> consumed code + Course 2 entitlement
 - [x] Entitlement API and paid resource authorization
@@ -599,11 +630,13 @@ interface UserContentAccess {
 - [ ] Feedback CRUD: Consultant adds/edits, parent sees read-only
 
 ### E2E Tests (when requested)
+
 - [ ] Full login flow -> content dashboard -> video playback
 - [ ] Consultant upload -> parent views recording + feedback
 - [ ] Public DSA content browsing -> purchase CTA flow
 
 ### Manual Verification
+
 - [ ] **Dev demo (mock mode)**: With `VITE_AUTH_MODE=mock` and no Clerk key, open `/`, navigate to `/auth/login`, complete demo sign-in, confirm `/dashboard` shows static resource cards without calling the backend
 - [ ] **Hosted preview (public mode)**: With a production build using `VITE_AUTH_MODE=public` (e.g. on Vercel), confirm landing loads, `/auth/login` shows Preview copy and demo sign-in, `/dashboard` works without Clerk
 - [ ] **Dev demo (case normalisation)**: With `VITE_AUTH_MODE=Mock` (mixed case) and `VITE_API_BASE_URL` set, confirm dashboard still uses fixture data (no failing API calls)
@@ -619,19 +652,20 @@ interface UserContentAccess {
 
 ## 10. Risks & Mitigation
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Manual code issuance doesn't scale | M | H | Use the documented generator for MVP; automate from a verified TTA Shop webhook |
-| Video storage costs grow quickly | H | M | Monitor Supabase storage usage; set file size limits; compress on upload |
-| Clerk pricing at scale | M | L | Evaluate usage tiers; Clerk free tier supports 10K MAU |
-| TTA Shop integration fragile (manual) | M | M | Document clear admin workflow; build webhook receiver for future automation |
-| Parent confusion between MapleBear and TTA portals | M | M | Clear branding and navigation separation; distinct URLs or routes |
+| Risk                                               | Impact | Likelihood | Mitigation                                                                      |
+| -------------------------------------------------- | ------ | ---------- | ------------------------------------------------------------------------------- |
+| Manual code issuance doesn't scale                 | M      | H          | Use the documented generator for MVP; automate from a verified TTA Shop webhook |
+| Video storage costs grow quickly                   | H      | M          | Monitor Supabase storage usage; set file size limits; compress on upload        |
+| Clerk pricing at scale                             | M      | L          | Evaluate usage tiers; Clerk free tier supports 10K MAU                          |
+| TTA Shop integration fragile (manual)              | M      | M          | Document clear admin workflow; build webhook receiver for future automation     |
+| Parent confusion between MapleBear and TTA portals | M      | M          | Clear branding and navigation separation; distinct URLs or routes               |
 
 ---
 
 ## 11. References
 
 ### Technology Documentation
+
 - React 19.1: Component patterns, hooks
 - TanStack Router: File-based routing configuration
 - TanStack Query: Stale-while-revalidate, query invalidation
@@ -642,6 +676,7 @@ interface UserContentAccess {
 - Tailwind CSS 4.2: Utility-first styling
 
 ### Business Context
+
 - Think Teach Academy (TTA): DSA consulting services
 - MapleBear Collaboration Programmes: Student Care, Young Explorers
 - Macro Academy: Base Camp, University Consulting (future phases)
@@ -668,16 +703,19 @@ interface UserContentAccess {
 ## Appendix: Target Audience Personas
 
 ### MapleBear Parent ("Maria")
+
 - **Demographics**: 35-45, Singapore, children aged 4-8 in MapleBear Student Care / Young Explorers
 - **Needs**: Transparency in enrichment classes, evidence of progress, convenient digital access to recordings
 - **Goals**: Track child's public speaking development, feel confident about programme value
 
 ### DSA-Curious Parent ("David")
+
 - **Demographics**: 38-48, child in Primary 4-5, researching secondary school options
 - **Needs**: Structured expert information at accessible price, clarity on DSA process
 - **Goals**: Understand DSA pathways without expensive commitment, assess child's competitiveness
 
 ### Consultant ("Catherine")
+
 - **Demographics**: Experienced education consultant/teacher, manages multiple students
 - **Needs**: Centralized upload system, reduce admin burden, enhance perceived service value
 - **Goals**: Streamline administrative work, provide transparent progress tracking
@@ -687,6 +725,7 @@ interface UserContentAccess {
 ## Change Log
 
 ### 2026-07-01 v1.8.0
+
 - Status: In Development
 - Changes:
   - Replaced admin account/content provisioning with Clerk first-request user synchronization and transferable single-use Course 2 codes
@@ -699,6 +738,7 @@ interface UserContentAccess {
   - Updated setup, deployment, testing, incident response, API, architecture, and data-model guidance to match the implementation
 
 ### 2026-05-10 v1.7.0
+
 - Status: In Development
 - Changes:
   - **UX (Content Dashboard)**: Documented course-based sidebar (accordion per course, Resources + Video, Settings, bottom Logout), progress-focused dashboard home, mobile sheet parity, in-app PDF viewing (removed primary “open in new tab” CTA from PRD scope)
@@ -708,12 +748,14 @@ interface UserContentAccess {
   - **Acceptance Criteria**: Added Gherkin scenario for course Resources and in-app PDF; expanded manual verification for dashboard navigation
 
 ### 2026-05-06 v1.6.0
+
 - Status: In Development
 - Changes:
   - Documented EdXP-Users authorization integration (service-to-service `/authorize`) and required backend configuration variables
   - Added dev-only EdXP authorization diagnostic endpoint (`/api/v1/dev/authz/authorize`) guidance for local wiring verification
 
 ### 2026-04-28 v1.5.0
+
 - Status: In Development
 - Changes:
   - Documented Vercel-hosted FastAPI backend as a separate project rooted at `backend/` (Vercel Functions entrypoint + routing)
@@ -721,12 +763,14 @@ interface UserContentAccess {
   - Clarified production auth hardening: set `CLERK_AUDIENCE` to ensure audience verification
 
 ### 2026-04-24 v1.4.1
+
 - Status: In Development
 - Changes:
   - Documented backend **dev-only** Supabase Storage connectivity checks (public vs paid buckets) and optional dev bearer auth bypass for local testing
   - Noted backend configuration may load from `backend/.env.local` (preferred) with `.env` fallback in local development
 
 ### 2026-04-21 v1.4.0
+
 - Status: In Development
 - Changes:
   - Documented **`VITE_AUTH_MODE=public`** for production/static-hosted UI previews without Clerk (vs dev-only `mock`)
@@ -735,6 +779,7 @@ interface UserContentAccess {
   - Aligned **[Deployment & Environments](../deployment/environments.md)** with Vercel preview workflow and env vars
 
 ### 2026-04-17 v1.3.0
+
 - Status: In Development
 - Changes:
   - Updated landing page UX specs to reflect new conversion-focused sections (Community Q&A carousel, “Join Over 555,000…” social proof CTA, final features + CTA)
@@ -742,6 +787,7 @@ interface UserContentAccess {
   - Updated Phase 1 implementation guidance to match current landing page composition (removed “programmes” section)
 
 ### 2026-04-05 v1.2.1
+
 - Status: In Development
 - Changes:
   - Documented **local full-stack initialisation**: root **`package.json`**, **`npm install`** at repo root, **`npm run dev`** (Vite + Uvicorn via **`concurrently`** and OS-specific **`backend/.venv`** paths via **`run-script-os`**)
@@ -750,6 +796,7 @@ interface UserContentAccess {
   - Aligned **[Setup Guide](../getting-started/setup.md)** and **[Development Workflow](../getting-started/development.md)** with root **`npm run dev`**, **`backend/.venv`**, **`pip install -e ".[dev]"`**, and health URL **`/api/v1/health`**
 
 ### 2026-04-05 v1.2
+
 - Status: In Development
 - Changes:
   - Documented frontend **mock auth / demo mode** (`VITE_AUTH_MODE=mock`), dev-only constraint, and shared portal auth abstraction aligned with implementation
@@ -759,6 +806,7 @@ interface UserContentAccess {
   - Refreshed **Implementation Guidance** (Phase 1 progress) and **Testing Strategy** (manual mock/Clerk checks; optional Vitest note for env helpers)
 
 ### 2026-03-27 v1.1
+
 - Status: In Development
 - Changes:
   - Updated Technology Stack to reflect actual installed package versions (Vite 6.x, TypeScript 5.7, TanStack Router 1.114+, TanStack Query 5.75+, Tailwind CSS 4.1)

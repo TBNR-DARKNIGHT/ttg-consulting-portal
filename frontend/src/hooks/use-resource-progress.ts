@@ -9,7 +9,11 @@ export function useResourceProgress() {
   const { getToken } = usePortalAuth();
   const source = shouldUseMockApiData() ? 'mock' : 'live';
 
-  const { data: progress = [], isLoading, error } = useQuery({
+  const {
+    data: progress = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['resource-progress', source],
     queryFn: () => {
       if (shouldUseMockApiData()) {

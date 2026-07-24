@@ -24,6 +24,7 @@ Thank you for contributing to the TTG Consulting Portal! This guide will help yo
 ### Testing Pyramid
 
 Follow this distribution:
+
 - **70% Unit Tests** - Fast, isolated tests for business logic
 - **20% Integration Tests** - Test component interactions
 - **10% E2E Tests** - Only for critical user flows (when explicitly required)

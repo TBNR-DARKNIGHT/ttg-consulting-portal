@@ -53,4 +53,3 @@ async def dev_authz_authorize(
             cache_ttl_seconds=decision.get("cache_ttl_seconds"),
         )
     )
-

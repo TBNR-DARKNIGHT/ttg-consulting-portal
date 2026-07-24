@@ -33,9 +33,7 @@ class ResourceItem(BaseModel):
     @model_validator(mode="after")
     def infer_course_id(self) -> "ResourceItem":
         if self.course_id is None:
-            self.course_id = (
-                "course-2" if self.topic == "interview-preparation" else "course-1"
-            )
+            self.course_id = "course-2" if self.topic == "interview-preparation" else "course-1"
         return self
 
 

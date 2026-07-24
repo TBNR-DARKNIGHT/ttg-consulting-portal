@@ -88,7 +88,9 @@ test('captures page, resource, click, and session lifecycle events', async ({ pa
   expect(events.every((event) => event.anonymousId)).toBe(true);
 });
 
-test('keeps failed events in local storage and retries them with the next event', async ({ page }) => {
+test('keeps failed events in local storage and retries them with the next event', async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -122,9 +124,9 @@ test('keeps failed events in local storage and retries them with the next event'
   });
 
   await page.goto('/');
-  await expect.poll(() => requests.flat().some((event) => event.eventType === 'page_view')).toBe(
-    true,
-  );
+  await expect
+    .poll(() => requests.flat().some((event) => event.eventType === 'page_view'))
+    .toBe(true);
 
   failAnalytics = true;
   await page.evaluate(() => {

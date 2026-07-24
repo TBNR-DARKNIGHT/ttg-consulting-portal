@@ -60,8 +60,7 @@ async def test_create_tta_code_batch_creates_codes_and_exports_same_values(
 
 
 @pytest.mark.asyncio
-async def test_revoke_all_active_access_codes_returns_revoked_count(
-) -> None:
+async def test_revoke_all_active_access_codes_returns_revoked_count() -> None:
     class FakeClient:
         def rpc(self, name, params):
             assert name == "admin_revoke_all_active_access_codes"

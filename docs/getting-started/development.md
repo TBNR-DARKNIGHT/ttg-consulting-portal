@@ -25,6 +25,7 @@ Use **`npm run dev`** only in **`frontend/`** and **`uvicorn app.main:app --relo
 ### Making Changes
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feature/STORY-123-description
    ```
@@ -39,6 +40,7 @@ Use **`npm run dev`** only in **`frontend/`** and **`uvicorn app.main:app --relo
    - Keep changes focused and atomic
 
 4. **Run tests and quality checks**
+
    ```bash
    cd frontend && npm run lint && npm run type-check
    cd ../backend && ruff check . && pyright && pytest -v
@@ -104,6 +106,7 @@ cd ../backend && pyright
 Follow the convention: `<type>/<story-id>-<description>`
 
 **Types:**
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `hotfix/` - Urgent production fixes
@@ -112,6 +115,7 @@ Follow the convention: `<type>/<story-id>-<description>`
 - `refactor/` - Code refactoring
 
 **Examples:**
+
 - `feature/STORY-123-user-authentication`
 - `fix/STORY-456-login-error`
 

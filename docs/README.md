@@ -66,12 +66,15 @@ Significant architectural decisions are documented in `architecture/decisions/` 
 **Deciders**: [Names]
 
 ## Context
+
 What is the issue we're facing?
 
 ## Decision
+
 What did we decide to do?
 
 ## Consequences
+
 What are the implications of this decision?
 ```
 

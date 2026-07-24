@@ -40,8 +40,7 @@ def generate_order_code(*, secret: str, order_id: str, course_id: str) -> str:
     digest = hmac.new(secret.encode(), message, hashlib.sha256).digest()
     character_count = CODE_GROUP_COUNT * CODE_GROUP_LENGTH
     characters = "".join(
-        CODE_ALPHABET[byte % len(CODE_ALPHABET)]
-        for byte in digest[:character_count]
+        CODE_ALPHABET[byte % len(CODE_ALPHABET)] for byte in digest[:character_count]
     )
     groups = [
         characters[index : index + CODE_GROUP_LENGTH]
@@ -50,9 +49,7 @@ def generate_order_code(*, secret: str, order_id: str, course_id: str) -> str:
     return "TTA-" + "-".join(groups)
 
 
-def _matching_existing_code(
-    rows: list[dict[str, Any]], *, expected_hash: str
-) -> UUID | None:
+def _matching_existing_code(rows: list[dict[str, Any]], *, expected_hash: str) -> UUID | None:
     if not rows:
         return None
     row = rows[0]
@@ -65,12 +62,14 @@ def _matching_existing_code(
 
 async def _find_order_code(db: Client, order_id: str) -> list[dict[str, Any]]:
     response = await asyncio.to_thread(
-        lambda: db.table("access_codes")
-        .select("id,code_hash")
-        .eq("order_id", order_id)
-        .is_("revoked_at", "null")
-        .limit(1)
-        .execute()
+        lambda: (
+            db.table("access_codes")
+            .select("id,code_hash")
+            .eq("order_id", order_id)
+            .is_("revoked_at", "null")
+            .limit(1)
+            .execute()
+        )
     )
     return [row for row in (response.data or []) if isinstance(row, dict)]
 
@@ -103,15 +102,17 @@ async def issue_woocommerce_access_code(
             return existing_id, plaintext
 
         response = await asyncio.to_thread(
-            lambda: db.table("access_codes")
-            .insert(
-                {
-                    "code_hash": code_hash,
-                    "course_id": course_id,
-                    "order_id": normalized_order_id,
-                }
+            lambda: (
+                db.table("access_codes")
+                .insert(
+                    {
+                        "code_hash": code_hash,
+                        "course_id": course_id,
+                        "order_id": normalized_order_id,
+                    }
+                )
+                .execute()
             )
-            .execute()
         )
         row = (response.data or [None])[0]
         if not isinstance(row, dict) or not row.get("id"):

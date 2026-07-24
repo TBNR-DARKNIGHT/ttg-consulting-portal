@@ -2,11 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ChevronRight, FileText, LockKeyhole, Video } from 'lucide-react';
 import { useEntitlements } from '@/hooks/use-entitlements';
-import {
-  COURSES,
-  COURSE_2_MODULES,
-  type CourseId,
-} from '@/lib/courses';
+import { COURSES, COURSE_2_MODULES, type CourseId } from '@/lib/courses';
 import { cn } from '@/lib/utils';
 
 export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () => void }) {
@@ -61,8 +57,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
         const open = !locked && isOpen(course.id);
         const courseActive =
           pathname.startsWith(`/dashboard/course/${course.id}`) ||
-          (pathname.startsWith('/dashboard/resources/') &&
-            resourceOrigin.courseId === course.id);
+          (pathname.startsWith('/dashboard/resources/') && resourceOrigin.courseId === course.id);
         const resourcesActive =
           pathname === `/dashboard/course/${course.id}/resources` ||
           (courseActive && resourceOrigin.from === 'resources');
@@ -105,10 +100,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                 title={locked ? 'Purchase access to unlock this course' : undefined}
               >
                 <ChevronRight
-                  className={cn(
-                    'size-4 transition-transform',
-                    open && 'rotate-90',
-                  )}
+                  className={cn('size-4 transition-transform', open && 'rotate-90')}
                   aria-hidden
                 />
               </button>
@@ -129,10 +121,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                       Purchase access
                     </span>
                   </span>
-                  <LockKeyhole
-                    className="size-3.5 shrink-0 text-muted-foreground"
-                    aria-hidden
-                  />
+                  <LockKeyhole className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
                 </Link>
               ) : (
                 <Link
@@ -150,9 +139,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                   }}
                   className={cn(
                     'flex min-w-0 flex-1 items-center gap-2 rounded-md py-2 pr-2 text-left text-sm font-medium transition-colors',
-                    courseActive
-                      ? 'text-brand-indigo'
-                      : 'text-foreground',
+                    courseActive ? 'text-brand-indigo' : 'text-foreground',
                   )}
                 >
                   <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">
@@ -217,9 +204,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                 <div
                   className={cn(
                     'group/sidebar-row flex items-center gap-0.5 rounded-md transition-colors',
-                    videosActive
-                      ? 'bg-brand-indigo/10 text-brand-indigo'
-                      : 'hover:bg-muted/80',
+                    videosActive ? 'bg-brand-indigo/10 text-brand-indigo' : 'hover:bg-muted/80',
                   )}
                 >
                   <Link
@@ -227,9 +212,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                     params={{ courseId: course.id }}
                     search={{}}
                     onClick={() => {
-                      setExpandedSections((current) =>
-                        new Set(current).add(videosSectionKey),
-                      );
+                      setExpandedSections((current) => new Set(current).add(videosSectionKey));
                       setCollapsedSections((current) => {
                         const next = new Set(current);
                         next.delete(videosSectionKey);
@@ -270,10 +253,7 @@ export function DashboardCourseSidebarSection({ onNavigate }: { onNavigate?: () 
                     aria-label={`${videosOpen ? 'Collapse' : 'Expand'} Videos`}
                   >
                     <ChevronRight
-                      className={cn(
-                        'size-3.5 transition-transform',
-                        videosOpen && 'rotate-90',
-                      )}
+                      className={cn('size-3.5 transition-transform', videosOpen && 'rotate-90')}
                       aria-hidden
                     />
                   </button>

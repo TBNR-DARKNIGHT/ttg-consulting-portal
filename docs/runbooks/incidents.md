@@ -26,12 +26,14 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Response Time**: Immediate (< 15 minutes)
 
 **Examples**:
+
 - Application completely down
 - Database unreachable
 - Data breach or security incident
 - Payment processing failure
 
 **Actions**:
+
 1. Page on-call engineer immediately
 2. Create incident channel
 3. Notify stakeholders
@@ -46,11 +48,13 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Response Time**: < 1 hour
 
 **Examples**:
+
 - Significant performance degradation
 - Non-critical feature broken
 - Intermittent errors affecting multiple users
 
 **Actions**:
+
 1. Notify on-call engineer
 2. Create incident ticket
 3. Begin investigation
@@ -65,11 +69,13 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Response Time**: < 4 hours (during business hours)
 
 **Examples**:
+
 - UI bug
 - Non-critical API errors
 - Minor performance issues
 
 **Actions**:
+
 1. Create ticket
 2. Assign to appropriate team
 3. Fix in next deployment
@@ -83,11 +89,13 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Response Time**: Next sprint
 
 **Examples**:
+
 - Typos
 - Minor UI inconsistencies
 - Feature requests
 
 **Actions**:
+
 1. Add to backlog
 2. Prioritize with other work
 
@@ -104,6 +112,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 ### 2. Triage
 
 **Steps**:
+
 1. Confirm the issue
 2. Determine severity
 3. Assign incident commander
@@ -112,6 +121,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 ### 3. Investigation
 
 **Checklist**:
+
 - [ ] Check monitoring dashboards
 - [ ] Review error logs
 - [ ] Check recent deployments
@@ -121,16 +131,19 @@ This runbook provides procedures for responding to and resolving incidents in th
 ### 4. Communication
 
 **Internal**:
+
 - Update incident channel regularly
 - Keep stakeholders informed
 
 **External**:
+
 - Update status page
 - Notify affected users (if needed)
 
 ### 5. Resolution
 
 **Steps**:
+
 1. Identify root cause
 2. Implement fix or workaround
 3. Test fix thoroughly
@@ -140,6 +153,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 ### 6. Post-Incident
 
 **Required**:
+
 - Write incident report
 - Conduct blameless postmortem
 - Create action items to prevent recurrence
@@ -154,6 +168,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Symptoms**: Application not responding, 5xx errors
 
 **Diagnosis**:
+
 ```bash
 # Check application status
 # TBD
@@ -166,11 +181,13 @@ This runbook provides procedures for responding to and resolving incidents in th
 ```
 
 **Common Causes**:
+
 - Deployment issue
 - Resource exhaustion (CPU, memory)
 - Database connection issues
 
 **Resolution**:
+
 1. Check deployment status
 2. Rollback if recent deployment
 3. Restart application if needed
@@ -183,6 +200,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Symptoms**: Slow queries, connection errors, timeouts
 
 **Diagnosis**:
+
 ```bash
 # Check database connections
 # TBD
@@ -195,12 +213,14 @@ This runbook provides procedures for responding to and resolving incidents in th
 ```
 
 **Common Causes**:
+
 - Too many connections
 - Slow queries
 - Disk space full
 - Locks/deadlocks
 
 **Resolution**:
+
 1. Kill long-running queries
 2. Add indexes if needed
 3. Increase connection pool
@@ -213,18 +233,21 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Symptoms**: Slow page loads, high response times
 
 **Diagnosis**:
+
 - Check monitoring dashboards
 - Review APM traces
 - Check database query performance
 - Check external API response times
 
 **Common Causes**:
+
 - N+1 queries
 - Missing indexes
 - Large payloads
 - External service slowdown
 
 **Resolution**:
+
 1. Optimize slow queries
 2. Add caching
 3. Implement pagination
@@ -237,6 +260,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Symptoms**: Users unable to log in, 401 errors on protected endpoints, or `503 User profile unavailable`
 
 **Diagnosis**:
+
 - Check application logs for `"Failed to fetch JWKS"` (JWKS endpoint unreachable)
 - Check for `"Unexpected error during authentication"` (catch-all triggered — investigate root cause)
 - Check for `"Token missing required 'sub' claim"` in 401 responses (Clerk JWT template may need `sub`)
@@ -246,6 +270,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 - Verify Clerk dashboard status (https://status.clerk.com)
 
 **Common Causes**:
+
 - `CLERK_JWKS_URL` or `CLERK_ISSUER` misconfigured or unset
 - Clerk JWKS endpoint down or unreachable (10s timeout will fire)
 - JWKS cache expired and refresh failed — all new requests fail until Clerk recovers
@@ -255,6 +280,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 - Supabase unavailable or a conflicting email/Clerk subject prevents local user synchronization
 
 **Resolution**:
+
 1. Verify `CLERK_JWKS_URL`, `CLERK_ISSUER`, `CLERK_AUDIENCE`, and backend-only `CLERK_SECRET_KEY`
 2. Check Clerk service status
 3. If JWKS fetch is timing out, check network connectivity from the backend host to Clerk
@@ -268,10 +294,12 @@ This runbook provides procedures for responding to and resolving incidents in th
 **Symptoms**: Features dependent on external APIs failing
 
 **Diagnosis**:
+
 - Check external service status pages
 - Review API error logs
 
 **Resolution**:
+
 1. Implement graceful degradation
 2. Show user-friendly error messages
 3. Retry with exponential backoff
@@ -289,6 +317,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 ```
 
 **Steps**:
+
 1. Identify last known good version
 2. Trigger rollback deployment
 3. Verify application health
@@ -299,6 +328,7 @@ This runbook provides procedures for responding to and resolving incidents in th
 **WARNING**: Database rollbacks can cause data loss
 
 **Steps**:
+
 1. Stop application writes
 2. Run rollback migration
 3. Verify data integrity
@@ -370,6 +400,7 @@ Thank you for your patience.
 **Tool**: TBD
 
 **Alerts**:
+
 - Error rate > X% → Page on-call
 - Response time > X ms → Send alert
 - Database connections > X% → Send alert
@@ -417,9 +448,11 @@ the signed ID unless immediate containment is more important than playback avail
 **Affected Users**: [Number/percentage]
 
 ## Summary
+
 [Brief description of what happened]
 
 ## Timeline
+
 - HH:MM - Incident detected
 - HH:MM - Investigation began
 - HH:MM - Root cause identified
@@ -427,22 +460,27 @@ the signed ID unless immediate containment is more important than playback avail
 - HH:MM - Incident resolved
 
 ## Root Cause
+
 [Technical explanation of what went wrong]
 
 ## Resolution
+
 [What was done to fix the issue]
 
 ## Impact
+
 - Users affected: [number]
 - Revenue impact: [if applicable]
 - Data loss: [if any]
 
 ## Action Items
+
 - [ ] [Action to prevent recurrence]
 - [ ] [Documentation update]
 - [ ] [Monitoring improvement]
 
 ## Lessons Learned
+
 [What we learned and how we'll improve]
 ```
 
@@ -456,6 +494,7 @@ the signed ID unless immediate containment is more important than playback avail
 ---
 
 **Next Steps**:
+
 1. Set up monitoring and alerts
 2. Configure on-call rotation
 3. Create runbooks for specific scenarios

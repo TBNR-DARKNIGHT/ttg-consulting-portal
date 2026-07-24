@@ -129,4 +129,3 @@ async def dev_storage_paid_download(
         raise HTTPException(status_code=500, detail="Unexpected download response")
 
     return Response(content=bytes(data), media_type="application/pdf")
-

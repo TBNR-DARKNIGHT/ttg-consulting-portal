@@ -17,13 +17,7 @@ import { usePortalAuth } from '@/auth/auth-context';
 import { getAuthMode, usesDemoAuthProvider } from '@/auth/env';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -42,12 +36,37 @@ const kpiIcons = [Users, UserCheck, Clock, Activity, Eye, MousePointerClick];
 
 function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
   const kpis: AdminAnalyticsKpi[] = [
-    { label: 'Active users', value: '16', detail: '12 signed-in users in demo data', tone: 'positive' },
-    { label: 'Paid-course users', value: '33.3%', detail: '8 of 24 registered users', tone: 'positive' },
-    { label: 'Avg session time', value: '8m 12s', detail: 'Across 15 timed sessions', tone: 'neutral' },
-    { label: 'Sessions per active user', value: '2.4', detail: '38 session starts captured', tone: 'neutral' },
+    {
+      label: 'Active users',
+      value: '16',
+      detail: '12 signed-in users in demo data',
+      tone: 'positive',
+    },
+    {
+      label: 'Paid-course users',
+      value: '33.3%',
+      detail: '8 of 24 registered users',
+      tone: 'positive',
+    },
+    {
+      label: 'Avg session time',
+      value: '8m 12s',
+      detail: 'Across 15 timed sessions',
+      tone: 'neutral',
+    },
+    {
+      label: 'Sessions per active user',
+      value: '2.4',
+      detail: '38 session starts captured',
+      tone: 'neutral',
+    },
     { label: 'Resource views', value: '74', detail: '12 resources viewed', tone: 'neutral' },
-    { label: 'Click-through actions', value: '29', detail: '9 unique click targets', tone: 'neutral' },
+    {
+      label: 'Click-through actions',
+      value: '29',
+      detail: '9 unique click targets',
+      tone: 'neutral',
+    },
   ];
 
   return {
@@ -59,9 +78,7 @@ function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
     activeUserCount: 16,
     kpis,
     trend: Array.from({ length: rangeDays }, (_, index) => ({
-      date: new Date(Date.now() - (rangeDays - index - 1) * 86_400_000)
-        .toISOString()
-        .slice(0, 10),
+      date: new Date(Date.now() - (rangeDays - index - 1) * 86_400_000).toISOString().slice(0, 10),
       activeUsers: (index % 7) + 1,
       sessions: (index % 5) + 2,
       pageViews: (index % 9) + 3,
@@ -177,9 +194,7 @@ function exportCsv(summary: AdminAnalyticsSummary) {
     ]),
   ];
   const csv = rows
-    .map((row) =>
-      row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','),
-    )
+    .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','))
     .join('\n');
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   const link = document.createElement('a');
@@ -289,7 +304,9 @@ function UserRows({ users }: { users: AdminAnalyticsUserMetric[] }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-foreground">{user.label}</p>
-              {user.email && <p className="break-all text-xs text-muted-foreground">{user.email}</p>}
+              {user.email && (
+                <p className="break-all text-xs text-muted-foreground">{user.email}</p>
+              )}
               <p className="mt-1 text-xs text-muted-foreground">
                 Last seen {formatDate(user.lastSeenAt)}
               </p>
@@ -372,10 +389,7 @@ export function AdminAnalyticsDashboard() {
       ]);
     },
   });
-  const generatedAt = useMemo(
-    () => (summary ? formatDate(summary.generatedAt) : ''),
-    [summary],
-  );
+  const generatedAt = useMemo(() => (summary ? formatDate(summary.generatedAt) : ''), [summary]);
 
   return (
     <main className="mx-auto w-full max-w-[82rem] space-y-6 px-6 py-8 md:px-10 md:py-10">
@@ -411,7 +425,13 @@ export function AdminAnalyticsDashboard() {
             <RefreshCw className={cn('size-4', analytics.isFetching && 'animate-spin')} />
           </Button>
           {summary && (
-            <Button variant="outline" size="icon" title="Download CSV" aria-label="Download CSV" onClick={() => exportCsv(summary)}>
+            <Button
+              variant="outline"
+              size="icon"
+              title="Download CSV"
+              aria-label="Download CSV"
+              onClick={() => exportCsv(summary)}
+            >
               <Download className="size-4" />
             </Button>
           )}
@@ -421,7 +441,8 @@ export function AdminAnalyticsDashboard() {
       {analytics.isLoading && <p className="text-sm text-muted-foreground">Loading analytics...</p>}
       {analytics.isError && (
         <p className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          Unable to load analytics. Confirm the analytics migrations are applied and your account is an admin.
+          Unable to load analytics. Confirm the analytics migrations are applied and your account is
+          an admin.
         </p>
       )}
 
@@ -462,9 +483,15 @@ export function AdminAnalyticsDashboard() {
               <CardContent className="space-y-3">
                 <MiniTrend trend={summary.trend} />
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><span className="size-2 rounded-full bg-brand-indigo" /> Active users</span>
-                  <span className="inline-flex items-center gap-1"><span className="size-2 rounded-full bg-emerald-500" /> Resource views</span>
-                  <span className="inline-flex items-center gap-1"><span className="size-2 rounded-full bg-amber-500" /> Clicks</span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-brand-indigo" /> Active users
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-emerald-500" /> Resource views
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-amber-500" /> Clicks
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -476,36 +503,36 @@ export function AdminAnalyticsDashboard() {
               description="Content demand by unique users and repeat views."
               className="h-[30rem]"
             >
-                {summary.topResources.length === 0 ? (
-                  <EmptyState label="No resource views captured yet." />
-                ) : (
-                  <div className="space-y-3">
-                    {summary.topResources.map((resource) => (
-                      <div key={resource.resourceId ?? resource.title} className="space-y-1.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium">{resource.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {resource.courseId ?? 'No course'} · {resource.type ?? 'resource'}
-                            </p>
-                          </div>
-                          <p className="text-sm font-semibold">{resource.views}</p>
+              {summary.topResources.length === 0 ? (
+                <EmptyState label="No resource views captured yet." />
+              ) : (
+                <div className="space-y-3">
+                  {summary.topResources.map((resource) => (
+                    <div key={resource.resourceId ?? resource.title} className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{resource.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {resource.courseId ?? 'No course'} · {resource.type ?? 'resource'}
+                          </p>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-brand-indigo"
-                            style={{
-                              width: `${Math.min(100, resource.views * 8)}%`,
-                            }}
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {resource.uniqueUsers} unique users · {resource.viewsPerUser} views/user
-                        </p>
+                        <p className="text-sm font-semibold">{resource.views}</p>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-brand-indigo"
+                          style={{
+                            width: `${Math.min(100, resource.views * 8)}%`,
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {resource.uniqueUsers} unique users · {resource.viewsPerUser} views/user
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </AnalyticsListCard>
 
             <AnalyticsListCard
@@ -519,36 +546,63 @@ export function AdminAnalyticsDashboard() {
 
           <section className="grid gap-6 xl:grid-cols-3">
             <AnalyticsListCard title="Top Pages" className="h-[24rem]" contentClassName="space-y-2">
-                {summary.topPages.length === 0 ? <EmptyState label="No page views yet." /> : summary.topPages.map((page) => (
+              {summary.topPages.length === 0 ? (
+                <EmptyState label="No page views yet." />
+              ) : (
+                summary.topPages.map((page) => (
                   <div key={page.path} className="flex items-start justify-between gap-3 text-sm">
                     <span className="min-w-0">
-                      <span className="block truncate font-medium text-foreground">{page.label}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{page.path}</span>
+                      <span className="block truncate font-medium text-foreground">
+                        {page.label}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {page.path}
+                      </span>
                     </span>
                     <span className="font-medium">{page.views}</span>
                   </div>
-                ))}
+                ))
+              )}
             </AnalyticsListCard>
 
-            <AnalyticsListCard title="Top Clicks" className="h-[24rem]" contentClassName="space-y-2">
-                {summary.topClicks.length === 0 ? <EmptyState label="No clicks yet." /> : summary.topClicks.map((click) => (
+            <AnalyticsListCard
+              title="Top Clicks"
+              className="h-[24rem]"
+              contentClassName="space-y-2"
+            >
+              {summary.topClicks.length === 0 ? (
+                <EmptyState label="No clicks yet." />
+              ) : (
+                summary.topClicks.map((click) => (
                   <div key={`${click.label}-${click.path}`} className="text-sm">
                     <div className="flex items-start justify-between gap-3">
                       <span className="min-w-0 truncate font-medium">{click.label}</span>
                       <span>{click.clicks}</span>
                     </div>
-                    {click.path && <p className="truncate text-xs text-muted-foreground">{click.path}</p>}
+                    {click.path && (
+                      <p className="truncate text-xs text-muted-foreground">{click.path}</p>
+                    )}
                   </div>
-                ))}
+                ))
+              )}
             </AnalyticsListCard>
 
             <AnalyticsListCard title="Referrers" className="h-[24rem]" contentClassName="space-y-2">
-                {summary.topReferrers.length === 0 ? <EmptyState label="No external referrers captured yet." /> : summary.topReferrers.map((referrer) => (
-                  <div key={referrer.source} className="flex items-start justify-between gap-3 text-sm">
-                    <span className="min-w-0 truncate text-muted-foreground">{referrer.source}</span>
+              {summary.topReferrers.length === 0 ? (
+                <EmptyState label="No external referrers captured yet." />
+              ) : (
+                summary.topReferrers.map((referrer) => (
+                  <div
+                    key={referrer.source}
+                    className="flex items-start justify-between gap-3 text-sm"
+                  >
+                    <span className="min-w-0 truncate text-muted-foreground">
+                      {referrer.source}
+                    </span>
                     <span className="font-medium">{referrer.visits}</span>
                   </div>
-                ))}
+                ))
+              )}
             </AnalyticsListCard>
           </section>
 
@@ -641,22 +695,29 @@ export function AdminAnalyticsDashboard() {
             description="Raw-event feed for sanity-checking what the tracker is capturing."
             className="h-[32rem]"
           >
-              {summary.recentEvents.length === 0 ? (
-                <EmptyState label="No events captured yet." />
-              ) : (
-                <div className="divide-y divide-border">
-                  {summary.recentEvents.slice(0, 12).map((event, index) => (
-                    <div key={`${event.occurredAt}-${index}`} className="grid gap-2 py-3 text-sm md:grid-cols-[9rem_1fr_1fr_10rem]">
-                      <Badge variant="secondary" className="w-fit">{event.eventType}</Badge>
-                      <span className="min-w-0 truncate">{event.userLabel}</span>
-                      <span className="min-w-0 truncate text-muted-foreground">
-                        {event.resourceTitle ?? event.pagePath}
-                      </span>
-                      <span className="text-muted-foreground md:text-right">{formatDate(event.occurredAt)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {summary.recentEvents.length === 0 ? (
+              <EmptyState label="No events captured yet." />
+            ) : (
+              <div className="divide-y divide-border">
+                {summary.recentEvents.slice(0, 12).map((event, index) => (
+                  <div
+                    key={`${event.occurredAt}-${index}`}
+                    className="grid gap-2 py-3 text-sm md:grid-cols-[9rem_1fr_1fr_10rem]"
+                  >
+                    <Badge variant="secondary" className="w-fit">
+                      {event.eventType}
+                    </Badge>
+                    <span className="min-w-0 truncate">{event.userLabel}</span>
+                    <span className="min-w-0 truncate text-muted-foreground">
+                      {event.resourceTitle ?? event.pagePath}
+                    </span>
+                    <span className="text-muted-foreground md:text-right">
+                      {formatDate(event.occurredAt)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </AnalyticsListCard>
         </>
       )}

@@ -52,14 +52,16 @@ function ResourceDetailPage() {
   const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
   const queryClient = useQueryClient();
 
-  const resource = useMemo(() => resources.find((r) => r.id === resourceId) ?? null, [resources, resourceId]);
+  const resource = useMemo(
+    () => resources.find((r) => r.id === resourceId) ?? null,
+    [resources, resourceId],
+  );
 
   const resourceCourseId = resource
-    ? resource.courseId ?? getCourseIdForTopic(resource.topic)
+    ? (resource.courseId ?? getCourseIdForTopic(resource.topic))
     : null;
   const canAccess = resource
-    ? resource.access !== 'paid' ||
-      (resourceCourseId !== null && hasCourseAccess(resourceCourseId))
+    ? resource.access !== 'paid' || (resourceCourseId !== null && hasCourseAccess(resourceCourseId))
     : false;
 
   const backToCourseList = useMemo(() => {
@@ -72,7 +74,7 @@ function ResourceDetailPage() {
     }
     const courseId =
       origin.courseId ??
-      (resource ? resource.courseId ?? getCourseIdForTopic(resource.topic) : 'course-1');
+      (resource ? (resource.courseId ?? getCourseIdForTopic(resource.topic)) : 'course-1');
     const moduleId = origin.module ?? resource?.moduleId;
     const search = moduleId ? { module: moduleId } : {};
     if (origin.from === 'overview') {
@@ -86,10 +88,10 @@ function ResourceDetailPage() {
 
   const needsMuxToken = Boolean(
     resource &&
-      canAccess &&
-      resource.type === 'video' &&
-      resource.muxPlaybackId &&
-      resource.muxPlaybackSigned,
+    canAccess &&
+    resource.type === 'video' &&
+    resource.muxPlaybackId &&
+    resource.muxPlaybackSigned,
   );
 
   const muxTokenQuery = useQuery({
@@ -105,22 +107,19 @@ function ResourceDetailPage() {
   });
 
   const directPublicUrl =
-    resource?.type === 'pdf' &&
-    resource.access !== 'paid' &&
-    resource.bucket &&
-    resource.filePath
+    resource?.type === 'pdf' && resource.access !== 'paid' && resource.bucket && resource.filePath
       ? publicBucketStorageUrl(resource.bucket, resource.filePath)
       : '';
 
   const publicUrlQuery = useQuery({
     enabled: Boolean(
       resource &&
-        canAccess &&
-        resource.type === 'pdf' &&
-        resource.access !== 'paid' &&
-        resource.bucket &&
-        resource.filePath &&
-        !directPublicUrl,
+      canAccess &&
+      resource.type === 'pdf' &&
+      resource.access !== 'paid' &&
+      resource.bucket &&
+      resource.filePath &&
+      !directPublicUrl,
     ),
     queryKey: ['resource-public-url', resourceId],
     queryFn: async () => {
@@ -132,7 +131,9 @@ function ResourceDetailPage() {
   });
 
   const paidUrlQuery = useQuery({
-    enabled: Boolean(resource && canAccess && resource.type === 'pdf' && resource.bucket && resource.filePath),
+    enabled: Boolean(
+      resource && canAccess && resource.type === 'pdf' && resource.bucket && resource.filePath,
+    ),
     queryKey: ['resource-paid-url', resourceId, canAccess],
     queryFn: async () => {
       if (!resource || resource.access !== 'paid') {
@@ -157,10 +158,7 @@ function ResourceDetailPage() {
     return base && path ? `${base}${path}` : null;
   }, [resource]);
 
-  const downloadFilename = `${resource?.title ?? 'resource'}.pdf`.replace(
-    /[<>:"/\\|?*]/g,
-    '-',
-  );
+  const downloadFilename = `${resource?.title ?? 'resource'}.pdf`.replace(/[<>:"/\\|?*]/g, '-');
 
   if (!resource) {
     return (
@@ -209,8 +207,7 @@ function ResourceDetailPage() {
   const isPdf = resource.type === 'pdf';
   const playbackJwt = muxTokenQuery.data?.token ?? null;
 
-  const videoReadyPublic =
-    isVideo && resource.muxPlaybackId && !resource.muxPlaybackSigned;
+  const videoReadyPublic = isVideo && resource.muxPlaybackId && !resource.muxPlaybackSigned;
   const videoReadySigned =
     isVideo && resource.muxPlaybackId && resource.muxPlaybackSigned && playbackJwt;
 
@@ -240,11 +237,7 @@ function ResourceDetailPage() {
             {isPdf && pdfUrl && (
               <Button size="icon" asChild>
                 <a
-                  href={
-                    resource.access === 'paid'
-                      ? pdfUrl
-                      : backendDownloadUrl ?? pdfUrl
-                  }
+                  href={resource.access === 'paid' ? pdfUrl : (backendDownloadUrl ?? pdfUrl)}
                   download={downloadFilename}
                   aria-label="Download PDF"
                   title="Download PDF"
@@ -313,10 +306,7 @@ function ResourceDetailPage() {
             <Suspense
               fallback={<ResourceLoadingState label="Loading video player..." className="p-6" />}
             >
-              <MuxPublicPlayer
-                playbackId={resource.muxPlaybackId}
-                title={resource.title}
-              />
+              <MuxPublicPlayer playbackId={resource.muxPlaybackId} title={resource.title} />
             </Suspense>
           </div>
         )}
@@ -340,17 +330,15 @@ function ResourceDetailPage() {
                     ? paidUrlQuery.error.message
                     : 'Failed to load PDF'}
                 <div className="mt-2 text-xs text-muted-foreground">
-                  Tip: ensure <span className="font-mono">VITE_API_BASE_URL</span> points at your backend (usually{' '}
-                  <span className="font-mono">http://127.0.0.1:8000/api/v1</span> when running{' '}
-                  <span className="font-mono">npm run dev</span>).
+                  Tip: ensure <span className="font-mono">VITE_API_BASE_URL</span> points at your
+                  backend (usually <span className="font-mono">http://127.0.0.1:8000/api/v1</span>{' '}
+                  when running <span className="font-mono">npm run dev</span>).
                 </div>
               </div>
             )}
             {pdfUrl && (
               <Suspense
-                fallback={
-                  <ResourceLoadingState label="Loading PDF viewer…" className="p-6" />
-                }
+                fallback={<ResourceLoadingState label="Loading PDF viewer…" className="p-6" />}
               >
                 <PdfDocumentViewer file={pdfUrl} title={resource.title} />
               </Suspense>
@@ -365,7 +353,6 @@ function ResourceDetailPage() {
               )}
           </div>
         )}
-
       </div>
     </main>
   );

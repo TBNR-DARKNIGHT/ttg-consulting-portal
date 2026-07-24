@@ -10,9 +10,7 @@ export const Route = createFileRoute('/dashboard/')({
 
 function DashboardHomePage() {
   const { user } = usePortalAuth();
-  const first =
-    user?.firstName?.trim() ||
-    (user?.email ? user.email.split('@')[0] : null);
+  const first = user?.firstName?.trim() || (user?.email ? user.email.split('@')[0] : null);
   const wave = String.fromCodePoint(0x1f44b);
 
   return (
@@ -32,7 +30,9 @@ function DashboardHomePage() {
         </header>
 
         <section className="grid gap-5 md:grid-cols-2" aria-labelledby="choose-course-heading">
-          <h2 id="choose-course-heading" className="sr-only">Choose a course</h2>
+          <h2 id="choose-course-heading" className="sr-only">
+            Choose a course
+          </h2>
 
           <Card className="flex h-full flex-col border-border shadow-sm">
             <CardHeader>
@@ -57,7 +57,10 @@ function DashboardHomePage() {
           </Card>
 
           <Card className="relative flex h-full flex-col overflow-hidden border-brand-indigo/30 bg-brand-indigo/[0.03] shadow-sm">
-            <div className="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-brand-indigo/10" aria-hidden />
+            <div
+              className="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-brand-indigo/10"
+              aria-hidden
+            />
             <CardHeader className="relative">
               <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-brand-indigo/10 text-brand-indigo">
                 <Sparkles className="size-5" aria-hidden />

@@ -1,5 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '');
 
+type ApiErrorBody = {
+  message?: string;
+  detail?: string | unknown[];
+  error?: { message?: string };
+};
+
 function buildApiUrl(path: string): string {
   if (!API_BASE) {
     throw new Error('VITE_API_BASE_URL is not configured');
@@ -8,11 +14,7 @@ function buildApiUrl(path: string): string {
   return `${API_BASE}${normalizedPath}`;
 }
 
-function errorMessageFromJson(error: {
-  message?: string;
-  detail?: string | unknown[];
-  error?: { message?: string };
-}): string | undefined {
+function errorMessageFromJson(error: ApiErrorBody): string | undefined {
   const detail =
     typeof error.detail === 'string'
       ? error.detail
@@ -20,6 +22,29 @@ function errorMessageFromJson(error: {
         ? error.detail.map(String).join(', ')
         : undefined;
   return error.error?.message || error.message || detail;
+}
+
+async function errorMessageFromResponse(res: Response): Promise<string> {
+  const text = await res.text().catch(() => '');
+  if (!text) {
+    return `HTTP ${res.status}`;
+  }
+
+  try {
+    return errorMessageFromJson(JSON.parse(text) as ApiErrorBody) || text;
+  } catch {
+    return text;
+  }
+}
+
+async function parseApiResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    throw new Error(await errorMessageFromResponse(res));
+  }
+
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message);
+  return json.data as T;
 }
 
 export function hasApiBaseUrl(): boolean {
@@ -30,10 +55,7 @@ export function getApiUrl(path: string): string {
   return buildApiUrl(path);
 }
 
-export async function apiFetchPublic<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+export async function apiFetchPublic<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
@@ -42,18 +64,7 @@ export async function apiFetchPublic<T>(
     },
   });
 
-  if (!res.ok) {
-    const error = (await res.json().catch(() => ({}))) as {
-      message?: string;
-      detail?: string | unknown[];
-      error?: { message?: string };
-    };
-    throw new Error(errorMessageFromJson(error) || `HTTP ${res.status}`);
-  }
-
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data as T;
+  return parseApiResponse<T>(res);
 }
 
 export async function apiFetch<T>(
@@ -71,18 +82,7 @@ export async function apiFetch<T>(
     },
   });
 
-  if (!res.ok) {
-    const error = (await res.json().catch(() => ({}))) as {
-      message?: string;
-      detail?: string | unknown[];
-      error?: { message?: string };
-    };
-    throw new Error(errorMessageFromJson(error) || `HTTP ${res.status}`);
-  }
-
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data as T;
+  return parseApiResponse<T>(res);
 }
 
 export async function apiFetchBlob(
@@ -100,19 +100,7 @@ export async function apiFetchBlob(
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    let message = text || `HTTP ${res.status}`;
-    try {
-      const json = JSON.parse(text) as {
-        message?: string;
-        detail?: string;
-        error?: { message?: string };
-      };
-      message = json.error?.message || json.message || json.detail || message;
-    } catch {
-      // Keep the response text when the error body is not JSON.
-    }
-    throw new Error(message);
+    throw new Error(await errorMessageFromResponse(res));
   }
 
   return await res.blob();

@@ -55,10 +55,7 @@ def validate_public_https_url(url: str) -> str:
     if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
         raise ExternalFileError("The file link must be a public HTTPS URL")
     try:
-        addresses = {
-            item[4][0]
-            for item in socket.getaddrinfo(parsed.hostname, parsed.port or 443)
-        }
+        addresses = {item[4][0] for item in socket.getaddrinfo(parsed.hostname, parsed.port or 443)}
     except socket.gaierror as exc:
         raise ExternalFileError("The file link host could not be resolved") from exc
     for address in addresses:

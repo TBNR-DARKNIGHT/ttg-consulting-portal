@@ -103,10 +103,7 @@ def _ensure_tab(service: Any, tab_name: str) -> None:
         )
         .execute()
     )
-    titles = {
-        sheet.get("properties", {}).get("title")
-        for sheet in spreadsheet.get("sheets", [])
-    }
+    titles = {sheet.get("properties", {}).get("title") for sheet in spreadsheet.get("sheets", [])}
     if tab_name not in titles:
         service.spreadsheets().batchUpdate(
             spreadsheetId=settings.google_sheets_spreadsheet_id,
@@ -207,9 +204,7 @@ def _append_tta_code_rows(codes: list[tuple[str, str]]) -> None:
                 for row in existing[1:]
             ]
         else:
-            raise GoogleSheetsError(
-                "TTA Codes headers do not match a supported layout"
-            )
+            raise GoogleSheetsError("TTA Codes headers do not match a supported layout")
         service.spreadsheets().values().update(
             spreadsheetId=settings.google_sheets_spreadsheet_id,
             range=f"{tab}!A1:H{len(migrated_rows) + 1}",
@@ -222,10 +217,7 @@ def _append_tta_code_rows(codes: list[tuple[str, str]]) -> None:
                 range=f"{tab}!I:J",
                 body={},
             ).execute()
-    values = [
-        ["AVAILABLE", "", "", plaintext, "UNREDEEMED", "", "", ""]
-        for _, plaintext in codes
-    ]
+    values = [["AVAILABLE", "", "", plaintext, "UNREDEEMED", "", "", ""] for _, plaintext in codes]
     if not values:
         return
     service.spreadsheets().values().append(
@@ -272,11 +264,13 @@ def _mark_tta_code_redeemed(code: str, clerk_user_id: str) -> None:
         range=f"{tab}!E{row_number}:G{row_number}",
         valueInputOption="RAW",
         body={
-            "values": [[
-                "REDEEMED",
-                datetime.now().astimezone().isoformat(),
-                clerk_user_id,
-            ]]
+            "values": [
+                [
+                    "REDEEMED",
+                    datetime.now().astimezone().isoformat(),
+                    clerk_user_id,
+                ]
+            ]
         },
     ).execute()
 
@@ -307,19 +301,19 @@ def _write_user_row(row: UserSheetRow) -> None:
     existing = rows[existing_row_number - 1] if existing_row_number is not None else []
     existing_signup_date = existing[4] if len(existing) > 4 else ""
     signup_date = (
-        row.signup_date.isoformat()
-        if row.signup_date is not None
-        else existing_signup_date
+        row.signup_date.isoformat() if row.signup_date is not None else existing_signup_date
     )
-    values = [[
-        row.clerk_user_id,
-        row.email,
-        row.first_name or "",
-        row.last_name or "",
-        signup_date,
-        row.account_status,
-        "ACTIVE" if row.has_course_2_access else "NOT ACTIVE",
-    ]]
+    values = [
+        [
+            row.clerk_user_id,
+            row.email,
+            row.first_name or "",
+            row.last_name or "",
+            signup_date,
+            row.account_status,
+            "ACTIVE" if row.has_course_2_access else "NOT ACTIVE",
+        ]
+    ]
 
     if existing_row_number is None:
         service.spreadsheets().values().append(
@@ -368,15 +362,17 @@ def _mark_user_deleted(clerk_user_id: str) -> None:
             valueInputOption="RAW",
             insertDataOption="INSERT_ROWS",
             body={
-                "values": [[
-                    clerk_user_id,
-                    "",
-                    "",
-                    "",
-                    "",
-                    "DELETED",
-                    "NOT ACTIVE",
-                ]]
+                "values": [
+                    [
+                        clerk_user_id,
+                        "",
+                        "",
+                        "",
+                        "",
+                        "DELETED",
+                        "NOT ACTIVE",
+                    ]
+                ]
             },
         ).execute()
         return
@@ -452,9 +448,7 @@ async def mark_tta_code_redeemed(code: str, clerk_user_id: str) -> None:
         raise
     except HttpError as exc:
         logger.exception("Google Sheets API rejected TTA code redemption update")
-        raise GoogleSheetsError(
-            "Google Sheets rejected the TTA code redemption update"
-        ) from exc
+        raise GoogleSheetsError("Google Sheets rejected the TTA code redemption update") from exc
     except Exception as exc:
         logger.exception("Google Sheets TTA code redemption update failed")
         raise GoogleSheetsError("Unable to update the redeemed TTA code") from exc

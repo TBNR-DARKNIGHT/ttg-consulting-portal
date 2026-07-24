@@ -67,9 +67,7 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
           <div
             className={cn(
               'group/sidebar-row flex items-center rounded-md pl-1 transition-colors',
-              settingsActive
-                ? 'bg-brand-indigo/10 text-brand-indigo'
-                : 'hover:bg-muted/80',
+              settingsActive ? 'bg-brand-indigo/10 text-brand-indigo' : 'hover:bg-muted/80',
             )}
           >
             <button
@@ -83,10 +81,7 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
               aria-label={`${settingsOpen ? 'Collapse' : 'Expand'} Settings`}
             >
               <ChevronRight
-                className={cn(
-                  'size-4 transition-transform',
-                  settingsOpen && 'rotate-90',
-                )}
+                className={cn('size-4 transition-transform', settingsOpen && 'rotate-90')}
                 aria-hidden
               />
             </button>
@@ -95,9 +90,7 @@ export function ContentDashboardNavLinks({ onNavigate }: { onNavigate?: () => vo
               search={{}}
               className={cn(
                 'min-w-0 flex-1 rounded-md py-2 pr-2 text-left text-sm font-medium transition-colors',
-                settingsActive
-                  ? 'text-brand-indigo'
-                  : 'text-foreground',
+                settingsActive ? 'text-brand-indigo' : 'text-foreground',
               )}
               onClick={() => {
                 setSettingsOpen(true);

@@ -24,6 +24,27 @@ const bullets = [
   },
 ] as const;
 
+const dashboardItems = [
+  {
+    title: 'Course 1',
+    subtitle: 'DSA Foundations',
+    status: 'Available',
+    highlighted: true,
+  },
+  {
+    title: 'Course 2',
+    subtitle: 'Interview Prep',
+    status: 'Available',
+    highlighted: false,
+  },
+  {
+    title: 'Module checklist',
+    subtitle: 'Profile, portfolio, questions',
+    status: 'Updated',
+    highlighted: false,
+  },
+] as const;
+
 export function PrepLoungeSection() {
   return (
     <section className="w-full bg-white">
@@ -52,8 +73,7 @@ export function PrepLoungeSection() {
                 <li key={item.title} className="flex gap-3 items-start">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 text-brand-sage shrink-0" />
                   <span className="text-brand-dark/80">
-                    <span className="font-semibold text-brand-dark">{item.title}:</span>{' '}
-                    {item.body}
+                    <span className="font-semibold text-brand-dark">{item.title}:</span> {item.body}
                   </span>
                 </li>
               ))}
@@ -61,8 +81,8 @@ export function PrepLoungeSection() {
 
             <p className="text-brand-dark/75 leading-relaxed max-w-[640px] mb-7">
               We’ve distilled years of elite mentorship into a structured, high-yield workspace.
-              Designed for parents who value strategy over guesswork, our portal provides the
-              tools to ensure your child navigates the pathway with absolute confidence.
+              Designed for parents who value strategy over guesswork, our portal provides the tools
+              to ensure your child navigates the pathway with absolute confidence.
             </p>
 
             <Button asChild size="lg" className="h-12 rounded-full px-7">
@@ -92,48 +112,30 @@ export function PrepLoungeSection() {
 
                   <div className="p-5">
                     <div className="grid gap-3">
-                      <div className="flex items-center justify-between rounded-xl border border-brand-grey bg-brand-grey/30 px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-indigo/10 text-brand-indigo">
-                            <PlayCircle className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-brand-dark">Course 1</div>
-                            <div className="text-xs text-brand-dark/60">DSA Foundations</div>
-                          </div>
-                        </div>
-                        <span className="text-xs font-medium text-brand-dark/65">Available</span>
-                      </div>
-
-                      <div className="flex items-center justify-between rounded-xl border border-brand-grey bg-white px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-indigo/10 text-brand-indigo">
-                            <PlayCircle className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-brand-dark">Course 2</div>
-                            <div className="text-xs text-brand-dark/60">Interview Prep</div>
-                          </div>
-                        </div>
-                        <span className="text-xs font-medium text-brand-dark/65">Available</span>
-                      </div>
-
-                      <div className="flex items-center justify-between rounded-xl border border-brand-grey bg-white px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-indigo/10 text-brand-indigo">
-                            <PlayCircle className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-brand-dark">Module checklist</div>
-                            <div className="text-xs text-brand-dark/60">
-                              Profile, portfolio, questions
+                      {dashboardItems.map((item) => (
+                        <div
+                          key={item.title}
+                          className={`flex items-center justify-between rounded-xl border border-brand-grey px-4 py-3 ${
+                            item.highlighted ? 'bg-brand-grey/30' : 'bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-indigo/10 text-brand-indigo">
+                              <PlayCircle className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-brand-dark">
+                                {item.title}
+                              </div>
+                              <div className="text-xs text-brand-dark/60">{item.subtitle}</div>
                             </div>
                           </div>
+                          <span className="text-xs font-medium text-brand-dark/65">
+                            {item.status}
+                          </span>
                         </div>
-                        <span className="text-xs font-medium text-brand-dark/65">Updated</span>
-                      </div>
+                      ))}
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -148,4 +150,3 @@ export function PrepLoungeSection() {
     </section>
   );
 }
-

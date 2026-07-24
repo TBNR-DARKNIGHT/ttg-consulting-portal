@@ -347,11 +347,7 @@ async def get_admin_analytics_summary(
 
     event_types = Counter(str(row.get("event_type") or "") for row in events)
     active_actors = {_actor_id(row) for row in events}
-    active_known_users = {
-        str(row["user_id"])
-        for row in events
-        if row.get("user_id") is not None
-    }
+    active_known_users = {str(row["user_id"]) for row in events if row.get("user_id") is not None}
     paid_user_count = len(paid_courses_by_user)
     paid_percentage = (paid_user_count / len(users_by_id) * 100) if users_by_id else 0
 
@@ -391,9 +387,7 @@ async def get_admin_analytics_summary(
                 user_id=user_id,
                 label=label,
                 email=(
-                    str(known_user.get("email"))
-                    if known_user and known_user.get("email")
-                    else None
+                    str(known_user.get("email")) if known_user and known_user.get("email") else None
                 ),
             ),
         )
@@ -530,9 +524,7 @@ async def get_admin_analytics_summary(
             key=lambda item: (item.resource_views, item.sessions, item.events),
         )
         seen = {item.user_id for item in low_engagement_users}
-        low_engagement_users.extend(
-            item for item in active_low if item.user_id not in seen
-        )
+        low_engagement_users.extend(item for item in active_low if item.user_id not in seen)
         low_engagement_users = low_engagement_users[:10]
 
     trend = []
@@ -709,10 +701,7 @@ async def delete_ignored_analytics_user(
     db = client or get_client()
     try:
         await asyncio.to_thread(
-            lambda: db.table("analytics_ignored_users")
-            .delete()
-            .eq("id", ignored_user_id)
-            .execute()
+            lambda: db.table("analytics_ignored_users").delete().eq("id", ignored_user_id).execute()
         )
     except Exception as exc:
         logger.exception("Failed to delete ignored analytics user")

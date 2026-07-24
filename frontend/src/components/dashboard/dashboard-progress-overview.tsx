@@ -61,30 +61,30 @@ export function DashboardProgressOverview() {
       {byCourse.map(({ course, total, completed, pct }) => (
         <div key={course.id}>
           {hasCourseAccess(course.id) ? (
-          <Link
-            to="/dashboard/course/$courseId"
-            params={{ courseId: course.id }}
-            className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Card className="h-full border-border shadow-sm transition-colors hover:border-brand-indigo/40 hover:bg-muted/20">
-              <CardHeader className="pb-2">
-                <CardDescription>{course.shortLabel}</CardDescription>
-                <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Completed</span>
-                  <span className="font-medium text-foreground">
-                    {completed} / {total}
-                  </span>
-                </div>
-                <Progress
-                  value={pct}
-                  className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
-                />
-              </CardContent>
-            </Card>
-          </Link>
+            <Link
+              to="/dashboard/course/$courseId"
+              params={{ courseId: course.id }}
+              className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Card className="h-full border-border shadow-sm transition-colors hover:border-brand-indigo/40 hover:bg-muted/20">
+                <CardHeader className="pb-2">
+                  <CardDescription>{course.shortLabel}</CardDescription>
+                  <CardTitle className="font-serif text-lg">{course.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Completed</span>
+                    <span className="font-medium text-foreground">
+                      {completed} / {total}
+                    </span>
+                  </div>
+                  <Progress
+                    value={pct}
+                    className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
+                  />
+                </CardContent>
+              </Card>
+            </Link>
           ) : (
             <a
               href={TTA_SHOP_URL}

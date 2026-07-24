@@ -9,7 +9,11 @@ export function useResources() {
   const { getToken } = usePortalAuth();
   const source = shouldUseMockApiData() ? 'mock' : 'live';
 
-  const { data: resources = [], isLoading, error } = useQuery({
+  const {
+    data: resources = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['resources', source],
     queryFn: () => {
       if (shouldUseMockApiData()) {

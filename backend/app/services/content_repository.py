@@ -95,12 +95,7 @@ def _row_to_resource(row: dict[str, Any]) -> ResourceItem:
 
 def _fetch_from_supabase() -> list[ResourceItem]:
     client = get_client()
-    response = (
-        client.table("resources")
-        .select("*")
-        .order("created_at")
-        .execute()
-    )
+    response = client.table("resources").select("*").order("created_at").execute()
     rows = response.data or []
     return [_row_to_resource(row) for row in rows]
 
@@ -171,12 +166,7 @@ def update_mux_playback(
         payload["duration"] = duration
 
     client = get_client()
-    response = (
-        client.table("resources")
-        .update(payload)
-        .eq("id", resource_id)
-        .execute()
-    )
+    response = client.table("resources").update(payload).eq("id", resource_id).execute()
     if not response.data:
         raise ValueError(f"Resource not found in Supabase: {resource_id}")
     invalidate_resource_cache()

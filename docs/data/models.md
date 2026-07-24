@@ -73,6 +73,7 @@ the server-only Clerk secret key.
 
 The deployed portal authorization enum currently accepts `CLIENT`, `CONSULTANT`, and `ADMIN`.
 `PARENT` below belongs to the planned MapleBear schema and is not a current `UserRole` value.
+
 - `PARENT` — MapleBear parent (self-registered)
 - `CLIENT` — Default role for a portal user synchronized from Clerk
 - `CONSULTANT` — Teacher/consultant uploading content
@@ -102,6 +103,7 @@ CREATE INDEX idx_students_programme ON students(programme);
 ```
 
 **Programmes:**
+
 - `MAPLEBEAR_SC` — MapleBear Student Care
 - `MAPLEBEAR_YE` — MapleBear Young Explorers
 
@@ -308,12 +310,12 @@ ORDER BY l.created_at DESC;
 
 ## Supabase Storage Buckets
 
-| Bucket | Purpose | Access |
-|--------|---------|--------|
-| `resources-public` | Dashboard **public PDFs** | Backend catalog allowlist by `resource_id`; bucket remains public |
-| `resources-paid` | Dashboard PDFs that should remain privately stored | Backend resource policy + signed/download API |
-| `student-videos` | MapleBear student recordings | Signed URLs, consultant upload, parent read |
-| `public-assets` | Marketing / About page images | Public read |
+| Bucket             | Purpose                                            | Access                                                            |
+| ------------------ | -------------------------------------------------- | ----------------------------------------------------------------- |
+| `resources-public` | Dashboard **public PDFs**                          | Backend catalog allowlist by `resource_id`; bucket remains public |
+| `resources-paid`   | Dashboard PDFs that should remain privately stored | Backend resource policy + signed/download API                     |
+| `student-videos`   | MapleBear student recordings                       | Signed URLs, consultant upload, parent read                       |
+| `public-assets`    | Marketing / About page images                      | Public read                                                       |
 
 **Course videos (DSA / interview modules)** use **Mux Video**, not Supabase object storage: each `resources` row stores a **Mux playback ID** and whether playback is **public** or **signed** (JWT minted by `GET /api/v1/playback/mux-token`). Signed playback can still be used for currently open courses; the backend mints tokens for resources allowed by `PUBLIC_COURSE_IDS`. Playback IDs are synced from Mux via `python -m app.scripts.sync_mux` (set asset **Passthrough** to the resource id). **PDFs** use `bucket` + `file_path` pointing at Supabase Storage. See [API overview](../api/overview.md), [Open Course Access](../architecture/open-course-access.md), and [Mux secure playback](https://www.mux.com/docs/guides/secure-video-playback).
 
@@ -339,6 +341,7 @@ checks are therefore mandatory even when RLS is enabled.
 ## Seed Data
 
 **Development seeds should include:**
+
 - 1 admin user
 - 2 consultant users
 - 3 parent users (2 MapleBear, 1 TTA client)

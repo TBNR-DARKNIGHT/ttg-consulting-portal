@@ -10,14 +10,14 @@ A unified platform for Think Teach Group's consulting services across TTA, Maple
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
+| Layer    | Technology                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------------- |
 | Frontend | React 19.1, TypeScript 5.9, Vite 7.3, TanStack Router, TanStack Query, shadcn/ui, Tailwind CSS 4.2 |
-| Backend | FastAPI (Python ≥3.10) |
-| Database | Supabase (PostgreSQL) |
-| Storage | Supabase Storage |
-| Auth | Clerk (JWT) |
-| CI/CD | GitHub Actions, Docker, GHCR |
+| Backend  | FastAPI (Python ≥3.10)                                                                             |
+| Database | Supabase (PostgreSQL)                                                                              |
+| Storage  | Supabase Storage                                                                                   |
+| Auth     | Clerk (JWT)                                                                                        |
+| CI/CD    | GitHub Actions, Docker, GHCR                                                                       |
 
 ## Getting Started
 
@@ -54,10 +54,12 @@ docker compose up
 Copy `.env.example` files and fill in values:
 
 **Frontend** (`.env.local`):
+
 - `VITE_CLERK_PUBLISHABLE_KEY`
 - `VITE_API_BASE_URL`
 
 **Backend** (`.env`):
+
 - `CLERK_JWKS_URL`
 - `CLERK_ISSUER`
 - `CLERK_SECRET_KEY`

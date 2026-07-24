@@ -27,7 +27,10 @@ export function YoungExplorersTeaserSection() {
               to="/young-explorers"
               className="mt-5 inline-flex text-[13px] font-semibold text-brand-indigo hover:opacity-75"
             >
-              Learn More About Young Explorers <span aria-hidden className="ml-1.5">→</span>
+              Learn More About Young Explorers{' '}
+              <span aria-hidden className="ml-1.5">
+                →
+              </span>
             </Link>
           </div>
           <div className="flex flex-wrap gap-8">

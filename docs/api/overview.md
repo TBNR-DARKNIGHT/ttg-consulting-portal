@@ -13,6 +13,7 @@
 RESTful API built with FastAPI (Python >=3.10). All protected endpoints require a valid Clerk JWT.
 
 **Base URL**:
+
 - Development: `http://localhost:8000/api/v1`
 - Staging: TBD
 - Production: TBD
@@ -26,6 +27,7 @@ RESTful API built with FastAPI (Python >=3.10). All protected endpoints require 
 **Method**: Clerk JWT (Bearer token)
 
 **Header**:
+
 ```
 Authorization: Bearer <clerk-jwt>
 ```
@@ -47,6 +49,7 @@ fields. Streaming downloads return file bytes directly. FastAPI validation and `
 failures use the standard `{ "detail": ... }` body.
 
 ### Success Response
+
 ```json
 {
   "data": { ... },
@@ -55,6 +58,7 @@ failures use the standard `{ "detail": ... }` body.
 ```
 
 ### Application Error Envelope
+
 ```json
 {
   "data": null,
@@ -216,10 +220,12 @@ GET    /api/content/:id            # Get specific content item
 ```
 
 **Query Parameters** (GET /api/content):
+
 - `topic` — Earlier proposal; the implemented catalog uses `/api/v1/resources`
 - `type` — Filter: `video`, `article`, `download`
 
 **Response** (200):
+
 ```json
 {
   "data": [
@@ -252,16 +258,19 @@ PUT    /api/videos/:id/feedback    # Add/edit feedback (consultant only)
 ```
 
 **POST /api/students/:id/videos** — multipart form:
+
 - `file` — Video file
 - `title` — Session title (required)
 - `session_date` — Date of session (required, ISO format)
 
 **PUT /api/videos/:id/feedback**:
+
 ```json
 {
   "feedback": "Great progress on eye contact today. Work on slowing down pace."
 }
 ```
+
 - Max 500 characters
 
 ### Users
@@ -376,6 +385,7 @@ GET    /api/v1/health              # Health check (no auth)
 ```
 
 **Response** (200):
+
 ```json
 {
   "data": {
@@ -393,10 +403,12 @@ GET    /api/v1/health              # Health check (no auth)
 
 Pagination is planned but is not implemented by the current resource/entitlement endpoints.
 Proposed query parameters for future list endpoints:
+
 - `page` — Page number (default: 1)
 - `limit` — Items per page (default: 20, max: 100)
 
 **Response meta**:
+
 ```json
 {
   "meta": {
@@ -435,6 +447,7 @@ production requirement; platform/edge limits should be configured as an addition
 ## API Contract First
 
 When adding new endpoints:
+
 1. Design Pydantic schemas (request/response)
 2. Add endpoint to FastAPI router
 3. FastAPI auto-generates OpenAPI spec at `/docs`

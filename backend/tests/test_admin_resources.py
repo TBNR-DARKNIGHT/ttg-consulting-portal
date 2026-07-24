@@ -199,6 +199,7 @@ async def test_admin_can_replace_pdf_without_metadata(
         return "course-1/pdf/guide.pdf", "https://storage.example/signed"
 
     monkeypatch.setattr(admin, "begin_pdf_replacement", fake_begin)
+
     def fake_complete(resource_id: str, **kwargs: object) -> None:
         completed.append(resource_id)
         assert isinstance(kwargs["actor_user_id"], UUID)
@@ -323,7 +324,4 @@ def test_upload_metadata_allows_freeform_text() -> None:
 
 
 def test_pdf_thumbnail_path_is_a_sibling_of_the_pdf() -> None:
-    assert (
-        pdf_thumbnail_path("course-1/pdf/my-guide.pdf")
-        == "course-1/pdf/my-guide_thumbnail.jpg"
-    )
+    assert pdf_thumbnail_path("course-1/pdf/my-guide.pdf") == "course-1/pdf/my-guide_thumbnail.jpg"

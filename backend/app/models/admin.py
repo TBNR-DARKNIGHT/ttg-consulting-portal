@@ -72,9 +72,7 @@ class ResetTtaOrderNumberingOut(AdminModel):
 class ResourceUploadMetadata(AdminModel):
     title: str = Field(min_length=1, max_length=300)
     description: str = Field(default="", max_length=2000)
-    course_id: str = Field(
-        min_length=1, max_length=100, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
-    )
+    course_id: str = Field(min_length=1, max_length=100, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     module_id: str | None = None
     module_title: str | None = Field(default=None, min_length=1, max_length=300)
     topic: str = Field(min_length=1, max_length=100)

@@ -10,7 +10,12 @@ const OFFLINE_PORTAL_PREVIEWS: PortalPreview[] = [
 export function usePortalCoursePreviews() {
   const useLiveApi = hasApiBaseUrl();
 
-  const { data: previews = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: previews = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['portal', 'course-previews', useLiveApi ? 'live' : 'offline'],
     queryFn: () => {
       if (!useLiveApi) {

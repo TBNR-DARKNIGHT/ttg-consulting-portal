@@ -57,9 +57,9 @@ export function WhySection() {
           <aside className="rounded-xl bg-brand-dark px-8 py-10 md:px-10 md:py-12">
             <blockquote className="font-serif text-[22px] italic leading-[1.5] text-white/90">
               “Many believe DSA is reserved only for students with elite talents in sports or the
-              arts. We offer a different perspective. Whether or not a student secures an offer,
-              the process is a rare opportunity to explore their identity and learn to articulate
-              their thinking.”
+              arts. We offer a different perspective. Whether or not a student secures an offer, the
+              process is a rare opportunity to explore their identity and learn to articulate their
+              thinking.”
             </blockquote>
             <cite className="mt-6 block text-[13px] not-italic text-white/50">
               — The Beyond Grades founding team

@@ -14,16 +14,15 @@ function SignUpPage() {
   return (
     <div className="min-h-screen bg-brand-cream flex flex-col">
       <header className="border-b border-brand-grey px-6 py-4">
-        <Link to="/" className="text-sm text-brand-dark/70 hover:text-brand-indigo transition-colors">
+        <Link
+          to="/"
+          className="text-sm text-brand-dark/70 hover:text-brand-indigo transition-colors"
+        >
           Back to home
         </Link>
       </header>
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <SignUp
-          routing="hash"
-          fallbackRedirectUrl="/auth/complete"
-          signInUrl="/auth/login"
-        />
+        <SignUp routing="hash" fallbackRedirectUrl="/auth/complete" signInUrl="/auth/login" />
       </div>
     </div>
   );

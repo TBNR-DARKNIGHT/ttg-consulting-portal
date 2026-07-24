@@ -35,12 +35,42 @@ async function mockAdminApi(page: Page) {
             paidUserCount: 8,
             activeUserCount: 16,
             kpis: [
-              { label: 'Active users', value: '16', detail: '12 signed-in users', tone: 'positive' },
-              { label: 'Paid-course users', value: '33.3%', detail: '8 of 24 users', tone: 'positive' },
-              { label: 'Avg session time', value: '8m 12s', detail: 'Across 15 timed sessions', tone: 'neutral' },
-              { label: 'Sessions per active user', value: '2.4', detail: '38 session starts', tone: 'neutral' },
-              { label: 'Resource views', value: '74', detail: '12 resources viewed', tone: 'neutral' },
-              { label: 'Click-through actions', value: '29', detail: '9 click targets', tone: 'neutral' },
+              {
+                label: 'Active users',
+                value: '16',
+                detail: '12 signed-in users',
+                tone: 'positive',
+              },
+              {
+                label: 'Paid-course users',
+                value: '33.3%',
+                detail: '8 of 24 users',
+                tone: 'positive',
+              },
+              {
+                label: 'Avg session time',
+                value: '8m 12s',
+                detail: 'Across 15 timed sessions',
+                tone: 'neutral',
+              },
+              {
+                label: 'Sessions per active user',
+                value: '2.4',
+                detail: '38 session starts',
+                tone: 'neutral',
+              },
+              {
+                label: 'Resource views',
+                value: '74',
+                detail: '12 resources viewed',
+                tone: 'neutral',
+              },
+              {
+                label: 'Click-through actions',
+                value: '29',
+                detail: '9 click targets',
+                tone: 'neutral',
+              },
             ],
             trend: Array.from({ length: 30 }, (_, index) => ({
               date: `2026-07-${String(index + 1).padStart(2, '0')}`,

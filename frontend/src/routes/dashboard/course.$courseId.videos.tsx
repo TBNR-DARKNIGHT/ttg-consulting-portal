@@ -44,9 +44,7 @@ function CourseVideosPage() {
         ) : (
           <div className="space-y-10">
             <section className="space-y-4">
-              <h2 className="font-serif text-xl font-semibold text-foreground">
-                Course Videos
-              </h2>
+              <h2 className="font-serif text-xl font-semibold text-foreground">Course Videos</h2>
               <DashboardResourceGrid
                 courseId={course.id}
                 topics={course.topics}
@@ -56,12 +54,10 @@ function CourseVideosPage() {
             </section>
             {COURSE_2_MODULES.map((module) => (
               <section key={module.id} className="space-y-4 border-t border-border pt-8">
-                <h2 className="font-serif text-xl font-semibold text-foreground">
-                  {module.title}
-                </h2>
-              <DashboardResourceGrid
-                courseId={course.id}
-                topics={course.topics}
+                <h2 className="font-serif text-xl font-semibold text-foreground">{module.title}</h2>
+                <DashboardResourceGrid
+                  courseId={course.id}
+                  topics={course.topics}
                   resourceTypes={['video']}
                   moduleId={module.id}
                 />

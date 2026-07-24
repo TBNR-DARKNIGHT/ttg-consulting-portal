@@ -35,6 +35,7 @@ Vitest/React Testing Library are planned but not currently configured.
 ### Frontend (Vitest + React Testing Library)
 
 **What to test:**
+
 - Component rendering and interactions
 - Custom hooks (useVideos, useContent, etc.)
 - Utility functions and data transformations
@@ -44,16 +45,18 @@ Vitest/React Testing Library are planned but not currently configured.
 **File Location**: Co-located — `Button.tsx` -> `Button.test.tsx`
 
 **Naming**:
+
 ```typescript
 describe('VideoLibrary', () => {
-  it('should display videos sorted by date', () => { })
-  it('should show "Feedback pending" when no feedback exists', () => { })
-})
+  it('should display videos sorted by date', () => {});
+  it('should show "Feedback pending" when no feedback exists', () => {});
+});
 ```
 
 ### Backend (pytest)
 
 **What to test:**
+
 - Pydantic schema validation
 - Service layer business logic
 - Permission/role checking functions
@@ -64,6 +67,7 @@ describe('VideoLibrary', () => {
 **File Location**: `backend/tests/` (flat structure for now; split into `unit/` and `integration/` as the suite grows)
 
 **Naming**:
+
 ```python
 class TestCourseEntitlements:
     def test_free_user_cannot_access_paid_pdf(self): ...
@@ -72,6 +76,7 @@ class TestCourseEntitlements:
 ```
 
 **Negative path pattern** — every router should include tests for:
+
 - Unknown route under the prefix returns 404
 - Wrong HTTP method on a known route returns 405
 
@@ -88,6 +93,7 @@ class TestCourseEntitlements:
 ### Backend (pytest + httpx)
 
 **What to test:**
+
 - API endpoint request/response flows
 - Auth dependency (valid JWT, invalid JWT, missing JWT, missing `sub` claim)
 - JWKS fetch failures (timeout, malformed response)
@@ -102,6 +108,7 @@ class TestCourseEntitlements:
 **File Location**: `backend/tests/` (integration tests will move to `backend/tests/integration/` as suite grows)
 
 **Example**:
+
 ```python
 async def test_parent_can_only_see_own_childs_videos(client, parent_token, other_parent_token):
     # Parent A's child's videos visible to Parent A
@@ -120,6 +127,7 @@ async def test_parent_can_only_see_own_childs_videos(client, parent_token, other
 **Framework**: Playwright (when explicitly requested)
 
 **Critical flows to test:**
+
 - Clerk sign-up/sign-in -> local user synchronization -> Course 1 dashboard
 - Purchase code -> Account Settings redemption -> Course 2 unlock -> paid PDF/video
 - Clerk admin sign-in -> `/auth/complete` -> `/admin` -> create/revoke/reissue code
@@ -137,24 +145,26 @@ async def test_parent_can_only_see_own_childs_videos(client, parent_token, other
 
 ## Coverage Targets
 
-| Area | Target |
-|------|--------|
-| Overall | 80% minimum |
-| Auth/permissions | 100% |
-| Business logic (services/) | 90% |
-| API endpoints | 85% |
-| UI components | 70% |
+| Area                       | Target      |
+| -------------------------- | ----------- |
+| Overall                    | 80% minimum |
+| Auth/permissions           | 100%        |
+| Business logic (services/) | 90%         |
+| API endpoints              | 85%         |
+| UI components              | 70%         |
 
 ---
 
 ## Mocking Strategy
 
 **Frontend:**
+
 - MSW (Mock Service Worker) for API mocking
 - Clerk test provider for auth state
 - TanStack Query test wrapper
 
 **Backend:**
+
 - Supabase client mocked for unit tests
 - Real Supabase instance for integration tests (test project)
 - Clerk JWT mocked via test fixtures
@@ -166,6 +176,7 @@ async def test_parent_can_only_see_own_childs_videos(client, parent_token, other
 ## Test Commands
 
 ### Frontend
+
 ```bash
 cd frontend
 npm run type-check
@@ -174,6 +185,7 @@ npm run build
 ```
 
 ### Backend
+
 ```bash
 cd backend
 pytest                            # Run all tests
@@ -198,6 +210,7 @@ For every paid `resources` video:
 6. Probe every removed legacy public playback ID and confirm none returns `200`.
 
 ### E2E (when requested)
+
 ```bash
 npx playwright test               # Run all E2E tests
 npx playwright test --headed      # With browser visible
@@ -220,12 +233,14 @@ npx playwright test auth.spec.ts  # Specific test
 ## CI/CD Integration
 
 GitHub Actions pipeline runs on every PR:
+
 1. Frontend: `npm run lint` -> `npm run type-check` -> `npm run build`
 2. Backend: `ruff check` -> `pyright` -> `pytest`
 3. Docker image build (verify it builds)
 4. Block merge if any step fails
 
 **Performance targets:**
+
 - Unit tests: <30 seconds
 - Integration tests: <2 minutes
 - E2E tests: <10 minutes

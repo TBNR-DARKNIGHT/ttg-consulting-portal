@@ -8,15 +8,15 @@ same configured spreadsheet when the first batch is generated.
 
 The worksheet headers are:
 
-| Header | Purpose |
-| --- | --- |
-| Issue Status | Starts as `AVAILABLE`; CS changes it to `ISSUED` |
-| Issue Date | Date the code was supplied by CS |
-| Access Code | Plaintext single-use code sent to the parent |
-| Redemption Status | Starts as `UNREDEEMED` |
-| Redemption Date | Reserved for the redemption timestamp |
-| Access Code ID | Supabase identifier used to reconcile the row |
-| Notes | Optional CS notes |
+| Header            | Purpose                                          |
+| ----------------- | ------------------------------------------------ |
+| Issue Status      | Starts as `AVAILABLE`; CS changes it to `ISSUED` |
+| Issue Date        | Date the code was supplied by CS                 |
+| Access Code       | Plaintext single-use code sent to the parent     |
+| Redemption Status | Starts as `UNREDEEMED`                           |
+| Redemption Date   | Reserved for the redemption timestamp            |
+| Access Code ID    | Supabase identifier used to reconcile the row    |
+| Notes             | Optional CS notes                                |
 
 The Google Sheet contains the only retained plaintext copy. Supabase stores the
 secure hash and remains the source of truth for whether a code can be redeemed.
@@ -51,7 +51,7 @@ is an administrative report.
 The backend creates this header row when the worksheet is empty:
 
 | Clerk User ID | Email | First Name | Last Name | Signup Date | Account Status | Course 2 Access |
-| --- | --- | --- | --- | --- | --- | --- |
+| ------------- | ----- | ---------- | --------- | ----------- | -------------- | --------------- |
 
 `Clerk User ID` is the stable key. If a row with that ID exists, the backend
 updates it. Otherwise, it appends a new row. Do not remove or reorder these
@@ -106,7 +106,6 @@ API key or an OAuth desktop/web client for this integration.
 1. Open **IAM & Admin → Service Accounts**.
 2. Click **Create service account**.
 3. Enter:
-
    - Service account name: `Beyond Grades Sheets Writer`
    - Service account ID: `beyond-grades-sheets-writer`
    - Description: `Writes portal user status to the Beyond Grades reporting sheet`
@@ -208,7 +207,7 @@ worksheet in Zapier to `Beyond Grades Portal Courses`.
 That worksheet should use this order:
 
 | Date | Name of Parent | Mobile | Email | Class Details | Course ID | Child's Name | Sch & Level | Address | Shop Coupon Code | Amount | Follow up? |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ---- | -------------- | ------ | ----- | ------------- | --------- | ------------ | ----------- | ------- | ---------------- | ------ | ---------- |
 
 Add `Course ID` immediately after `Class Details`, then update the Zapier action
 field mapping. The portal purchase webhook expects the stable course value
@@ -237,7 +236,6 @@ These variables belong in the **backend Vercel project**, not the frontend:
 1. Open the backend project in Vercel.
 2. Open **Settings → Environment Variables**.
 3. Add:
-
    - `GOOGLE_SHEETS_SPREADSHEET_ID`
    - `GOOGLE_SHEETS_USERS_TAB`
    - `GOOGLE_SERVICE_ACCOUNT_JSON`
@@ -270,7 +268,6 @@ https://YOUR-BACKEND-DOMAIN/api/v1/webhooks/clerk
 Do not use the frontend domain.
 
 5. Subscribe to:
-
    - `user.created`
    - `user.updated`
    - `user.deleted`

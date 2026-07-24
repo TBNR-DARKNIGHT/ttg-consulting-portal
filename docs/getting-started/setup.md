@@ -3,6 +3,7 @@
 ## Prerequisites
 
 **Required:**
+
 - Node.js 20+ and npm
 - Python 3.10+
 - Docker and Docker Compose (optional; for containerised workflows when available)
@@ -10,11 +11,13 @@
 - Supabase CLI (`npm install -g supabase`)
 
 **Accounts needed:**
+
 - [Clerk](https://clerk.com) account (authentication)
 - [Supabase](https://supabase.com) project (database + storage for PDFs and other files)
 - [Mux](https://www.mux.com) account (course video hosting: transcoding, adaptive streaming, signed playback)
 
 **Recommended:**
+
 - VS Code with Python + TypeScript extensions
 - Claude Code CLI
 
@@ -82,10 +85,10 @@ If your Supabase project **already has** a `resources` table, skip the migration
 
 **PDF storage layout** (objects in Supabase Storage, referenced by `bucket` + `file_path` on each PDF row):
 
-| Course | Bucket | Object key prefix |
-|--------|--------|-------------------|
-| Course 1 (free) | `resources-public` | `course-1/...` |
-| Course 2 (paid) | `resources-paid` | `course-2/...` |
+| Course          | Bucket             | Object key prefix |
+| --------------- | ------------------ | ----------------- |
+| Course 1 (free) | `resources-public` | `course-1/...`    |
+| Course 2 (paid) | `resources-paid`   | `course-2/...`    |
 
 Example PDF row: `bucket = resources-public`, `file_path = course-1/pdf/your-file.pdf`.
 
@@ -171,6 +174,7 @@ docker compose up
 ## Troubleshooting
 
 ### Clerk JWT validation failing
+
 - Verify Clerk settings in **`backend/.env`** (`CLERK_JWKS_URL`, `CLERK_ISSUER`, `CLERK_SECRET_KEY`, etc.)
 - Ensure the frontend publishable key matches the same Clerk application
 - Check Clerk dashboard for correct allowed origins
@@ -178,15 +182,18 @@ docker compose up
   synchronization to `public.users` failed
 
 ### Supabase connection errors
+
 - Verify `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`
 - Ensure your IP is allowed in Supabase project settings
 - Run `supabase db push` to ensure migrations are applied
 
 ### CORS errors in browser
+
 - Verify `FRONTEND_URL` in **`backend/.env`** (e.g. `http://localhost:5173`)
 - Ensure frontend `VITE_API_BASE_URL` points at the API (e.g. `http://localhost:8000/api/v1`)
 
 ### `net::ERR_CONNECTION_REFUSED`, `404`, or `422` on storage routes (local)
+
 - **`ERR_CONNECTION_REFUSED`**: `VITE_API_BASE_URL` host/port does not match a running API (root `npm run dev` starts uvicorn on **8000** by default; if you use `--port 8011`, set the env var to that port).
 - **`404` on storage routes**: Another process may be bound to the port you think is FastAPI, or an old server is running. Confirm **`http://localhost:8000/docs`** lists **Storage** routes and **`GET /api/v1/health`** returns this app’s JSON.
 - **Storage parameters**: Dashboard storage routes accept `resource_id`, not `bucket` or `path`.
@@ -211,6 +218,7 @@ to active, unredeemed codes. The plaintext replacement is shown once. Audit entr
 in Supabase `admin_audit_log`; see [`supabase/README.md`](../../supabase/README.md).
 
 ### Root `npm run dev` fails on the API process
+
 - Confirm **`backend/.venv`** exists and **`pip install -e ".[dev]"`** was run inside that venv
 - On Windows, default npm script shell is **cmd**; if you override **`script-shell`** to older PowerShell, `cd backend && …` may fail — use the default or Option B
 

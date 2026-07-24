@@ -51,12 +51,8 @@ export function ProgrammesSection() {
             <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-brand-indigo mb-1">
               {prog.entity}
             </p>
-            <h3 className="text-lg font-semibold text-brand-dark mb-2">
-              {prog.name}
-            </h3>
-            <p className="text-sm text-brand-dark/70 leading-relaxed">
-              {prog.description}
-            </p>
+            <h3 className="text-lg font-semibold text-brand-dark mb-2">{prog.name}</h3>
+            <p className="text-sm text-brand-dark/70 leading-relaxed">{prog.description}</p>
           </article>
         ))}
       </div>

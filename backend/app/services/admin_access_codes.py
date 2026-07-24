@@ -47,15 +47,17 @@ async def list_access_codes(*, client: Client | None = None) -> list[dict[str, A
     db = client or get_client()
     try:
         response = await asyncio.to_thread(
-            lambda: db.table("access_codes")
-            .select(
-                "id,course_id,order_id,redeemed_by_user_id,redeemed_at,expires_at,"
-                "created_at,created_by_user_id,revoked_at,revoked_by_user_id,"
-                "revocation_reason,replacement_for_code_id"
+            lambda: (
+                db.table("access_codes")
+                .select(
+                    "id,course_id,order_id,redeemed_by_user_id,redeemed_at,expires_at,"
+                    "created_at,created_by_user_id,revoked_at,revoked_by_user_id,"
+                    "revocation_reason,replacement_for_code_id"
+                )
+                .order("created_at", desc=True)
+                .limit(200)
+                .execute()
             )
-            .order("created_at", desc=True)
-            .limit(200)
-            .execute()
         )
         return list(response.data or [])
     except Exception as exc:
@@ -109,9 +111,7 @@ async def create_tta_code_batch(
             lambda: db.rpc(
                 "admin_create_access_code_batch",
                 {
-                    "p_code_hashes": [
-                        hash_redemption_code(code) for code in plaintext_codes
-                    ],
+                    "p_code_hashes": [hash_redemption_code(code) for code in plaintext_codes],
                     "p_course_id": "course-2",
                     "p_actor_user_id": str(actor_user_id),
                 },
@@ -120,10 +120,7 @@ async def create_tta_code_batch(
         rows = sorted(response.data or [], key=lambda row: int(row["code_index"]))
         if len(rows) != quantity:
             raise AdminAccessCodeError("Access-code batch returned an unexpected result")
-        issued = [
-            (str(row["code_id"]), plaintext_codes[index])
-            for index, row in enumerate(rows)
-        ]
+        issued = [(str(row["code_id"]), plaintext_codes[index]) for index, row in enumerate(rows)]
     except AdminAccessCodeError:
         raise
     except Exception as exc:

@@ -11,7 +11,11 @@ function ResourcesLayout() {
 
   if (isResourcesRoot) {
     return (
-      <Navigate to="/dashboard/course/$courseId/resources" params={{ courseId: 'course-1' }} replace />
+      <Navigate
+        to="/dashboard/course/$courseId/resources"
+        params={{ courseId: 'course-1' }}
+        replace
+      />
     );
   }
 

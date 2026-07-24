@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+coverage/
+htmlcov/
+.ruff_cache/
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+frontend/src/routeTree.gen.ts
+src/routeTree.gen.ts
+dist/
+frontend/.tanstack/
+frontend/test-results/
+frontend/playwright-report/

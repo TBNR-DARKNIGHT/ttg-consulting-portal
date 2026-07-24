@@ -5,11 +5,9 @@ import { muxThumbnailUrl } from '@/lib/mux';
 import type { PortalPreview } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-const cardShellClassName =
-  'overflow-hidden rounded-[10px] border border-brand-dark/15 bg-white';
+const cardShellClassName = 'overflow-hidden rounded-[10px] border border-brand-dark/15 bg-white';
 
-const videoFrameClassName =
-  'overflow-hidden bg-brand-grey/30';
+const videoFrameClassName = 'overflow-hidden bg-brand-grey/30';
 
 export function PortalPreviewCardShell({
   children,
@@ -54,10 +52,7 @@ export function PortalMuxPreviewCard({
       document.body.style.overflow = '';
     };
   }, [isPlaying]);
-  const videoAreaClassName = cn(
-    'h-[160px] w-full',
-    videoClassName,
-  );
+  const videoAreaClassName = cn('h-[160px] w-full', videoClassName);
 
   if (!hasPlayback) {
     return (

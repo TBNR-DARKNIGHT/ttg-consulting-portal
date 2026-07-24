@@ -17,9 +17,7 @@ export function Navbar() {
   const { isLoaded, isSignedIn, signOut } = usePortalAuth();
 
   return (
-    <nav
-      className="sticky top-0 z-50 border-b border-brand-dark/15 bg-brand-cream"
-    >
+    <nav className="sticky top-0 z-50 border-b border-brand-dark/15 bg-brand-cream">
       <div className="flex h-16 items-center justify-between px-5 md:px-8">
         <Link to="/" className="flex shrink-0 flex-col gap-px">
           <span className="font-serif text-lg font-bold leading-tight tracking-[-0.02em] text-brand-indigo">
@@ -51,18 +49,10 @@ export function Navbar() {
             </div>
           ) : isSignedIn ? (
             <div className="flex items-center gap-2">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-              >
+              <Button asChild variant="outline" size="sm">
                 <Link to="/dashboard">Dashboard</Link>
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => void signOut()}
-              >
+              <Button variant="ghost" size="sm" onClick={() => void signOut()}>
                 Sign out
               </Button>
             </div>
@@ -84,9 +74,7 @@ export function Navbar() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <SheetDescription className="sr-only">
-              Site navigation links
-            </SheetDescription>
+            <SheetDescription className="sr-only">Site navigation links</SheetDescription>
             <div className="flex flex-col gap-2 pt-8 px-2">
               {publicNavLinks.map((item) => (
                 <Link

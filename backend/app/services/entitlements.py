@@ -68,11 +68,13 @@ async def list_entitlements(user_id: UUID, *, client: Client | None = None) -> l
     db = client or get_client()
     try:
         response = await asyncio.to_thread(
-            lambda: db.table("course_entitlements")
-            .select("course_id")
-            .eq("user_id", str(user_id))
-            .is_("revoked_at", "null")
-            .execute()
+            lambda: (
+                db.table("course_entitlements")
+                .select("course_id")
+                .eq("user_id", str(user_id))
+                .is_("revoked_at", "null")
+                .execute()
+            )
         )
     except Exception as exc:
         logger.exception("Failed to list course entitlements", user_id=str(user_id))

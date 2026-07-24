@@ -101,9 +101,7 @@ async def get_me(user: ClerkUser = Depends(get_current_user)) -> ApiResponse[Cur
 )
 async def get_admin_analytics(range_days: int = 30) -> ApiResponse[AnalyticsSummaryOut]:
     try:
-        return ApiResponse(
-            data=await get_admin_analytics_summary(range_days=range_days)
-        )
+        return ApiResponse(data=await get_admin_analytics_summary(range_days=range_days))
     except AdminAnalyticsError as exc:
         raise HTTPException(status_code=503, detail="Analytics unavailable") from exc
 
@@ -234,9 +232,7 @@ async def revoke_all_active_codes(
             actor_user_id=_user_id(user),
             reason=body.reason,
         )
-        return ApiResponse(
-            data=BulkRevokeAccessCodesOut(revoked_count=count)
-        )
+        return ApiResponse(data=BulkRevokeAccessCodesOut(revoked_count=count))
     except AdminAccessCodeError as exc:
         raise HTTPException(
             status_code=503,
@@ -257,9 +253,7 @@ async def delete_revoked_codes(
             actor_user_id=_user_id(user),
             reason=body.reason,
         )
-        return ApiResponse(
-            data=DeleteRevokedAccessCodesOut(deleted_count=count)
-        )
+        return ApiResponse(data=DeleteRevokedAccessCodesOut(deleted_count=count))
     except AdminAccessCodeError as exc:
         raise HTTPException(
             status_code=503,
@@ -280,15 +274,11 @@ async def reset_tta_numbering(
             actor_user_id=_user_id(user),
             reason=body.reason,
         )
-        return ApiResponse(
-            data=ResetTtaOrderNumberingOut(next_order_id=next_order_id)
-        )
+        return ApiResponse(data=ResetTtaOrderNumberingOut(next_order_id=next_order_id))
     except ActiveTtaCodesExistError as exc:
         raise HTTPException(
             status_code=409,
-            detail=(
-                "Revoke all active TTA codes before resetting the numbering"
-            ),
+            detail=("Revoke all active TTA codes before resetting the numbering"),
         ) from exc
     except AdminAccessCodeError as exc:
         raise HTTPException(
@@ -304,9 +294,7 @@ async def revoke_code(
     user: ClerkUser = Depends(require_admin),
 ) -> ApiResponse[None]:
     try:
-        await revoke_access_code(
-            code_id, actor_user_id=_user_id(user), reason=body.reason
-        )
+        await revoke_access_code(code_id, actor_user_id=_user_id(user), reason=body.reason)
         return ApiResponse(data=None)
     except CodeNotRevocableError as exc:
         raise HTTPException(status_code=409, detail="Code cannot be revoked") from exc
@@ -410,9 +398,7 @@ async def create_document_replacement(
             content_type=body.content_type,
             file_size=body.file_size,
         )
-        return ApiResponse(
-            data=DocumentUploadTargetOut(upload_url=upload_url, upload_id=upload_id)
-        )
+        return ApiResponse(data=DocumentUploadTargetOut(upload_url=upload_url, upload_id=upload_id))
     except ResourceUploadError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -574,9 +560,7 @@ async def finish_video_upload(
     try:
         upload_status = complete_video_upload(resource_id, upload_id)
         return ApiResponse(
-            data=ResourceUploadOut(
-                resource_id=resource_id, type="video", status=upload_status
-            )
+            data=ResourceUploadOut(resource_id=resource_id, type="video", status=upload_status)
         )
     except ResourceUploadError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

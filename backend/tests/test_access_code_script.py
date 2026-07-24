@@ -49,7 +49,8 @@ def test_create_code_stores_hash_but_not_plaintext(monkeypatch) -> None:
     )
 
     assert result == plaintext
-    assert client.query.payload["code_hash"] == hashlib.sha256(
-        b"TTA23456789ABCDEFGHJKLMNPQR"
-    ).hexdigest()
+    assert (
+        client.query.payload["code_hash"]
+        == hashlib.sha256(b"TTA23456789ABCDEFGHJKLMNPQR").hexdigest()
+    )
     assert plaintext not in client.query.payload.values()

@@ -142,10 +142,7 @@ function DashboardSettingsPage() {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="submit"
-                    disabled={!code.trim() || redeem.isPending || demoMode}
-                  >
+                  <Button type="submit" disabled={!code.trim() || redeem.isPending || demoMode}>
                     {redeem.isPending ? 'Redeeming…' : 'Redeem Code'}
                   </Button>
                   <Button variant="outline" asChild>

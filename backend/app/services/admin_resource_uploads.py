@@ -182,8 +182,7 @@ def update_resource_metadata(
         MuxClient().update_asset_title(str(row["mux_asset_id"]), title.strip())
 
     result = (
-        client
-        .table("resources")
+        client.table("resources")
         .update(
             {
                 "title": title.strip(),
@@ -238,9 +237,11 @@ def delete_resource(resource_id: str) -> None:
 
     if resource_type == "video":
         mux = MuxClient()
-        asset_ids = [mux_asset_id] if mux_asset_id else [
-            asset.id for asset in mux.list_all_assets() if asset.passthrough == resource_id
-        ]
+        asset_ids = (
+            [mux_asset_id]
+            if mux_asset_id
+            else [asset.id for asset in mux.list_all_assets() if asset.passthrough == resource_id]
+        )
         for asset_id in asset_ids:
             mux.delete_asset(asset_id)
     elif bucket and file_path:
@@ -282,9 +283,7 @@ def upload_pdf(
     return _save_pdf_resource(client, rule["bucket"], file_path, row)
 
 
-def _save_pdf_resource(
-    client: Any, bucket: str, file_path: str, row: dict[str, Any]
-) -> UUID:
+def _save_pdf_resource(client: Any, bucket: str, file_path: str, row: dict[str, Any]) -> UUID:
     existing = (
         client.table("resources")
         .select("id")
@@ -317,16 +316,18 @@ def begin_pdf_upload(
 
     rule = _rule(metadata)
     file_path = f"{rule['prefix']}{_safe_pdf_name(filename)}"
-    signed = get_client().storage.from_(rule["bucket"]).create_signed_upload_url(
-        file_path,
-        CreateSignedUploadUrlOptions(upsert="true"),
+    signed = (
+        get_client()
+        .storage.from_(rule["bucket"])
+        .create_signed_upload_url(
+            file_path,
+            CreateSignedUploadUrlOptions(upsert="true"),
+        )
     )
     return file_path, str(signed["signed_url"])
 
 
-def complete_pdf_upload(
-    *, upload_id: str, metadata: ResourceUploadMetadata
-) -> UUID:
+def complete_pdf_upload(*, upload_id: str, metadata: ResourceUploadMetadata) -> UUID:
     rule = _rule(metadata)
     expected_prefix = str(rule["prefix"])
     safe_path = upload_id.replace("\\", "/")
@@ -371,10 +372,7 @@ def begin_pdf_replacement(
 
     client = get_client()
     result = (
-        client.table("resources")
-        .select("type,bucket,file_path")
-        .eq("id", resource_id)
-        .execute()
+        client.table("resources").select("type,bucket,file_path").eq("id", resource_id).execute()
     )
     if not result.data:
         raise ResourceUploadError("Resource not found")
@@ -394,10 +392,7 @@ def begin_pdf_replacement(
 def complete_pdf_replacement(resource_id: str, *, actor_user_id: UUID) -> None:
     client = get_client()
     result = (
-        client.table("resources")
-        .select("type,bucket,file_path")
-        .eq("id", resource_id)
-        .execute()
+        client.table("resources").select("type,bucket,file_path").eq("id", resource_id).execute()
     )
     if not result.data:
         raise ResourceUploadError("Resource not found")
@@ -523,9 +518,7 @@ def complete_video_upload(resource_id: UUID, upload_id: str) -> str:
     asset = mux.get_asset(upload.asset_id)
     if asset.passthrough != str(resource_id):
         raise ResourceUploadError("Upload does not belong to this resource")
-    row = (
-        get_client().table("resources").select("is_paid").eq("id", str(resource_id)).execute()
-    )
+    row = get_client().table("resources").select("is_paid").eq("id", str(resource_id)).execute()
     if not row.data:
         raise ResourceUploadError("Resource not found")
     access = "paid" if row.data[0].get("is_paid") else "public"

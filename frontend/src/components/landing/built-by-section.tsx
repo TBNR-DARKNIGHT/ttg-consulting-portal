@@ -94,7 +94,10 @@ export function BuiltBySection() {
           to="/about"
           className="mt-8 inline-flex text-[13px] font-semibold text-[#a8a8f0] hover:opacity-75"
         >
-          Read our full story <span aria-hidden className="ml-1.5">→</span>
+          Read our full story{' '}
+          <span aria-hidden className="ml-1.5">
+            →
+          </span>
         </Link>
       </div>
     </section>

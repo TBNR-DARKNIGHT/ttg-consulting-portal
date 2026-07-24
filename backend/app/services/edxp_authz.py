@@ -78,4 +78,3 @@ async def authorize(
     if not isinstance(data, dict):
         raise EdxpAuthzError("EdXP authorization response malformed")
     return data
-

@@ -18,7 +18,9 @@ function CourseOverviewPage() {
   const { courseId } = Route.useParams();
   const { module: moduleId } = Route.useSearch();
   const course = getCourseById(courseId);
-  const selectedModule = moduleId ? COURSE_2_MODULES.find((module) => module.id === moduleId) : undefined;
+  const selectedModule = moduleId
+    ? COURSE_2_MODULES.find((module) => module.id === moduleId)
+    : undefined;
   const { hasCourseAccess, isLoading } = useEntitlements();
 
   if (!course) {
@@ -33,7 +35,11 @@ function CourseOverviewPage() {
         {!isLoading && !hasCourseAccess(course.id) ? (
           <LockedCourseAccess />
         ) : course.id === 'course-1' ? (
-          <DashboardResourceGrid courseId={course.id} topics={course.topics} resourceTypes={ALL_RESOURCE_TYPES} />
+          <DashboardResourceGrid
+            courseId={course.id}
+            topics={course.topics}
+            resourceTypes={ALL_RESOURCE_TYPES}
+          />
         ) : selectedModule ? (
           <section className="space-y-4">
             <h2 className="font-serif text-xl font-semibold text-foreground">
@@ -59,13 +65,8 @@ function CourseOverviewPage() {
             </section>
 
             {COURSE_2_MODULES.map((module) => (
-              <section
-                key={module.id}
-                className="space-y-4 border-t border-border pt-8"
-              >
-                <h2 className="font-serif text-xl font-semibold text-foreground">
-                  {module.title}
-                </h2>
+              <section key={module.id} className="space-y-4 border-t border-border pt-8">
+                <h2 className="font-serif text-xl font-semibold text-foreground">{module.title}</h2>
                 <DashboardResourceGrid
                   courseId={course.id}
                   topics={course.topics}

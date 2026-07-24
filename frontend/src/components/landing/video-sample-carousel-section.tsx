@@ -141,9 +141,7 @@ export function VideoSampleCarouselSection() {
 
                     {/* Quote */}
                     <div className="px-6 py-5">
-                      <p className="text-brand-dark/85 leading-relaxed line-clamp-3">
-                        {t.quote}
-                      </p>
+                      <p className="text-brand-dark/85 leading-relaxed line-clamp-3">{t.quote}</p>
                     </div>
                   </div>
                 </article>
@@ -155,4 +153,3 @@ export function VideoSampleCarouselSection() {
     </section>
   );
 }
-

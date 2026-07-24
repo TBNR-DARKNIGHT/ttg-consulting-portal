@@ -20,8 +20,8 @@ export function HeroSection() {
             <em className="font-normal text-[#a8a8f0]">Their Future.</em>
           </h1>
           <p className="mt-6 max-w-[600px] text-base font-light leading-[1.7] text-white/70 md:text-[17px]">
-            For parents who know that grades alone are no longer enough. We help students find
-            their voice, build standout portfolios, and master the art of personal branding.
+            For parents who know that grades alone are no longer enough. We help students find their
+            voice, build standout portfolios, and master the art of personal branding.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="h-12 px-7">

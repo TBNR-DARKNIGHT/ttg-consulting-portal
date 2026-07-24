@@ -14,9 +14,7 @@ from app.services.external_files import (
 
 
 def test_normalize_google_drive_share_link() -> None:
-    result = normalize_google_drive_url(
-        "https://drive.google.com/file/d/file_123/view?usp=sharing"
-    )
+    result = normalize_google_drive_url("https://drive.google.com/file/d/file_123/view?usp=sharing")
 
     assert result.startswith("https://drive.usercontent.google.com/download?")
     assert "id=file_123" in result
@@ -28,9 +26,7 @@ def test_validate_public_url_rejects_private_address(
     monkeypatch.setattr(
         socket,
         "getaddrinfo",
-        lambda *_args, **_kwargs: [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 443))
-        ],
+        lambda *_args, **_kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 443))],
     )
 
     with pytest.raises(ExternalFileError, match="Private or local"):

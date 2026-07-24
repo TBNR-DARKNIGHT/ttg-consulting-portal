@@ -14,20 +14,39 @@ const PARENT_OVERVIEW_GUIDE_URL =
 export function PortalPremiumCourseSection() {
   const { previews, isLoading, error, refetch, isOfflineDemo } = usePortalCoursePreviews();
   const slots = isLoading
-    ? Array.from({ length: PREVIEW_SLOT_COUNT }, (_, i) => ({ kind: 'loading' as const, key: `loading-${i}` }))
+    ? Array.from({ length: PREVIEW_SLOT_COUNT }, (_, i) => ({
+        kind: 'loading' as const,
+        key: `loading-${i}`,
+      }))
     : error
-      ? Array.from({ length: PREVIEW_SLOT_COUNT }, (_, i) => ({ kind: 'error' as const, key: `error-${i}` }))
+      ? Array.from({ length: PREVIEW_SLOT_COUNT }, (_, i) => ({
+          kind: 'error' as const,
+          key: `error-${i}`,
+        }))
       : previews.length > 0
-        ? previews.slice(0, PREVIEW_SLOT_COUNT).map((preview) => ({ kind: 'preview' as const, key: preview.id, preview }))
-        : Array.from({ length: PREVIEW_SLOT_COUNT }, (_, i) => ({ kind: 'empty' as const, key: `empty-${i}` }));
+        ? previews
+            .slice(0, PREVIEW_SLOT_COUNT)
+            .map((preview) => ({ kind: 'preview' as const, key: preview.id, preview }))
+        : Array.from({ length: PREVIEW_SLOT_COUNT }, (_, i) => ({
+            kind: 'empty' as const,
+            key: `empty-${i}`,
+          }));
 
   return (
-    <section className="border-b border-brand-dark/15 bg-brand-cream" aria-labelledby="portal-premium-course-heading">
+    <section
+      className="border-b border-brand-dark/15 bg-brand-cream"
+      aria-labelledby="portal-premium-course-heading"
+    >
       <div className="mx-auto max-w-[960px] px-5 py-16 md:px-8 md:py-20">
-        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">Full Course</p>
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-indigo">
+          Full Course
+        </p>
         <div className="grid items-start gap-10 md:grid-cols-2 md:gap-16">
           <div>
-            <h2 id="portal-premium-course-heading" className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]">
+            <h2
+              id="portal-premium-course-heading"
+              className="text-3xl font-bold leading-[1.2] text-brand-dark md:text-[40px]"
+            >
               Ace Your DSA Interview <em className="font-normal text-brand-indigo">is open now.</em>
             </h2>
             <p className="mt-4 text-[15px] leading-[1.7] text-brand-dark/70">
@@ -38,29 +57,62 @@ export function PortalPremiumCourseSection() {
               Four modules take your child from research to interview close, paired with companion
               worksheets and a dedicated Parent Overview Guide.
             </p>
-            <a href={PARENT_OVERVIEW_GUIDE_URL} download="Course Overview Parents.pdf" className="mt-5 inline-flex text-[13px] font-semibold text-brand-dark/60 hover:text-brand-indigo">
+            <a
+              href={PARENT_OVERVIEW_GUIDE_URL}
+              download="Course Overview Parents.pdf"
+              className="mt-5 inline-flex text-[13px] font-semibold text-brand-dark/60 hover:text-brand-indigo"
+            >
               Download the Parent Overview Guide
             </a>
-            <Link to="/dashboard" className="mt-7 hidden w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:block">
+            <Link
+              to="/dashboard"
+              className="mt-7 hidden w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:block"
+            >
               Acess Free Resources
             </Link>
           </div>
           <div>
             {error ? (
-              <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive" role="alert">
+              <div
+                className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+                role="alert"
+              >
                 <p>{error instanceof Error ? error.message : 'Failed to load preview clips'}</p>
-                <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void refetch()}>Retry</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => void refetch()}
+                >
+                  Retry
+                </Button>
               </div>
             ) : null}
             <div className="grid gap-3">
               {slots.map((slot) => {
                 if (slot.kind === 'loading') return <PortalPreviewCardSkeleton key={slot.key} />;
-                if (slot.kind === 'error') return <PortalPreviewCardPlaceholder key={slot.key} message="Preview unavailable" />;
-                if (slot.kind === 'empty') return <PortalPreviewCardPlaceholder key={slot.key} message="Preview coming soon" />;
-                return <PortalMuxPreviewCard key={slot.key} preview={slot.preview} isOfflineDemo={isOfflineDemo} />;
+                if (slot.kind === 'error')
+                  return (
+                    <PortalPreviewCardPlaceholder key={slot.key} message="Preview unavailable" />
+                  );
+                if (slot.kind === 'empty')
+                  return (
+                    <PortalPreviewCardPlaceholder key={slot.key} message="Preview coming soon" />
+                  );
+                return (
+                  <PortalMuxPreviewCard
+                    key={slot.key}
+                    preview={slot.preview}
+                    isOfflineDemo={isOfflineDemo}
+                  />
+                );
               })}
             </div>
-            <Link to="/dashboard" className="mt-6 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:hidden">
+            <Link
+              to="/dashboard"
+              className="mt-6 block w-fit rounded-[7px] bg-brand-indigo px-7 py-3.5 text-sm font-semibold text-white hover:opacity-90 md:hidden"
+            >
               Acess Free Resources
             </Link>
           </div>
