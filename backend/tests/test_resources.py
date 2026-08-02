@@ -9,9 +9,10 @@ from httpx import AsyncClient
 from app.dependencies import get_current_user, get_optional_current_user
 from app.main import app
 from app.models.enums import UserRole
-from app.models.resource import ResourceItem
+from app.models.resource import ResourceItem, ResourceProgressItem
 from app.models.schemas import ClerkUser
 from app.routers import resources
+from app.services import resource_progress as progress_service
 
 
 @pytest.mark.asyncio
@@ -129,10 +130,30 @@ async def test_list_resources_keeps_paid_delivery_metadata_for_authorized_users(
 
 @pytest.mark.asyncio
 async def test_list_progress_scopes_user_id(client: AsyncClient) -> None:
+    internal_user_id = uuid4()
+
     async def _user() -> ClerkUser:
-        return ClerkUser(clerk_id="clerk_abc", email="parent@example.com")
+        return ClerkUser(
+            clerk_id="clerk_abc",
+            internal_user_id=internal_user_id,
+            email="parent@example.com",
+        )
+
+    async def _progress(user_id):
+        assert user_id == internal_user_id
+        return [
+            ResourceProgressItem(
+                resource_id="aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                user_id=str(user_id),
+                status="completed",
+                completed=True,
+                progress_percent=100,
+            )
+        ]
 
     app.dependency_overrides[get_current_user] = _user
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(progress_service, "list_progress", _progress)
     try:
         response = await client.get(
             "/api/v1/resources/progress",
@@ -140,11 +161,168 @@ async def test_list_progress_scopes_user_id(client: AsyncClient) -> None:
         )
     finally:
         app.dependency_overrides.pop(get_current_user, None)
+        monkeypatch.undo()
 
     assert response.status_code == 200
     body = response.json()
     assert body["error"] is None
     rows = body["data"]
-    assert len(rows) == 8
-    assert all(r["userId"] == "clerk_abc" for r in rows)
-    assert rows[0]["resourceId"] == "res-001"
+    assert len(rows) == 1
+    assert rows[0]["userId"] == str(internal_user_id)
+    assert rows[0]["resourceId"] == "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+    assert rows[0]["completed"] is True
+
+
+@pytest.mark.asyncio
+async def test_progress_endpoints_require_authenticated_user(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/resources/progress")
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_update_progress_requires_local_user_profile(client: AsyncClient) -> None:
+    async def _user() -> ClerkUser:
+        return ClerkUser(clerk_id="clerk_no_profile", email="parent@example.com")
+
+    app.dependency_overrides[get_current_user] = _user
+    try:
+        response = await client.patch(
+            "/api/v1/resources/res-001/progress",
+            json={"progressPercent": 25},
+            headers={"Authorization": "Bearer test-token"},
+        )
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "User profile unavailable"
+
+
+@pytest.mark.asyncio
+async def test_update_progress_saves_for_accessible_resource(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    internal_user_id = uuid4()
+
+    async def _user() -> ClerkUser:
+        return ClerkUser(clerk_id="clerk_abc", internal_user_id=internal_user_id)
+
+    async def _update_progress(user_id, resource, update):
+        assert user_id == internal_user_id
+        assert resource.id == "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+        assert update.progress_percent == 42
+        return ResourceProgressItem(
+            resource_id=resource.id,
+            user_id=str(user_id),
+            status="in_progress",
+            completed=False,
+            progress_percent=42,
+        )
+
+    now = datetime.now(UTC)
+    resource = ResourceItem(
+        id="aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+        title="Public PDF",
+        course_id="course-1",
+        type="pdf",
+        topic="dsa-pathways",
+        description="",
+        duration="",
+        access="public",
+        created_at=now,
+        updated_at=now,
+    )
+
+    app.dependency_overrides[get_current_user] = _user
+    monkeypatch.setattr(resources, "find_resource", lambda _resource_id: resource)
+    monkeypatch.setattr(progress_service, "update_progress", _update_progress)
+    try:
+        response = await client.patch(
+            "/api/v1/resources/aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa/progress",
+            json={"progressPercent": 42},
+            headers={"Authorization": "Bearer test-token"},
+        )
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+    assert response.status_code == 200
+    body = response.json()["data"]
+    assert body["resourceId"] == "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+    assert body["progressPercent"] == 42
+
+
+@pytest.mark.asyncio
+async def test_reset_progress_deletes_for_course_resources(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    internal_user_id = uuid4()
+    called = False
+
+    async def _user() -> ClerkUser:
+        return ClerkUser(clerk_id="clerk_abc", internal_user_id=internal_user_id)
+
+    async def _reset_course_progress(user_id, course_resources):
+        nonlocal called
+        called = True
+        assert user_id == internal_user_id
+        assert [resource.id for resource in course_resources] == [
+            "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+            "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+        ]
+
+    now = datetime.now(UTC)
+    course_resources = [
+        ResourceItem(
+            id="aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+            title="Public PDF",
+            course_id="course-1",
+            type="pdf",
+            topic="dsa-pathways",
+            description="",
+            duration="",
+            access="public",
+            created_at=now,
+            updated_at=now,
+        ),
+        ResourceItem(
+            id="bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+            title="Public Video",
+            course_id="course-1",
+            type="video",
+            topic="dsa-pathways",
+            description="",
+            duration="",
+            access="public",
+            created_at=now,
+            updated_at=now,
+        ),
+        ResourceItem(
+            id="cccccccc-cccc-4ccc-cccc-cccccccccccc",
+            title="Other Course PDF",
+            course_id="course-2",
+            type="pdf",
+            topic="interview-preparation",
+            description="",
+            duration="",
+            access="public",
+            created_at=now,
+            updated_at=now,
+        ),
+    ]
+
+    app.dependency_overrides[get_current_user] = _user
+    monkeypatch.setattr(resources, "list_resources", lambda: course_resources)
+    monkeypatch.setattr(progress_service, "reset_course_progress", _reset_course_progress)
+    try:
+        response = await client.delete(
+            "/api/v1/courses/course-1/progress",
+            headers={"Authorization": "Bearer test-token"},
+        )
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+    assert called is True
+    assert response.status_code == 200
+    assert response.json()["data"] is None

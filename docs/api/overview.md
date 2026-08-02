@@ -3,7 +3,7 @@
 ## TTG Consulting Portal API
 
 **Version**: 1.0
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-08-02
 **Status**: Draft
 
 ---
@@ -304,11 +304,16 @@ In **development** only, equivalent **`/api/v1/dev/storage/...`** helpers may be
 Course catalog rows (videos, PDFs, articles) are stored in Supabase `resources` when configured; the API falls back to in-memory seeds when the table is empty.
 
 ```
-GET    /api/v1/resources                # List catalog (Clerk JWT)
-GET    /api/v1/resources/progress       # Demo progress (Clerk JWT)
+GET    /api/v1/resources                # List catalog (auth optional; paid delivery metadata redacted without access)
+GET    /api/v1/resources/progress       # Current user's saved progress (Clerk JWT)
+PATCH  /api/v1/resources/{id}/progress  # Save current progress for an accessible resource (Clerk JWT)
+POST   /api/v1/resources/{id}/complete  # Mark accessible resource complete (Clerk JWT)
+DELETE /api/v1/resources/{id}/complete  # Mark accessible resource incomplete (Clerk JWT)
+DELETE /api/v1/courses/{id}/progress    # Reset saved progress for every resource in a course (Clerk JWT)
 ```
 
 Video rows include `muxPlaybackId` and `muxPlaybackSigned` after Mux sync. PDF rows include `bucket` and `filePath` for Supabase Storage.
+Progress routes require a synchronized user profile and never return guest progress.
 
 ### Admin resource uploads (implemented)
 

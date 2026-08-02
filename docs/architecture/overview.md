@@ -112,8 +112,8 @@ backend/tests/         # pytest + httpx async tests
 
 **Database**: PostgreSQL via Supabase
 
-**Deployed Core Tables:** `users`, `resources`, `course_entitlements`, `access_codes`,
-`admin_audit_log`
+**Deployed Core Tables:** `users`, `resources`, `resource_progress`, `course_entitlements`,
+`access_codes`, `admin_audit_log`
 
 **Planned/Legacy Tables:** `students`, `videos`, `content`
 

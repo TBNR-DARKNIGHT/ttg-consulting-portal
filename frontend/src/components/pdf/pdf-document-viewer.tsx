@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -11,19 +11,26 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 interface PdfDocumentViewerProps {
   file: string;
   title: string;
+  onProgress?: (progress: { pagesViewed: number[]; pageCount: number }) => void;
 }
 
 function LazyPdfPage({
   pageNumber,
   width,
   scrollRoot,
+  onVisible,
 }: {
   pageNumber: number;
   width?: number;
   scrollRoot: RefObject<HTMLDivElement | null>;
+  onVisible: (pageNumber: number) => void;
 }) {
   const placeholderRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(pageNumber <= 2);
+
+  useEffect(() => {
+    if (visible) onVisible(pageNumber);
+  }, [onVisible, pageNumber, visible]);
 
   useEffect(() => {
     if (visible || !placeholderRef.current) return;
@@ -68,10 +75,17 @@ function LazyPdfPage({
   );
 }
 
-export function PdfDocumentViewer({ file, title }: PdfDocumentViewerProps) {
+export function PdfDocumentViewer({ file, title, onProgress }: PdfDocumentViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onProgressRef = useRef(onProgress);
+  const lastProgressSignatureRef = useRef<string | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [pageCount, setPageCount] = useState(0);
+  const [pagesViewed, setPagesViewed] = useState<Set<number>>(() => new Set());
+
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  }, [onProgress]);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -87,6 +101,24 @@ export function PdfDocumentViewer({ file, title }: PdfDocumentViewerProps) {
 
   const pageWidth = containerWidth > 0 ? Math.min(containerWidth - 16, 960) : undefined;
 
+  const markPageViewed = useCallback((pageNumber: number) => {
+    setPagesViewed((current) => {
+      if (current.has(pageNumber)) return current;
+      const next = new Set(current);
+      next.add(pageNumber);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!onProgressRef.current || pageCount <= 0 || pagesViewed.size === 0) return;
+    const viewedPages = [...pagesViewed].sort((a, b) => a - b);
+    const signature = `${pageCount}:${viewedPages.join(',')}`;
+    if (lastProgressSignatureRef.current === signature) return;
+    lastProgressSignatureRef.current = signature;
+    onProgressRef.current({ pagesViewed: viewedPages, pageCount });
+  }, [pageCount, pagesViewed]);
+
   return (
     <div
       ref={containerRef}
@@ -98,7 +130,11 @@ export function PdfDocumentViewer({ file, title }: PdfDocumentViewerProps) {
         file={file}
         loading={<p className="p-4 text-sm text-muted-foreground">Loading document…</p>}
         error={<p className="p-4 text-sm text-destructive">The PDF could not be displayed.</p>}
-        onLoadSuccess={({ numPages }) => setPageCount(numPages)}
+        onLoadSuccess={({ numPages }) => {
+          lastProgressSignatureRef.current = null;
+          setPagesViewed(new Set());
+          setPageCount(numPages);
+        }}
       >
         <div className="flex flex-col items-center gap-3 sm:gap-4">
           {Array.from({ length: pageCount }, (_, index) => (
@@ -107,6 +143,7 @@ export function PdfDocumentViewer({ file, title }: PdfDocumentViewerProps) {
               pageNumber={index + 1}
               width={pageWidth}
               scrollRoot={containerRef}
+              onVisible={markPageViewed}
             />
           ))}
         </div>

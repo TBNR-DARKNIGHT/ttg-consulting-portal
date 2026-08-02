@@ -1,6 +1,7 @@
 export { apiFetch, apiFetchBlob, apiFetchPublic, getApiUrl, hasApiBaseUrl } from '@/lib/api-client';
 
 import { apiFetch, apiFetchPublic } from '@/lib/api-client';
+import type { ResourceProgress } from '@/types';
 
 export interface StorageUrlResponse {
   bucket: string;
@@ -563,4 +564,70 @@ export interface PortalPreview {
 
 export function getPortalCoursePreviews(): Promise<PortalPreview[]> {
   return apiFetchPublic<PortalPreview[]>('/portal/course-previews');
+}
+
+export interface ResourceProgressUpdateInput {
+  progressPercent?: number;
+  lastPositionSeconds?: number;
+  durationSeconds?: number;
+  pagesViewed?: number[];
+  pageCount?: number;
+  completed?: boolean;
+  completionSource?: ResourceProgress['completionSource'];
+}
+
+export function getResourceProgress(
+  getToken: () => Promise<string | null>,
+): Promise<ResourceProgress[]> {
+  return apiFetch<ResourceProgress[]>('/resources/progress', getToken, { cache: 'no-store' });
+}
+
+export function updateResourceProgress(
+  resourceId: string,
+  input: ResourceProgressUpdateInput,
+  getToken: () => Promise<string | null>,
+): Promise<ResourceProgress> {
+  return apiFetch<ResourceProgress>(
+    `/resources/${encodeURIComponent(resourceId)}/progress`,
+    getToken,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function markResourceComplete(
+  resourceId: string,
+  completionSource: ResourceProgress['completionSource'] = 'manual',
+  getToken: () => Promise<string | null>,
+): Promise<ResourceProgress> {
+  return apiFetch<ResourceProgress>(
+    `/resources/${encodeURIComponent(resourceId)}/complete`,
+    getToken,
+    {
+      method: 'POST',
+      body: JSON.stringify({ completionSource }),
+    },
+  );
+}
+
+export function markResourceIncomplete(
+  resourceId: string,
+  getToken: () => Promise<string | null>,
+): Promise<ResourceProgress> {
+  return apiFetch<ResourceProgress>(
+    `/resources/${encodeURIComponent(resourceId)}/complete`,
+    getToken,
+    { method: 'DELETE' },
+  );
+}
+
+export function resetCourseProgress(
+  courseId: string,
+  getToken: () => Promise<string | null>,
+): Promise<null> {
+  return apiFetch<null>(`/courses/${encodeURIComponent(courseId)}/progress`, getToken, {
+    method: 'DELETE',
+  });
 }

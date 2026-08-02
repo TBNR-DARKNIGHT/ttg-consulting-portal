@@ -3,10 +3,11 @@ import { LockKeyhole } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { usePortalAuth } from '@/auth/auth-context';
 import { useResourceProgress } from '@/hooks/use-resource-progress';
 import { useResources } from '@/hooks/use-resources';
 import { useEntitlements } from '@/hooks/use-entitlements';
-import { COURSES } from '@/lib/courses';
+import { COURSES, getCourseIdForTopic } from '@/lib/courses';
 import { TTA_SHOP_URL } from '@/lib/tta-shop';
 import type { ContentTopic, Resource, ResourceProgress } from '@/types';
 
@@ -18,7 +19,9 @@ function courseCompletion(
 ) {
   const topicSet = new Set(topics);
   const inCourse = resources.filter(
-    (r) => r.courseId === courseId || (!r.courseId && topicSet.has(r.topic)),
+    (r) =>
+      (r.courseId ?? getCourseIdForTopic(r.topic)) === courseId ||
+      (!r.courseId && topicSet.has(r.topic)),
   );
   const total = inCourse.length;
   const idSet = new Set(inCourse.map((r) => r.id));
@@ -28,6 +31,7 @@ function courseCompletion(
 }
 
 export function DashboardProgressOverview() {
+  const { isSignedIn } = usePortalAuth();
   const { resources, isLoading: resourcesLoading, error: resourcesError } = useResources();
   const { progress, isLoading: progressLoading, error: progressError } = useResourceProgress();
   const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
@@ -43,6 +47,10 @@ export function DashboardProgressOverview() {
       })),
     [resources, progress],
   );
+
+  if (!isSignedIn) {
+    return null;
+  }
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading your progress…</p>;

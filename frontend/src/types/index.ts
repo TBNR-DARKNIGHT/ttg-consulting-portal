@@ -29,7 +29,14 @@ export interface Resource {
 export interface ResourceProgress {
   resourceId: string;
   userId: string;
+  status: 'not_started' | 'in_progress' | 'completed';
   completed: boolean;
+  progressPercent: number;
   completedAt?: string;
   lastAccessedAt?: string;
+  lastPositionSeconds?: number;
+  durationSeconds?: number;
+  pagesViewed?: number[];
+  pageCount?: number;
+  completionSource?: 'manual' | 'video_threshold' | 'video_ended';
 }

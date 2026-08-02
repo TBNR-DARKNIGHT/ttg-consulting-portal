@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { usePortalAuth } from '@/auth/auth-context';
+import { DashboardProgressOverview } from '@/components/dashboard/dashboard-progress-overview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -9,7 +10,7 @@ export const Route = createFileRoute('/dashboard/')({
 });
 
 function DashboardHomePage() {
-  const { user } = usePortalAuth();
+  const { isSignedIn, user } = usePortalAuth();
   const first = user?.firstName?.trim() || (user?.email ? user.email.split('@')[0] : null);
   const wave = String.fromCodePoint(0x1f44b);
 
@@ -82,6 +83,18 @@ function DashboardHomePage() {
             </CardContent>
           </Card>
         </section>
+
+        {isSignedIn && (
+          <section className="space-y-4" aria-labelledby="saved-progress-heading">
+            <h2
+              id="saved-progress-heading"
+              className="font-serif text-xl font-semibold tracking-tight text-foreground"
+            >
+              Saved Progress
+            </h2>
+            <DashboardProgressOverview />
+          </section>
+        )}
       </div>
     </main>
   );

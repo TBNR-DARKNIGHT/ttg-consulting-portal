@@ -47,3 +47,6 @@ htmlcov/
 
 # Vercel (CLI link metadata; do not commit)
 .vercel/
+
+# Local extracted course template
+course-dashboard-template/

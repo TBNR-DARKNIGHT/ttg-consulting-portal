@@ -9,11 +9,12 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { FileUp, ImageOff, LockKeyhole, Pencil, Play } from 'lucide-react';
+import { CheckCircle2, FileUp, ImageOff, LockKeyhole, Pencil, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePortalAuth } from '@/auth/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { ResourceLoadingState } from '@/components/dashboard/resource-loading-state';
 import {
   Dialog,
@@ -27,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useResourceProgress } from '@/hooks/use-resource-progress';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
 import { useEntitlements } from '@/hooks/use-entitlements';
@@ -433,7 +435,9 @@ export function DashboardResourceGrid({
   resourceTypes,
   moduleId,
 }: DashboardResourceGridProps) {
+  const { isSignedIn } = usePortalAuth();
   const { resources, isLoading: resourcesLoading, error: resourcesError } = useResources();
+  const { progressByResourceId, isLoading: progressLoading } = useResourceProgress();
   const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
   const currentUser = useCurrentUser();
   const isAdmin = currentUser.data?.role === 'ADMIN';
@@ -452,7 +456,8 @@ export function DashboardResourceGrid({
       resources
         .filter(
           (r) =>
-            (r.courseId === courseId || (!r.courseId && topicSet.has(r.topic))) &&
+            ((r.courseId ?? getCourseIdForTopic(r.topic)) === courseId ||
+              (!r.courseId && topicSet.has(r.topic))) &&
             typeSet.has(r.type) &&
             (moduleId === undefined || (moduleId === null ? !r.moduleId : r.moduleId === moduleId)),
         )
@@ -471,7 +476,7 @@ export function DashboardResourceGrid({
     [resources, courseId, topicSet, typeSet, moduleId],
   );
 
-  const loading = resourcesLoading || entitlementsLoading;
+  const loading = resourcesLoading || entitlementsLoading || (isSignedIn && progressLoading);
   const error = resourcesError;
 
   if (loading) {
@@ -495,14 +500,16 @@ export function DashboardResourceGrid({
       {filtered.map((resource) => {
         const topicLabel = resource.topic;
         const typeLabel = resourceTypeLabel(resource.type);
-        const courseId = resource.courseId ?? getCourseIdForTopic(resource.topic);
-        const locked = !hasCourseAccess(courseId);
+        const resourceCourseId = resource.courseId ?? getCourseIdForTopic(resource.topic);
+        const locked = !hasCourseAccess(resourceCourseId);
+        const progress = isSignedIn ? progressByResourceId.get(resource.id) : undefined;
+        const progressPercent = progress?.progressPercent ?? 0;
         const resourceLink = {
           to: '/dashboard/resources/$resourceId' as const,
           params: { resourceId: resource.id },
           search: {
             from: resourceOrigin,
-            courseId,
+            courseId: resourceCourseId,
             ...(typeof moduleId === 'string' ? { module: moduleId } : {}),
           },
         };
@@ -594,6 +601,27 @@ export function DashboardResourceGrid({
               </div>
               {resource.duration && (
                 <div className="shrink-0 text-xs text-muted-foreground">{resource.duration}</div>
+              )}
+              {isSignedIn && progress && (progress.completed || progressPercent > 0) && (
+                <div className="shrink-0 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                      {progress.completed && (
+                        <CheckCircle2 className="size-3.5 text-brand-sage" aria-hidden />
+                      )}
+                      {progress.completed ? 'Complete' : 'In progress'}
+                    </span>
+                    {!progress.completed && (
+                      <span className="text-muted-foreground">{progressPercent}%</span>
+                    )}
+                  </div>
+                  {!progress.completed && (
+                    <Progress
+                      value={progressPercent}
+                      className="h-1.5 bg-brand-sage/20 **:data-[slot=progress-indicator]:bg-brand-sage"
+                    />
+                  )}
+                </div>
               )}
               <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <Badge variant="secondary" className="shrink-0">

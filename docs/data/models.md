@@ -13,8 +13,8 @@
 **ORM/Client**: Supabase Python client (backend), Supabase JS client (frontend, optional)
 **Auth**: Clerk (user identity managed externally, synced to local DB)
 
-**Currently deployed public tables**: `users`, `resources`, `course_entitlements`,
-`access_codes`, `admin_audit_log`
+**Currently deployed public tables**: `users`, `resources`, `resource_progress`,
+`course_entitlements`, `access_codes`, `admin_audit_log`
 
 `students`, `videos`, and `content` below are planned/legacy models and are not currently deployed
 in the linked Supabase project.
@@ -30,6 +30,7 @@ Student 1:N Videos (planned)
 User 1:N Videos (planned, as uploader/consultant)
 Content (legacy, standalone access model)
 User N:M Courses (via CourseEntitlement)
+User N:M Resources (via ResourceProgress)
 AccessCode 0..1:1 User (first successful redemption)
 User 1:N AdminAuditLog (privileged actor)
 ```
@@ -169,6 +170,37 @@ backend `PUBLIC_COURSE_IDS` setting, not by changing every resource row from `pa
 
 Course 2 module metadata is stored in `course_modules`. The composite foreign key from
 `resources(course_id, module_id)` ensures that an optional module belongs to the resource's course.
+
+### ResourceProgress
+
+Stores the current signed-in learner progress state for a dashboard resource. Guest users do not
+write progress rows and the frontend hides progress UI when a user is not signed in.
+
+```sql
+CREATE TABLE resource_progress (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  resource_id UUID NOT NULL REFERENCES resources(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'not_started'
+    CHECK (status IN ('not_started', 'in_progress', 'completed')),
+  progress_percent INTEGER NOT NULL DEFAULT 0
+    CHECK (progress_percent BETWEEN 0 AND 100),
+  completed_at TIMESTAMPTZ,
+  last_accessed_at TIMESTAMPTZ,
+  last_position_seconds INTEGER,
+  duration_seconds INTEGER,
+  pages_viewed INTEGER[] NOT NULL DEFAULT '{}',
+  page_count INTEGER,
+  completion_source TEXT
+    CHECK (completion_source IN ('manual', 'video_threshold', 'video_ended')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, resource_id)
+);
+```
+
+Course progress is calculated from completed resource rows, not from analytics events. Video
+resources save resume position and can auto-complete through Mux playback events; PDF resources
+save page-view context but rely on the learner's manual `Mark complete` action for completion.
 
 ### Content (legacy doc schema)
 

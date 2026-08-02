@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
+import { toast } from 'sonner';
 import { usePortalAuth } from '@/auth/auth-context';
 import { ResourceLoadingState } from '@/components/dashboard/resource-loading-state';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { getMuxPlaybackToken, getPaidStorageUrl, getPublicStorageUrl } from '@/lib/api';
 import { publicBucketStorageUrl } from '@/lib/public-assets';
+import { useResourceProgress, useResourceProgressActions } from '@/hooks/use-resource-progress';
 import { useResources } from '@/hooks/use-resources';
 import { getCourseIdForTopic } from '@/lib/courses';
 import { useEntitlements } from '@/hooks/use-entitlements';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Download } from 'lucide-react';
 
 const PdfDocumentViewer = lazy(() =>
   import('@/components/pdf/pdf-document-viewer').then((module) => ({
@@ -48,9 +51,16 @@ function ResourceDetailPage() {
   const { resourceId } = Route.useParams();
   const origin = Route.useSearch();
   const { resources } = useResources();
-  const { getToken } = usePortalAuth();
+  const { getToken, isSignedIn } = usePortalAuth();
   const { hasCourseAccess, isLoading: entitlementsLoading } = useEntitlements();
+  const { progressByResourceId } = useResourceProgress();
+  const { updateProgress, completeResource, incompleteResource } =
+    useResourceProgressActions(resourceId);
   const queryClient = useQueryClient();
+  const lastVideoSaveRef = useRef(0);
+  const videoCompletionSaveRef = useRef<string | null>(null);
+  const lastPdfSaveRef = useRef(0);
+  const lastPdfSaveSignatureRef = useRef<string | null>(null);
 
   const resource = useMemo(
     () => resources.find((r) => r.id === resourceId) ?? null,
@@ -160,6 +170,120 @@ function ResourceDetailPage() {
 
   const downloadFilename = `${resource?.title ?? 'resource'}.pdf`.replace(/[<>:"/\\|?*]/g, '-');
 
+  const isVideo = resource?.type === 'video';
+  const isPdf = resource?.type === 'pdf';
+  const playbackJwt = muxTokenQuery.data?.token ?? null;
+  const resourceProgress = resource ? progressByResourceId.get(resource.id) : undefined;
+  const progressPercent = resourceProgress?.progressPercent ?? 0;
+  const resourceCompleted = Boolean(resourceProgress?.completed);
+  const savedVideoStartTime =
+    isVideo && !resourceCompleted ? resourceProgress?.lastPositionSeconds : undefined;
+  const progressBusy = completeResource.isPending || incompleteResource.isPending;
+
+  useEffect(() => {
+    if (!resource?.id || !resourceCompleted) {
+      videoCompletionSaveRef.current = null;
+    }
+  }, [resource?.id, resourceCompleted]);
+
+  const saveVideoProgress = useCallback(
+    (
+      event: Event,
+      options: { force?: boolean; completionSource?: 'video_threshold' | 'video_ended' } = {},
+    ) => {
+      if (!isSignedIn || !resource || !canAccess || !isVideo || resourceCompleted) return;
+      const media = (event.currentTarget ?? event.target) as {
+        currentTime?: number;
+        duration?: number;
+      } | null;
+      const currentTime = Number(media?.currentTime ?? 0);
+      const duration = Number(media?.duration ?? 0);
+      if (!Number.isFinite(currentTime) || currentTime < 0) return;
+
+      const hasDuration = Number.isFinite(duration) && duration > 0;
+      const nextPercent = hasDuration
+        ? Math.min(100, Math.max(0, Math.round((currentTime / duration) * 100)))
+        : progressPercent;
+      const completionSource =
+        options.completionSource ?? (nextPercent >= 90 ? 'video_threshold' : undefined);
+      if (completionSource) {
+        if (videoCompletionSaveRef.current === resource.id) return;
+        videoCompletionSaveRef.current = resource.id;
+      }
+      const now = Date.now();
+      if (!options.force && !completionSource && now - lastVideoSaveRef.current < 10_000) {
+        return;
+      }
+      lastVideoSaveRef.current = now;
+      updateProgress.mutate(
+        {
+          progressPercent: nextPercent,
+          lastPositionSeconds: Math.floor(currentTime),
+          durationSeconds: hasDuration ? Math.floor(duration) : undefined,
+          completed: Boolean(completionSource),
+          completionSource,
+        },
+        {
+          onError: () => {
+            if (completionSource && videoCompletionSaveRef.current === resource.id) {
+              videoCompletionSaveRef.current = null;
+            }
+          },
+        },
+      );
+    },
+    [canAccess, isSignedIn, isVideo, progressPercent, resource, resourceCompleted, updateProgress],
+  );
+
+  const savePdfProgress = useCallback(
+    ({ pagesViewed, pageCount }: { pagesViewed: number[]; pageCount: number }) => {
+      if (!isSignedIn || !resource || !canAccess || !isPdf) return;
+      const viewedPages = [...new Set(pagesViewed)]
+        .filter((page) => Number.isInteger(page) && page > 0 && page <= pageCount)
+        .sort((a, b) => a - b);
+      const signature = `${pageCount}:${viewedPages.join(',')}`;
+      if (lastPdfSaveSignatureRef.current === signature) return;
+
+      const percent = pageCount > 0 ? Math.round((viewedPages.length / pageCount) * 100) : 0;
+      const now = Date.now();
+      const viewedAllPages = pageCount > 0 && viewedPages.length >= pageCount;
+      if (now - lastPdfSaveRef.current < 5_000 && !viewedAllPages) return;
+      lastPdfSaveRef.current = now;
+      lastPdfSaveSignatureRef.current = signature;
+      updateProgress.mutate(
+        {
+          progressPercent: Math.min(100, percent),
+          pagesViewed: viewedPages,
+          pageCount,
+        },
+        {
+          onError: () => {
+            if (lastPdfSaveSignatureRef.current === signature) {
+              lastPdfSaveSignatureRef.current = null;
+            }
+          },
+        },
+      );
+    },
+    [canAccess, isPdf, isSignedIn, resource, updateProgress],
+  );
+
+  const markComplete = () => {
+    completeResource.mutate('manual', {
+      onSuccess: () => toast.success('Marked complete'),
+      onError: (error) =>
+        toast.error(error instanceof Error ? error.message : 'Unable to save progress'),
+    });
+  };
+
+  const markIncomplete = () => {
+    incompleteResource.mutate(undefined, {
+      onSuccess: () => toast.success('Marked incomplete'),
+      onError: (error) =>
+        toast.error(error instanceof Error ? error.message : 'Unable to save progress'),
+    });
+  };
+
   if (!resource) {
     return (
       <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
@@ -202,10 +326,6 @@ function ResourceDetailPage() {
       </main>
     );
   }
-
-  const isVideo = resource.type === 'video';
-  const isPdf = resource.type === 'pdf';
-  const playbackJwt = muxTokenQuery.data?.token ?? null;
 
   const videoReadyPublic = isVideo && resource.muxPlaybackId && !resource.muxPlaybackSigned;
   const videoReadySigned =
@@ -250,6 +370,44 @@ function ResourceDetailPage() {
           </div>
         </header>
 
+        {isSignedIn && isPdf && (
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                  <span>Saved progress</span>
+                  <span className="font-medium text-foreground">
+                    {resourceProgress?.completed ? 'Complete' : `${progressPercent}%`}
+                  </span>
+                </div>
+                <Progress
+                  value={resourceProgress?.completed ? 100 : progressPercent}
+                  className="h-2 bg-brand-sage/25 **:data-[slot=progress-indicator]:bg-brand-sage"
+                />
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {resourceProgress?.completed ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={progressBusy}
+                    onClick={markIncomplete}
+                  >
+                    <Circle className="size-4" aria-hidden />
+                    Mark incomplete
+                  </Button>
+                ) : (
+                  <Button type="button" size="sm" disabled={progressBusy} onClick={markComplete}>
+                    <CheckCircle2 className="size-4" aria-hidden />
+                    Mark complete
+                  </Button>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
         {isVideo && !resource.muxPlaybackId && (
           <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
             This video is not provisioned yet (no Mux playback ID in the catalog).
@@ -290,6 +448,12 @@ function ResourceDetailPage() {
                   playbackId={resource.muxPlaybackId}
                   playbackToken={playbackJwt}
                   title={resource.title}
+                  startTime={savedVideoStartTime}
+                  onTimeUpdate={(event) => saveVideoProgress(event)}
+                  onPause={(event) => saveVideoProgress(event, { force: true })}
+                  onEnded={(event) =>
+                    saveVideoProgress(event, { force: true, completionSource: 'video_ended' })
+                  }
                   onError={() => {
                     void queryClient.invalidateQueries({
                       queryKey: ['mux-playback-token', resourceId, canAccess],
@@ -306,7 +470,16 @@ function ResourceDetailPage() {
             <Suspense
               fallback={<ResourceLoadingState label="Loading video player..." className="p-6" />}
             >
-              <MuxPublicPlayer playbackId={resource.muxPlaybackId} title={resource.title} />
+              <MuxPublicPlayer
+                playbackId={resource.muxPlaybackId}
+                title={resource.title}
+                startTime={savedVideoStartTime}
+                onTimeUpdate={(event) => saveVideoProgress(event)}
+                onPause={(event) => saveVideoProgress(event, { force: true })}
+                onEnded={(event) =>
+                  saveVideoProgress(event, { force: true, completionSource: 'video_ended' })
+                }
+              />
             </Suspense>
           </div>
         )}
@@ -340,7 +513,12 @@ function ResourceDetailPage() {
               <Suspense
                 fallback={<ResourceLoadingState label="Loading PDF viewer…" className="p-6" />}
               >
-                <PdfDocumentViewer file={pdfUrl} title={resource.title} />
+                <PdfDocumentViewer
+                  key={pdfUrl}
+                  file={pdfUrl}
+                  title={resource.title}
+                  onProgress={savePdfProgress}
+                />
               </Suspense>
             )}
             {!publicUrlQuery.isLoading &&
