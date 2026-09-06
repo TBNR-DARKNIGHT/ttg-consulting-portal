@@ -197,6 +197,9 @@ CLERK_ISSUER=https://[clerk-instance].clerk.accounts.dev
 CLERK_AUDIENCE=                         # Optional in dev; required in staging/production
 CLERK_SECRET_KEY=                       # Backend-only; required when session JWTs omit profile claims
 FRONTEND_URL=http://localhost:5173      # CORS origin — use exact SPA URL when frontend is on Vercel (e.g. https://app.vercel.app)
+RESEND_API_KEY=re_...                   # Backend-only key with Sending access; never expose to the SPA
+RESEND_FROM_EMAIL=Beyond Grades <enquiries@send.example.com> # Sender on a verified Resend domain
+CONSULTATION_ENQUIRY_TO_EMAIL=yapshen@thinkteachacademy.com  # Destination; comma-separated addresses supported
 MUX_TOKEN_ID=                           # Backend-only Mux management API token; used by sync_mux
 MUX_TOKEN_SECRET=                       # Backend-only; never expose to the SPA
 MUX_SIGNING_KEY_ID=                     # Mux signing key id for paid playback JWTs
@@ -209,6 +212,7 @@ ENVIRONMENT=development                 # development | staging | production
 
 - Never commit `.env` files to git
 - Use hosting provider's secret management for staging/production
+- Keep `RESEND_API_KEY` on the backend and use a Sending-access key restricted to the verified domain
 - Rotate secrets regularly
 - `CLERK_AUDIENCE` **must** be set in staging/production to prevent cross-client token acceptance
 - `SUPABASE_SERVICE_KEY` bypasses RLS — handle with care; endpoints must scope queries by user

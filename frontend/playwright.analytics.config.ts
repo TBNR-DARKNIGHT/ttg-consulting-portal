@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 process.env.VITE_AUTH_MODE = 'public';
 process.env.VITE_API_BASE_URL = 'http://127.0.0.1:9999/api/v1';
+process.env.VITE_DEV_BEARER_TOKEN = 'playwright-token';
 
 export default defineConfig({
   testDir: './tests',
@@ -13,6 +14,11 @@ export default defineConfig({
     url: 'http://127.0.0.1:5177',
     reuseExistingServer: true,
     timeout: 120_000,
+    env: {
+      VITE_AUTH_MODE: 'public',
+      VITE_API_BASE_URL: 'http://127.0.0.1:9999/api/v1',
+      VITE_DEV_BEARER_TOKEN: 'playwright-token',
+    },
   },
   use: {
     baseURL: 'http://127.0.0.1:5177',

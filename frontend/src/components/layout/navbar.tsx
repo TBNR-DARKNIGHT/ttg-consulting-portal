@@ -57,11 +57,9 @@ export function Navbar() {
               </Button>
             </div>
           ) : (
-            <>
-              <Button asChild size="sm" className="h-9 rounded-md px-5 text-[13px]">
-                <Link to="/dashboard">Open Dashboard</Link>
-              </Button>
-            </>
+            <Button asChild size="sm" className="h-9 rounded-md px-5 text-[13px]">
+              <Link to="/dashboard">Open Dashboard</Link>
+            </Button>
           )}
         </div>
 

@@ -245,7 +245,7 @@ function YoungExplorersPage() {
               <br />
               <em className="font-normal text-brand-indigo">at every stage.</em>
             </h2>
-            <div className="mt-12 grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-3">
+            <div className="mt-12 grid overflow-hidden rounded-xl border border-brand-dark/15 md:grid-cols-2">
               {[
                 [
                   'Self-paced',
@@ -254,14 +254,8 @@ function YoungExplorersPage() {
                   '/portal',
                 ],
                 [
-                  'Cohort-based',
-                  'DSA Interview Intensive',
-                  'A focused group programme for students preparing for the DSA window.',
-                  '/group-programme',
-                ],
-                [
                   '1-on-1',
-                  'DSA Consulting',
+                  'Education Consulting',
                   "A personalised consultation covering your child's profile and readiness.",
                   '/consult',
                 ],

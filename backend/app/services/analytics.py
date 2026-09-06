@@ -73,7 +73,13 @@ async def capture_events(
     rows = [_event_row(event, user=user, user_agent=user_agent) for event in events]
 
     try:
-        await asyncio.to_thread(lambda: db.table("analytics_events").insert(rows).execute())
+        await asyncio.to_thread(
+            lambda: (
+                db.table("analytics_events")
+                .upsert(rows, on_conflict="event_id", ignore_duplicates=True)
+                .execute()
+            )
+        )
     except Exception as exc:
         logger.exception("Failed to capture analytics events", event_count=len(rows))
         raise AnalyticsCaptureError("Unable to capture analytics events") from exc

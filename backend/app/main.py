@@ -14,6 +14,7 @@ from app.middleware.logging import LoggingMiddleware, configure_logging
 from app.routers import (
     admin,
     analytics,
+    consultation,
     dev_authz,
     dev_storage,
     entitlements,
@@ -63,9 +64,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             missing.append("CLERK_SECRET_KEY")
         if not settings.zapier_webhook_secret.strip():
             missing.append("ZAPIER_WEBHOOK_SECRET")
+        if not settings.resend_api_key.strip():
+            missing.append("RESEND_API_KEY")
+        if not settings.resend_from_email.strip():
+            missing.append("RESEND_FROM_EMAIL")
+        if not settings.consultation_enquiry_to_email.strip():
+            missing.append("CONSULTATION_ENQUIRY_TO_EMAIL")
         if missing:
             logger.warning(
-                "Production storage/auth may be incomplete (paid downloads need Supabase + Clerk)",
+                "Production configuration may be incomplete",
                 missing_keys=missing,
             )
 
@@ -94,6 +101,7 @@ app.add_middleware(LoggingMiddleware)
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
+app.include_router(consultation.router, prefix="/api/v1", tags=["consultation"])
 app.include_router(entitlements.router, prefix="/api/v1", tags=["entitlements"])
 app.include_router(integrations.router, prefix="/api/v1", tags=["integrations"])
 app.include_router(webhooks.router, prefix="/api/v1", tags=["webhooks"])

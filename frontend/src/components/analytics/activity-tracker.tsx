@@ -1,13 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useRouterState } from '@tanstack/react-router';
 import { usePortalAuth } from '@/auth/auth-context';
 import {
   baseAnalyticsEvent,
   captureAnalyticsEvents,
   currentPagePath,
+  extractResourceId,
   getSessionStartedAt,
   shouldSendSessionStart,
 } from '@/lib/analytics';
+
+interface PageContext {
+  path: string;
+  resourceId?: string;
+}
 
 function visibleText(element: Element): string | undefined {
   const text = element.textContent?.replace(/\s+/g, ' ').trim();
@@ -33,6 +39,35 @@ export function ActivityTracker() {
   const location = useRouterState({ select: (state) => state.location });
   const getTokenRef = useRef(getToken);
   const lastPathRef = useRef<string | null>(null);
+  const lastPageContextRef = useRef<PageContext | null>(null);
+  const visibleSinceRef = useRef<number | null>(null);
+  const pendingVisibleMsRef = useRef(0);
+
+  const collectVisibleTime = useCallback(() => {
+    const now = Date.now();
+    if (visibleSinceRef.current !== null) {
+      pendingVisibleMsRef.current += Math.max(0, now - visibleSinceRef.current);
+    }
+    visibleSinceRef.current = document.visibilityState === 'visible' ? now : null;
+  }, []);
+
+  const takeVisibleTime = useCallback(() => {
+    collectVisibleTime();
+    const duration = Math.round(pendingVisibleMsRef.current);
+    pendingVisibleMsRef.current = 0;
+    return duration;
+  }, [collectVisibleTime]);
+
+  const lifecycleEvent = useCallback(
+    (eventType: 'heartbeat' | 'session_end', context: PageContext, engagementDeltaMs: number) =>
+      baseAnalyticsEvent(eventType, {
+        pagePath: context.path,
+        resourceId: context.resourceId,
+        durationMs: Math.max(0, Date.now() - getSessionStartedAt()),
+        metadata: { engagementDeltaMs },
+      }),
+    [],
+  );
 
   useEffect(() => {
     getTokenRef.current = getToken;
@@ -51,7 +86,23 @@ export function ActivityTracker() {
 
     const path = currentPagePath();
     if (lastPathRef.current === path) return;
+
+    const previousContext = lastPageContextRef.current;
+    if (previousContext) {
+      const engagementDeltaMs = takeVisibleTime();
+      if (engagementDeltaMs > 0) {
+        void captureAnalyticsEvents(
+          [lifecycleEvent('heartbeat', previousContext, engagementDeltaMs)],
+          getTokenRef.current,
+        );
+      }
+    }
+
     lastPathRef.current = path;
+    lastPageContextRef.current = {
+      path,
+      resourceId: extractResourceId(window.location.pathname),
+    };
 
     const pageView = baseAnalyticsEvent('page_view');
     const events = [pageView];
@@ -59,7 +110,14 @@ export function ActivityTracker() {
       events.push(baseAnalyticsEvent('resource_view'));
     }
     void captureAnalyticsEvents(events, getTokenRef.current);
-  }, [isLoaded, location.pathname, location.search, location.hash]);
+  }, [
+    isLoaded,
+    lifecycleEvent,
+    location.hash,
+    location.pathname,
+    location.search,
+    takeVisibleTime,
+  ]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -75,10 +133,13 @@ export function ActivityTracker() {
       );
     };
 
-    const sessionDuration = () => Math.max(0, Date.now() - getSessionStartedAt());
     const sendLifecycleEvent = (eventType: 'heartbeat' | 'session_end') => {
+      const context = lastPageContextRef.current ?? {
+        path: currentPagePath(),
+        resourceId: extractResourceId(window.location.pathname),
+      };
       void captureAnalyticsEvents(
-        [baseAnalyticsEvent(eventType, { durationMs: sessionDuration() })],
+        [lifecycleEvent(eventType, context, takeVisibleTime())],
         getTokenRef.current,
         { preferBeacon: eventType === 'session_end' },
       );
@@ -87,10 +148,15 @@ export function ActivityTracker() {
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         sendLifecycleEvent('heartbeat');
+      } else {
+        collectVisibleTime();
       }
     };
 
-    const heartbeatId = window.setInterval(() => sendLifecycleEvent('heartbeat'), 60_000);
+    visibleSinceRef.current = document.visibilityState === 'visible' ? Date.now() : null;
+    const heartbeatId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') sendLifecycleEvent('heartbeat');
+    }, 60_000);
 
     document.addEventListener('click', onClick, { capture: true });
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -104,7 +170,7 @@ export function ActivityTracker() {
       window.removeEventListener('pagehide', onPageHide);
       window.clearInterval(heartbeatId);
     };
-  }, [isLoaded]);
+  }, [collectVisibleTime, isLoaded, lifecycleEvent, takeVisibleTime]);
 
   return null;
 }

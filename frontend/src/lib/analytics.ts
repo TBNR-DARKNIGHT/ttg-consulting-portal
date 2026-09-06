@@ -173,21 +173,22 @@ async function flushAnalyticsEvents(
 
   const batch = pending.slice(0, 25);
   const body = JSON.stringify({ events: batch });
-  if (options.preferBeacon && navigator.sendBeacon) {
-    const queued = navigator.sendBeacon(
-      getApiUrl('/analytics/events'),
-      new Blob([body], { type: 'application/json' }),
-    );
-    if (queued) {
-      removePendingEvents(batch);
-      return;
-    }
-  }
-
   flushInProgress = true;
   let sentSuccessfully = false;
   try {
     const token = await getToken();
+    if (options.preferBeacon && !token && navigator.sendBeacon) {
+      const queued = navigator.sendBeacon(
+        getApiUrl('/analytics/events'),
+        new Blob([body], { type: 'application/json' }),
+      );
+      if (queued) {
+        removePendingEvents(batch);
+        sentSuccessfully = true;
+        return;
+      }
+    }
+
     const response = await fetch(getApiUrl('/analytics/events'), {
       method: 'POST',
       headers: {

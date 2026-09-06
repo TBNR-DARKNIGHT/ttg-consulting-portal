@@ -359,6 +359,7 @@ function ResourceDetailPage() {
                 <a
                   href={resource.access === 'paid' ? pdfUrl : (backendDownloadUrl ?? pdfUrl)}
                   download={downloadFilename}
+                  data-analytics-id="resource-download"
                   aria-label="Download PDF"
                   title="Download PDF"
                 >

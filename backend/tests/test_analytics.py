@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -8,16 +9,26 @@ import pytest
 from app.models.analytics import AnalyticsEventIn
 from app.models.schemas import ClerkUser
 from app.routers import analytics as analytics_router
-from app.services.admin_analytics import get_admin_analytics_summary
+from app.services.admin_analytics import _period_bounds, get_admin_analytics_summary
 from app.services.analytics import capture_events
 
 
 class FakeAnalyticsInsert:
     def __init__(self) -> None:
         self.rows: list[dict[str, object]] | None = None
+        self.on_conflict: str | None = None
+        self.ignore_duplicates = False
 
-    def insert(self, rows: list[dict[str, object]]) -> "FakeAnalyticsInsert":
+    def upsert(
+        self,
+        rows: list[dict[str, object]],
+        *,
+        on_conflict: str,
+        ignore_duplicates: bool,
+    ) -> "FakeAnalyticsInsert":
         self.rows = rows
+        self.on_conflict = on_conflict
+        self.ignore_duplicates = ignore_duplicates
         return self
 
     def execute(self):
@@ -37,6 +48,7 @@ class FakeSelectQuery:
     def __init__(self, rows: list[dict[str, object]]) -> None:
         self.rows = rows
         self.gte_filter: tuple[str, object] | None = None
+        self.lt_filter: tuple[str, object] | None = None
         self.order_field: str | None = None
         self.order_desc = False
         self.range_start = 0
@@ -47,6 +59,10 @@ class FakeSelectQuery:
 
     def gte(self, field: str, value: object) -> "FakeSelectQuery":
         self.gte_filter = (field, value)
+        return self
+
+    def lt(self, field: str, value: object) -> "FakeSelectQuery":
+        self.lt_filter = (field, value)
         return self
 
     def order(self, field: str, desc: bool = False) -> "FakeSelectQuery":
@@ -73,6 +89,14 @@ class FakeSelectQuery:
                 row
                 for row in rows
                 if row.get(field) is not None and str(row[field]) >= str(threshold)
+            ]
+        if self.lt_filter is not None:
+            field, value = self.lt_filter
+            threshold = value.isoformat() if hasattr(value, "isoformat") else value
+            rows = [
+                row
+                for row in rows
+                if row.get(field) is not None and str(row[field]) < str(threshold)
             ]
         if self.order_field is not None:
             rows = sorted(
@@ -127,6 +151,7 @@ class FakeAdminAnalyticsClient:
                     "referrer": "https://www.beyondgrades.sg/auth/sign-up",
                 },
             ],
+            "resource_progress_events": [],
             "users": [
                 {
                     "id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
@@ -204,12 +229,15 @@ async def test_capture_events_stores_authenticated_user_context() -> None:
     assert client.query.rows[0]["user_id"] == str(user_id)
     assert client.query.rows[0]["clerk_user_id"] == "user_clerk"
     assert client.query.rows[0]["resource_id"] == "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+    assert client.query.on_conflict == "event_id"
+    assert client.query.ignore_duplicates is True
 
 
 @pytest.mark.asyncio
 async def test_admin_analytics_summary_rolls_up_core_metrics() -> None:
     summary = await get_admin_analytics_summary(
-        range_days=30,
+        period_type="month",
+        period_start=date(2026, 7, 1),
         client=FakeAdminAnalyticsClient(),  # type: ignore[arg-type]
     )
 
@@ -225,6 +253,171 @@ async def test_admin_analytics_summary_rolls_up_core_metrics() -> None:
     assert summary.top_pages[0].path == "/portal?tab=overview"
     assert summary.top_pages[0].label == "Portal"
     assert summary.top_referrers == []
+    assert summary.course_engagement.course_active_users == 1
+    assert summary.course_engagement.meaningfully_engaged_users == 0
+    assert summary.funnel[1].label == "Course active"
+    assert summary.funnel[1].users == 1
+    assert summary.period_label == "Jul 2026"
+    assert summary.data_available_from == "2026-07-09"
+
+
+def test_reporting_period_labels_and_singapore_boundaries() -> None:
+    now = datetime(2026, 8, 16, 12, tzinfo=UTC)
+    week = _period_bounds(
+        period_type="week",
+        period_start=date(2026, 1, 12),
+        now=now,
+    )
+    month = _period_bounds(
+        period_type="month",
+        period_start=date(2026, 8, 1),
+        now=now,
+    )
+    quarter = _period_bounds(
+        period_type="quarter",
+        period_start=date(2026, 1, 1),
+        now=now,
+    )
+
+    assert week.label == "W3 Jan 2026"
+    assert week.start == datetime(2026, 1, 11, 16, tzinfo=UTC)
+    assert week.end == datetime(2026, 1, 18, 16, tzinfo=UTC)
+    assert week.trend_day_count == 7
+    assert month.label == "Aug 2026"
+    assert month.start == datetime(2026, 7, 31, 16, tzinfo=UTC)
+    assert month.trend_day_count == 16
+    assert quarter.label == "Q1 2026"
+    assert quarter.end == datetime(2026, 3, 31, 16, tzinfo=UTC)
+
+
+@pytest.mark.asyncio
+async def test_admin_analytics_summary_counts_progress_as_meaningful_engagement() -> None:
+    client = FakeAdminAnalyticsClient()
+    client.rows["resource_progress_events"] = [
+        {
+            "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+            "resource_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+            "event_type": "progressed",
+            "occurred_at": "2026-07-09T00:06:00+00:00",
+            "status": "in_progress",
+            "progress_percent": 30,
+            "pages_viewed_count": 0,
+        }
+    ]
+
+    summary = await get_admin_analytics_summary(
+        period_type="month",
+        period_start=date(2026, 7, 1),
+        course_id="course-2",
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.course_engagement.course_active_users == 1
+    assert summary.course_engagement.meaningfully_engaged_users == 1
+    assert summary.course_engagement.resource_starters == 1
+    assert summary.course_engagement.average_progress == 30
+    assert summary.top_resources[0].starter_users == 1
+    assert summary.kpis[0].label == "Meaningfully engaged"
+    assert summary.kpis[0].value == "1"
+
+
+@pytest.mark.asyncio
+async def test_admin_analytics_summary_counts_distinct_resources_once_per_user() -> None:
+    client = FakeAdminAnalyticsClient()
+    second_resource_id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+    client.rows["resources"].append(
+        {
+            "id": second_resource_id,
+            "title": "Planning Checklist",
+            "course_id": "course-2",
+            "type": "pdf",
+            "topic": "Interview Preparation",
+        }
+    )
+    client.rows["analytics_events"].extend(
+        [
+            {
+                "event_id": str(uuid4()),
+                "event_type": "resource_view",
+                "session_id": "11111111-1111-4111-8111-111111111111",
+                "anonymous_id": str(uuid4()),
+                "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                "occurred_at": "2026-07-09T00:04:00+00:00",
+                "page_path": f"/dashboard/resources/{second_resource_id}",
+                "resource_id": second_resource_id,
+            },
+            {
+                "event_id": str(uuid4()),
+                "event_type": "resource_view",
+                "session_id": "11111111-1111-4111-8111-111111111111",
+                "anonymous_id": str(uuid4()),
+                "user_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+                "occurred_at": "2026-07-09T00:05:00+00:00",
+                "page_path": f"/dashboard/resources/{second_resource_id}",
+                "resource_id": second_resource_id,
+            },
+        ]
+    )
+
+    summary = await get_admin_analytics_summary(
+        period_type="month",
+        period_start=date(2026, 7, 1),
+        course_id="course-2",
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.course_engagement.meaningfully_engaged_users == 1
+    assert summary.top_users[0].distinct_resources == 2
+    checklist = next(row for row in summary.top_resources if row.resource_id == second_resource_id)
+    assert checklist.views == 2
+    assert checklist.unique_users == 1
+    assert checklist.repeat_viewers == 1
+
+
+@pytest.mark.asyncio
+async def test_paid_adoption_requires_activity_in_an_eligible_paid_course() -> None:
+    client = FakeAdminAnalyticsClient()
+    free_resource_id = "ffffffff-ffff-4fff-8fff-ffffffffffff"
+    client.rows["resources"].append(
+        {
+            "id": free_resource_id,
+            "title": "Free Planning Guide",
+            "course_id": "course-1",
+            "type": "pdf",
+            "topic": "Planning",
+        }
+    )
+    client.rows["course_entitlements"].append(
+        {
+            "user_id": "cccccccc-cccc-4ccc-cccc-cccccccccccc",
+            "course_id": "course-2",
+            "granted_at": "2026-07-08T00:00:00+00:00",
+            "revoked_at": None,
+        }
+    )
+    client.rows["analytics_events"].append(
+        {
+            "event_id": str(uuid4()),
+            "event_type": "resource_view",
+            "session_id": "55555555-5555-4555-8555-555555555555",
+            "anonymous_id": str(uuid4()),
+            "user_id": "cccccccc-cccc-4ccc-cccc-cccccccccccc",
+            "occurred_at": "2026-07-09T00:05:00+00:00",
+            "page_path": f"/dashboard/resources/{free_resource_id}",
+            "resource_id": free_resource_id,
+        }
+    )
+
+    summary = await get_admin_analytics_summary(
+        period_type="month",
+        period_start=date(2026, 7, 1),
+        client=client,  # type: ignore[arg-type]
+    )
+
+    assert summary.course_engagement.paid_eligible_users == 2
+    assert summary.course_engagement.paid_activated_users == 1
+    assert summary.course_engagement.paid_adoption_rate == 50
+    assert {user.email for user in summary.paid_inactive_users} == {"inactive@example.com"}
 
 
 @pytest.mark.asyncio
@@ -256,7 +449,8 @@ async def test_admin_analytics_summary_merges_referrer_protocols() -> None:
     )
 
     summary = await get_admin_analytics_summary(
-        range_days=30,
+        period_type="month",
+        period_start=date(2026, 7, 1),
         client=client,  # type: ignore[arg-type]
     )
 
@@ -277,7 +471,8 @@ async def test_admin_analytics_summary_excludes_ignored_users_from_follow_up_que
     ]
 
     summary = await get_admin_analytics_summary(
-        range_days=30,
+        period_type="month",
+        period_start=date(2026, 7, 1),
         client=client,  # type: ignore[arg-type]
     )
 
@@ -343,7 +538,8 @@ async def test_admin_analytics_summary_excludes_ignored_user_activity_from_rollu
     )
 
     summary = await get_admin_analytics_summary(
-        range_days=30,
+        period_type="month",
+        period_start=date(2026, 7, 1),
         client=client,  # type: ignore[arg-type]
     )
 
@@ -372,7 +568,8 @@ async def test_admin_analytics_summary_pages_beyond_supabase_default_row_cap() -
     ]
 
     summary = await get_admin_analytics_summary(
-        range_days=30,
+        period_type="month",
+        period_start=date(2026, 7, 1),
         client=client,  # type: ignore[arg-type]
     )
 

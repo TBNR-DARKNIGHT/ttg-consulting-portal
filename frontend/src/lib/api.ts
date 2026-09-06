@@ -11,6 +11,29 @@ export interface StorageUrlResponse {
   expires_in: number | null;
 }
 
+export interface ConsultationEnquiryInput {
+  parentName: string;
+  contactNumber: string;
+  childSchool: string;
+  childLevel: string;
+  programme: 'dsa' | 'basecamp' | 'both';
+  notes: string;
+  website: string;
+}
+
+export interface ConsultationEnquiryResponse {
+  status: 'sent';
+}
+
+export function submitConsultationEnquiry(
+  input: ConsultationEnquiryInput,
+): Promise<ConsultationEnquiryResponse> {
+  return apiFetchPublic<ConsultationEnquiryResponse>('/consultation/enquiries', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 /** Same shape as Supabase `getPublicUrl` — avoids a round-trip when `VITE_SUPABASE_URL` is set. */
 /** Resolve a public PDF through the backend catalog allowlist. */
 export function getPublicStorageUrl(
@@ -100,10 +123,14 @@ export interface AdminAnalyticsKpi {
 export interface AdminAnalyticsTrendPoint {
   date: string;
   activeUsers: number;
+  signedInActiveUsers: number;
+  courseActiveUsers: number;
+  meaningfullyEngagedUsers: number;
   sessions: number;
   pageViews: number;
   resourceViews: number;
   clicks: number;
+  completions: number;
 }
 
 export interface AdminAnalyticsResourceMetric {
@@ -114,6 +141,12 @@ export interface AdminAnalyticsResourceMetric {
   views: number;
   uniqueUsers: number;
   viewsPerUser: number;
+  starterUsers: number;
+  completedUsers: number;
+  completionRate: number;
+  averageProgress: number;
+  medianProgress: number;
+  repeatViewers: number;
 }
 
 export interface AdminAnalyticsUserMetric {
@@ -127,6 +160,50 @@ export interface AdminAnalyticsUserMetric {
   avgSessionTimeMs: number;
   lastSeenAt: string | null;
   paidCourses: string[];
+  distinctResources: number;
+  maxProgress: number;
+  completedResources: number;
+  contentEngagementMs: number;
+}
+
+export interface AdminAnalyticsCourseOption {
+  courseId: string;
+  label: string;
+}
+
+export interface AdminAnalyticsCourseEngagement {
+  courseId: string | null;
+  label: string;
+  courseActiveUsers: number;
+  meaningfullyEngagedUsers: number;
+  meaningfulEngagementRate: number;
+  resourceStarters: number;
+  resourceCompletions: number;
+  uniqueCompleters: number;
+  averageProgress: number;
+  medianProgress: number;
+  repeatUsers: number;
+  repeatEngagementRate: number;
+  contentEngagementTimeMs: number;
+  paidEligibleUsers: number;
+  paidActivatedUsers: number;
+  paidAdoptionRate: number;
+}
+
+export interface AdminAnalyticsFunnelStep {
+  label: string;
+  users: number;
+  conversionRate: number;
+}
+
+export interface AdminAnalyticsCampaignMetric {
+  source: string;
+  medium: string | null;
+  campaign: string | null;
+  sessions: number;
+  visitors: number;
+  signedInUsers: number;
+  courseActiveUsers: number;
 }
 
 export interface AdminAnalyticsPageMetric {
@@ -155,21 +232,35 @@ export interface AdminAnalyticsEventMetric {
   resourceTitle: string | null;
 }
 
+export type AdminAnalyticsPeriodType = 'week' | 'month' | 'quarter';
+
 export interface AdminAnalyticsSummary {
-  rangeDays: number;
+  periodType: AdminAnalyticsPeriodType;
+  selectedPeriodStart: string;
+  periodLabel: string;
+  dataAvailableFrom: string | null;
+  selectedCourseId: string | null;
+  periodStart: string;
+  periodEnd: string;
   generatedAt: string;
   eventCount: number;
   userCount: number;
   paidUserCount: number;
   activeUserCount: number;
+  signedInActiveUserCount: number;
+  courseOptions: AdminAnalyticsCourseOption[];
+  courseEngagement: AdminAnalyticsCourseEngagement;
+  funnel: AdminAnalyticsFunnelStep[];
   kpis: AdminAnalyticsKpi[];
   trend: AdminAnalyticsTrendPoint[];
   topResources: AdminAnalyticsResourceMetric[];
   topUsers: AdminAnalyticsUserMetric[];
   lowEngagementUsers: AdminAnalyticsUserMetric[];
+  paidInactiveUsers: AdminAnalyticsUserMetric[];
   topPages: AdminAnalyticsPageMetric[];
   topClicks: AdminAnalyticsClickMetric[];
   topReferrers: AdminAnalyticsReferrerMetric[];
+  topCampaigns: AdminAnalyticsCampaignMetric[];
   recentEvents: AdminAnalyticsEventMetric[];
 }
 
@@ -195,13 +286,19 @@ export function getAdminAccessCodes(
 }
 
 export function getAdminAnalytics(
-  rangeDays: number,
+  filters: {
+    periodType: AdminAnalyticsPeriodType;
+    periodStart: string;
+    courseId?: string;
+  },
   getToken: () => Promise<string | null>,
 ): Promise<AdminAnalyticsSummary> {
-  return apiFetch<AdminAnalyticsSummary>(
-    `/admin/analytics?range_days=${encodeURIComponent(String(rangeDays))}`,
-    getToken,
-  );
+  const query = new URLSearchParams({
+    period_type: filters.periodType,
+    period_start: filters.periodStart,
+  });
+  if (filters.courseId) query.set('course_id', filters.courseId);
+  return apiFetch<AdminAnalyticsSummary>(`/admin/analytics?${query.toString()}`, getToken);
 }
 
 export function getAdminAnalyticsIgnoredUsers(

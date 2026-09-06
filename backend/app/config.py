@@ -54,6 +54,12 @@ class Settings(BaseSettings):
     # Server-to-server authentication for Zapier purchase fulfilment.
     zapier_webhook_secret: str = ""
 
+    # Resend email delivery for the public education-consulting enquiry form.
+    # All three values are server-side only; the API key must never reach the SPA.
+    resend_api_key: str = ""
+    resend_from_email: str = ""
+    consultation_enquiry_to_email: str = ""
+
     # Development-only auth bypass (for local testing without Clerk)
     allow_dev_bearer_auth: bool = False
     dev_bearer_token: str = ""

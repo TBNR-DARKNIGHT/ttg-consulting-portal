@@ -3,7 +3,6 @@ import { Footer } from '@/components/layout/footer';
 import { Navbar } from '@/components/layout/navbar';
 import { HeroSection } from '@/components/landing/hero-section';
 import { PromoVideoCardSection } from '@/components/landing/promo-video-card-section';
-import { StartOptionsSection } from '@/components/landing/start-options-section';
 import { BuiltBySection } from '@/components/landing/built-by-section';
 import { WhySection } from '@/components/landing/why-section';
 import { YoungExplorersTeaserSection } from '@/components/landing/young-explorers-teaser-section';
@@ -20,10 +19,9 @@ function LandingPage() {
       <Navbar />
       <main>
         <HeroSection />
-        <PromoVideoCardSection />
-        <StartOptionsSection />
-        <WhySection />
         <BuiltBySection />
+        <PromoVideoCardSection />
+        <WhySection />
         <TtaFamilyNoteSection />
         <YoungExplorersTeaserSection />
         <FinalFeaturesCtaSection />

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+from datetime import date
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.config import settings
 from app.dependencies import get_current_user, require_admin
@@ -31,6 +32,7 @@ from app.models.admin import (
 from app.models.analytics import (
     AnalyticsIgnoredUserCreateIn,
     AnalyticsIgnoredUserOut,
+    AnalyticsPeriodType,
     AnalyticsSummaryOut,
 )
 from app.models.schemas import ApiResponse, ClerkUser
@@ -99,9 +101,19 @@ async def get_me(user: ClerkUser = Depends(get_current_user)) -> ApiResponse[Cur
     response_model=ApiResponse[AnalyticsSummaryOut],
     dependencies=[Depends(require_admin)],
 )
-async def get_admin_analytics(range_days: int = 30) -> ApiResponse[AnalyticsSummaryOut]:
+async def get_admin_analytics(
+    period_type: AnalyticsPeriodType = Query(default="month"),
+    period_start: date | None = Query(default=None),
+    course_id: str | None = Query(default=None, max_length=100),
+) -> ApiResponse[AnalyticsSummaryOut]:
     try:
-        return ApiResponse(data=await get_admin_analytics_summary(range_days=range_days))
+        return ApiResponse(
+            data=await get_admin_analytics_summary(
+                period_type=period_type,
+                period_start=period_start,
+                course_id=course_id,
+            )
+        )
     except AdminAnalyticsError as exc:
         raise HTTPException(status_code=503, detail="Analytics unavailable") from exc
 

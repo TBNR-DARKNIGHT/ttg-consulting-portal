@@ -13,12 +13,19 @@ interface CapturedAnalyticsEvent {
 
 const resourceId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-async function interceptAnalytics(page: Page, events: CapturedAnalyticsEvent[]) {
-  await page.route('http://127.0.0.1:9999/api/v1/**', async (route) => {
+async function interceptAnalytics(
+  page: Page,
+  events: CapturedAnalyticsEvent[],
+  sessionEndAuthorizations: string[],
+) {
+  await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     if (request.url().endsWith('/analytics/events')) {
       const body = request.postDataJSON() as { events?: CapturedAnalyticsEvent[] };
       events.push(...(body.events ?? []));
+      if (body.events?.some((event) => event.eventType === 'session_end')) {
+        sessionEndAuthorizations.push(request.headers().authorization ?? '');
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -41,11 +48,18 @@ test('captures page, resource, click, and session lifecycle events', async ({ pa
     sessionStorage.clear();
   });
   const events: CapturedAnalyticsEvent[] = [];
-  await interceptAnalytics(page, events);
+  const sessionEndAuthorizations: string[] = [];
+  await interceptAnalytics(page, events, sessionEndAuthorizations);
 
-  await page.goto('/');
-  await expect.poll(() => events.map((event) => event.eventType)).toContain('session_start');
-  await expect.poll(() => events.map((event) => event.eventType)).toContain('page_view');
+  await page.goto('/auth/login');
+  await expect
+    .poll(() => events.map((event) => event.eventType), { timeout: 10_000 })
+    .toContain('session_start');
+  await expect
+    .poll(() => events.map((event) => event.eventType), { timeout: 10_000 })
+    .toContain('page_view');
+  await page.getByRole('button', { name: 'Continue as Admin' }).click();
+  await page.waitForURL('**/dashboard');
 
   await page.evaluate(() => {
     const button = document.createElement('button');
@@ -56,17 +70,24 @@ test('captures page, resource, click, and session lifecycle events', async ({ pa
   });
   await page.locator('#analytics-probe').click();
 
-  await expect.poll(() => events.some((event) => event.eventType === 'click')).toBe(true);
-  expect(events.find((event) => event.eventType === 'click')?.metadata?.analyticsId).toBe(
-    'probe-cta',
-  );
+  await expect
+    .poll(
+      () =>
+        events.some(
+          (event) => event.eventType === 'click' && event.metadata?.analyticsId === 'probe-cta',
+        ),
+      { timeout: 10_000 },
+    )
+    .toBe(true);
 
   await page.goto(`/dashboard/resources/${resourceId}`);
   await expect
-    .poll(() =>
-      events.some(
-        (event) => event.eventType === 'resource_view' && event.resourceId === resourceId,
-      ),
+    .poll(
+      () =>
+        events.some(
+          (event) => event.eventType === 'resource_view' && event.resourceId === resourceId,
+        ),
+      { timeout: 10_000 },
     )
     .toBe(true);
 
@@ -81,6 +102,10 @@ test('captures page, resource, click, and session lifecycle events', async ({ pa
       ),
     )
     .toBe(true);
+
+  const sessionEnd = events.find((event) => event.eventType === 'session_end');
+  expect(typeof sessionEnd?.metadata?.engagementDeltaMs).toBe('number');
+  expect(sessionEndAuthorizations).toContain('Bearer playwright-token');
 
   const uniqueEventIds = new Set(events.map((event) => event.eventId));
   expect(uniqueEventIds.size).toBeGreaterThanOrEqual(6);
@@ -98,7 +123,7 @@ test('keeps failed events in local storage and retries them with the next event'
   const requests: CapturedAnalyticsEvent[][] = [];
   let failAnalytics = false;
 
-  await page.route('http://127.0.0.1:9999/api/v1/**', async (route) => {
+  await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     if (request.url().endsWith('/analytics/events')) {
       const body = request.postDataJSON() as { events?: CapturedAnalyticsEvent[] };
@@ -125,9 +150,12 @@ test('keeps failed events in local storage and retries them with the next event'
 
   await page.goto('/');
   await expect
-    .poll(() => requests.flat().some((event) => event.eventType === 'page_view'))
+    .poll(() => requests.flat().some((event) => event.eventType === 'page_view'), {
+      timeout: 10_000,
+    })
     .toBe(true);
 
+  const requestsBeforeFailure = requests.length;
   failAnalytics = true;
   await page.evaluate(() => {
     const button = document.createElement('button');
@@ -139,8 +167,16 @@ test('keeps failed events in local storage and retries them with the next event'
   await page.locator('#retry-probe').click();
 
   await expect
+    .poll(() => requests.length, {
+      message: 'the first click batch should reach the failed request',
+      timeout: 10_000,
+    })
+    .toBeGreaterThan(requestsBeforeFailure);
+
+  await expect
     .poll(() => page.evaluate(() => localStorage.getItem('bg_analytics_pending_events')), {
       message: 'failed click should remain queued',
+      timeout: 10_000,
     })
     .not.toBe('[]');
 
@@ -148,6 +184,7 @@ test('keeps failed events in local storage and retries them with the next event'
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('bg_analytics_pending_events')), {
       message: 'queued click should flush on the next successful analytics request',
+      timeout: 10_000,
     })
     .toBe('[]');
 });

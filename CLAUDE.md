@@ -168,6 +168,9 @@ import type { Video } from '@/types'        // 4. Types
 - `CLERK_ISSUER` — Clerk JWT issuer URL
 - `CLERK_AUDIENCE` — Clerk JWT audience (optional)
 - `FRONTEND_URL` — Frontend origin for CORS (default: `http://localhost:5173`)
+- `RESEND_API_KEY` — Backend-only Resend key used to send consultation enquiries
+- `RESEND_FROM_EMAIL` — Display name and sender address on a verified Resend domain
+- `CONSULTATION_ENQUIRY_TO_EMAIL` — Destination mailbox(es), comma-separated
 - `LOG_LEVEL` — structlog level (default: `INFO`)
 - `ENVIRONMENT` — `development` | `staging` | `production`
 - `MUX_TOKEN_ID` / `MUX_TOKEN_SECRET` — Mux Data API credentials (server-only) for syncing playback IDs into the `resources` table via `python -m app.scripts.sync_mux`

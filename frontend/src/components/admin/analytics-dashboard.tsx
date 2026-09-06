@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
   BarChart3,
-  Clock,
+  BookOpenCheck,
+  CalendarDays,
   Download,
-  Eye,
-  MousePointerClick,
   RefreshCw,
+  Repeat2,
   Trash2,
   TrendingUp,
   UserCheck,
@@ -26,64 +26,130 @@ import {
   getAdminAnalytics,
   getAdminAnalyticsIgnoredUsers,
   type AdminAnalyticsKpi,
+  type AdminAnalyticsPeriodType,
   type AdminAnalyticsSummary,
   type AdminAnalyticsTrendPoint,
   type AdminAnalyticsUserMetric,
 } from '@/lib/api';
+import {
+  analyticsPeriodDayKeys,
+  analyticsPeriodLabel,
+  analyticsPeriodOptions,
+  analyticsPeriodStart,
+  nextAnalyticsPeriodStart,
+  singaporeTodayKey,
+} from '@/lib/analytics-periods';
 import { cn } from '@/lib/utils';
 
-const kpiIcons = [Users, UserCheck, Clock, Activity, Eye, MousePointerClick];
+const kpiIcons = [UserCheck, Users, BookOpenCheck, Repeat2, Activity, TrendingUp];
 
-function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
+function demoAnalyticsSummary(
+  periodType: AdminAnalyticsPeriodType,
+  selectedPeriodStart: string,
+  courseId: string | undefined,
+): AdminAnalyticsSummary {
   const kpis: AdminAnalyticsKpi[] = [
     {
-      label: 'Active users',
-      value: '16',
-      detail: '12 signed-in users in demo data',
+      label: 'Meaningfully engaged',
+      value: '9',
+      detail: '75.0% of course-active users',
       tone: 'positive',
     },
     {
-      label: 'Paid-course users',
-      value: '33.3%',
-      detail: '8 of 24 registered users',
+      label: 'Course active users',
+      value: '12',
+      detail: '14 signed-in active users',
       tone: 'positive',
     },
     {
-      label: 'Avg session time',
-      value: '8m 12s',
-      detail: 'Across 15 timed sessions',
+      label: 'Resource completions',
+      value: '11',
+      detail: '7 unique completers',
       tone: 'neutral',
     },
     {
-      label: 'Sessions per active user',
-      value: '2.4',
-      detail: '38 session starts captured',
+      label: 'Repeat engagement',
+      value: '58.3%',
+      detail: '7 users active on 2+ days',
       tone: 'neutral',
     },
-    { label: 'Resource views', value: '74', detail: '12 resources viewed', tone: 'neutral' },
     {
-      label: 'Click-through actions',
-      value: '29',
-      detail: '9 unique click targets',
+      label: 'Paid adoption',
+      value: '75.0%',
+      detail: '6 of 8 eligible users',
+      tone: 'positive',
+    },
+    {
+      label: 'Average progress',
+      value: '54.8%',
+      detail: 'Across 18 started user-resources',
       tone: 'neutral',
     },
   ];
 
+  const generatedAt = new Date().toISOString();
+  const nextPeriodStart = nextAnalyticsPeriodStart(periodType, selectedPeriodStart);
+  const periodStart = `${selectedPeriodStart}T00:00:00+08:00`;
+  const periodEnd =
+    nextPeriodStart <= singaporeTodayKey() ? `${nextPeriodStart}T00:00:00+08:00` : generatedAt;
+  const trendDays = analyticsPeriodDayKeys(periodType, selectedPeriodStart);
+
   return {
-    rangeDays,
-    generatedAt: new Date().toISOString(),
+    periodType,
+    selectedPeriodStart,
+    periodLabel: analyticsPeriodLabel(periodType, selectedPeriodStart),
+    dataAvailableFrom: `${singaporeTodayKey().slice(0, 4)}-01-01`,
+    selectedCourseId: courseId ?? null,
+    periodStart,
+    periodEnd,
+    generatedAt,
     eventCount: 128,
     userCount: 24,
     paidUserCount: 8,
     activeUserCount: 16,
+    signedInActiveUserCount: 14,
+    courseOptions: [
+      { courseId: 'course-1', label: 'Course 1' },
+      { courseId: 'course-2', label: 'Course 2' },
+    ],
+    courseEngagement: {
+      courseId: courseId ?? null,
+      label: courseId
+        ? courseId.replace('-', ' ').replace(/\b\w/g, (value) => value.toUpperCase())
+        : 'All courses',
+      courseActiveUsers: 12,
+      meaningfullyEngagedUsers: 9,
+      meaningfulEngagementRate: 75,
+      resourceStarters: 18,
+      resourceCompletions: 11,
+      uniqueCompleters: 7,
+      averageProgress: 54.8,
+      medianProgress: 51,
+      repeatUsers: 7,
+      repeatEngagementRate: 58.3,
+      contentEngagementTimeMs: 4_320_000,
+      paidEligibleUsers: 8,
+      paidActivatedUsers: 6,
+      paidAdoptionRate: 75,
+    },
+    funnel: [
+      { label: 'Signed-in active', users: 14, conversionRate: 100 },
+      { label: 'Course active', users: 12, conversionRate: 85.7 },
+      { label: 'Meaningfully engaged', users: 9, conversionRate: 64.3 },
+      { label: 'Completed a resource', users: 7, conversionRate: 50 },
+    ],
     kpis,
-    trend: Array.from({ length: rangeDays }, (_, index) => ({
-      date: new Date(Date.now() - (rangeDays - index - 1) * 86_400_000).toISOString().slice(0, 10),
+    trend: trendDays.map((date, index) => ({
+      date,
       activeUsers: (index % 7) + 1,
+      signedInActiveUsers: (index % 6) + 1,
+      courseActiveUsers: (index % 5) + 1,
+      meaningfullyEngagedUsers: (index % 4) + 1,
       sessions: (index % 5) + 2,
       pageViews: (index % 9) + 3,
       resourceViews: (index % 6) + 2,
       clicks: (index % 4) + 1,
+      completions: index % 3,
     })),
     topResources: [
       {
@@ -94,6 +160,12 @@ function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
         views: 31,
         uniqueUsers: 11,
         viewsPerUser: 2.82,
+        starterUsers: 9,
+        completedUsers: 6,
+        completionRate: 66.7,
+        averageProgress: 71.2,
+        medianProgress: 75,
+        repeatViewers: 5,
       },
       {
         resourceId: 'demo-resource-2',
@@ -103,6 +175,12 @@ function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
         views: 24,
         uniqueUsers: 18,
         viewsPerUser: 1.33,
+        starterUsers: 8,
+        completedUsers: 5,
+        completionRate: 62.5,
+        averageProgress: 51.4,
+        medianProgress: 50,
+        repeatViewers: 3,
       },
     ],
     topUsers: [
@@ -117,6 +195,10 @@ function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
         avgSessionTimeMs: 492000,
         lastSeenAt: new Date().toISOString(),
         paidCourses: ['course-2'],
+        distinctResources: 4,
+        maxProgress: 100,
+        completedResources: 3,
+        contentEngagementMs: 1_200_000,
       },
     ],
     lowEngagementUsers: [
@@ -131,11 +213,44 @@ function demoAnalyticsSummary(rangeDays: number): AdminAnalyticsSummary {
         avgSessionTimeMs: 0,
         lastSeenAt: null,
         paidCourses: [],
+        distinctResources: 0,
+        maxProgress: 0,
+        completedResources: 0,
+        contentEngagementMs: 0,
+      },
+    ],
+    paidInactiveUsers: [
+      {
+        userId: 'demo-paid-inactive',
+        label: 'Inactive Paid Parent',
+        email: 'inactive.paid@example.com',
+        sessions: 0,
+        events: 0,
+        resourceViews: 0,
+        clicks: 0,
+        avgSessionTimeMs: 0,
+        lastSeenAt: null,
+        paidCourses: ['course-2'],
+        distinctResources: 0,
+        maxProgress: 0,
+        completedResources: 0,
+        contentEngagementMs: 0,
       },
     ],
     topPages: [{ label: 'Portal', path: '/portal', views: 22, uniqueUsers: 14 }],
     topClicks: [{ label: 'Purchase Access', clicks: 8, path: '/dashboard/settings' }],
     topReferrers: [{ source: 'https://google.com', visits: 6 }],
+    topCampaigns: [
+      {
+        source: 'instagram',
+        medium: 'social',
+        campaign: 'dsa-guide',
+        sessions: 8,
+        visitors: 7,
+        signedInUsers: 4,
+        courseActiveUsers: 3,
+      },
+    ],
     recentEvents: [
       {
         eventType: 'resource_view',
@@ -167,11 +282,25 @@ function formatDuration(milliseconds: number) {
   return `${seconds}s`;
 }
 
+function formatPeriod(summary: AdminAnalyticsSummary) {
+  const formatter = new Intl.DateTimeFormat(undefined, {
+    timeZone: 'Asia/Singapore',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const periodEnd = new Date(summary.periodEnd);
+  const generatedAt = new Date(summary.generatedAt);
+  const displayEnd = periodEnd < generatedAt ? new Date(periodEnd.getTime() - 1) : periodEnd;
+  const label = analyticsPeriodLabel(summary.periodType, summary.selectedPeriodStart);
+  return `${label} | ${formatter.format(new Date(summary.periodStart))} to ${formatter.format(displayEnd)}`;
+}
+
 function maxTrendValue(trend: AdminAnalyticsTrendPoint[]) {
   return Math.max(
     1,
     ...trend.map((point) =>
-      Math.max(point.activeUsers, point.sessions, point.resourceViews, point.clicks),
+      Math.max(point.courseActiveUsers, point.meaningfullyEngagedUsers, point.completions),
     ),
   );
 }
@@ -183,14 +312,20 @@ function exportCsv(summary: AdminAnalyticsSummary) {
     ...summary.topResources.map((resource) => [
       'resource',
       resource.title,
-      String(resource.views),
-      `${resource.uniqueUsers} unique users`,
+      String(resource.uniqueUsers),
+      `${resource.starterUsers} starters; ${resource.completedUsers} completions; ${resource.averageProgress}% average progress`,
     ]),
     ...summary.topUsers.map((user) => [
       'user',
       user.label,
-      String(user.resourceViews),
-      `${user.sessions} sessions`,
+      String(user.distinctResources),
+      `${user.completedResources} completions; ${user.maxProgress}% maximum progress`,
+    ]),
+    ...summary.funnel.map((step) => [
+      'funnel',
+      step.label,
+      String(step.users),
+      `${step.conversionRate}% of signed-in active users`,
     ]),
   ];
   const csv = rows
@@ -199,7 +334,7 @@ function exportCsv(summary: AdminAnalyticsSummary) {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   const link = document.createElement('a');
   link.href = url;
-  link.download = `bg-analytics-${summary.rangeDays}d.csv`;
+  link.download = `bg-analytics-${summary.periodType}-${summary.selectedPeriodStart}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -241,9 +376,14 @@ function MiniTrend({ trend }: { trend: AdminAnalyticsTrendPoint[] }) {
         {compact.map((point, index) => (
           <div key={point.date} className="flex min-w-0 flex-1 flex-col items-center gap-1">
             <div className="flex h-40 w-full items-end justify-center gap-0.5">
-              {renderBar(point, 'Active users', point.activeUsers, 'bg-brand-indigo')}
-              {renderBar(point, 'Resource views', point.resourceViews, 'bg-emerald-500')}
-              {renderBar(point, 'Clicks', point.clicks, 'bg-amber-500')}
+              {renderBar(point, 'Course active', point.courseActiveUsers, 'bg-brand-indigo')}
+              {renderBar(
+                point,
+                'Meaningfully engaged',
+                point.meaningfullyEngagedUsers,
+                'bg-emerald-500',
+              )}
+              {renderBar(point, 'Completions', point.completions, 'bg-amber-500')}
             </div>
             <span className="h-7 text-[10px] leading-3 text-muted-foreground">
               {index % labelEvery === 0 || index === compact.length - 1
@@ -313,22 +453,22 @@ function UserRows({ users }: { users: AdminAnalyticsUserMetric[] }) {
             </div>
             {user.paidCourses.length > 0 && <Badge>Paid</Badge>}
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
+          <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
             <div>
-              <p className="font-medium">{user.sessions}</p>
-              <p className="text-muted-foreground">sessions</p>
+              <p className="font-medium">{user.distinctResources}</p>
+              <p className="text-muted-foreground">resources</p>
             </div>
             <div>
-              <p className="font-medium">{user.resourceViews}</p>
-              <p className="text-muted-foreground">views</p>
+              <p className="font-medium">{user.maxProgress}%</p>
+              <p className="text-muted-foreground">max progress</p>
             </div>
             <div>
-              <p className="font-medium">{user.clicks}</p>
-              <p className="text-muted-foreground">clicks</p>
+              <p className="font-medium">{user.completedResources}</p>
+              <p className="text-muted-foreground">completed</p>
             </div>
             <div>
-              <p className="font-medium">{formatDuration(user.avgSessionTimeMs)}</p>
-              <p className="text-muted-foreground">avg time</p>
+              <p className="font-medium">{formatDuration(user.contentEngagementMs)}</p>
+              <p className="text-muted-foreground">visible time</p>
             </div>
           </div>
         </div>
@@ -340,20 +480,37 @@ function UserRows({ users }: { users: AdminAnalyticsUserMetric[] }) {
 export function AdminAnalyticsDashboard() {
   const { getToken } = usePortalAuth();
   const queryClient = useQueryClient();
-  const [rangeDays, setRangeDays] = useState(30);
+  const [periodType, setPeriodType] = useState<AdminAnalyticsPeriodType>('month');
+  const [selectedPeriodStart, setSelectedPeriodStart] = useState(() =>
+    analyticsPeriodStart('month', singaporeTodayKey()),
+  );
+  const [courseId, setCourseId] = useState('');
   const [ignoreTarget, setIgnoreTarget] = useState('');
   const [ignoreReason, setIgnoreReason] = useState('');
   const demo = usesDemoAuthProvider(getAuthMode());
   const analytics = useQuery({
-    queryKey: ['admin-analytics', rangeDays],
+    queryKey: ['admin-analytics', periodType, selectedPeriodStart, courseId],
     queryFn: () =>
       demo
-        ? Promise.resolve(demoAnalyticsSummary(rangeDays))
-        : getAdminAnalytics(rangeDays, getToken),
+        ? Promise.resolve(
+            demoAnalyticsSummary(periodType, selectedPeriodStart, courseId || undefined),
+          )
+        : getAdminAnalytics(
+            {
+              periodType,
+              periodStart: selectedPeriodStart,
+              courseId: courseId || undefined,
+            },
+            getToken,
+          ),
     staleTime: 60_000,
   });
 
   const summary = analytics.data;
+  const periodOptions = useMemo(
+    () => analyticsPeriodOptions(periodType, summary?.dataAvailableFrom ?? null),
+    [periodType, summary?.dataAvailableFrom],
+  );
   const ignoredUsers = useQuery({
     queryKey: ['admin-analytics-ignored-users'],
     queryFn: () => (demo ? Promise.resolve([]) : getAdminAnalyticsIgnoredUsers(getToken)),
@@ -397,7 +554,7 @@ export function AdminAnalyticsDashboard() {
         <div>
           <div className="flex items-center gap-2 text-sm font-medium text-brand-indigo">
             <BarChart3 className="size-4" aria-hidden />
-            Analytics prototype
+            Admin analytics
           </div>
           <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight">
             Learning & Growth Analytics
@@ -407,14 +564,46 @@ export function AdminAnalyticsDashboard() {
             from the raw activity log.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Tabs value={String(rangeDays)} onValueChange={(value) => setRangeDays(Number(value))}>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={courseId}
+            onChange={(event) => setCourseId(event.target.value)}
+            aria-label="Filter by course"
+            className="h-9 max-w-48 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            <option value="">All courses</option>
+            {(summary?.courseOptions ?? []).map((course) => (
+              <option key={course.courseId} value={course.courseId}>
+                {course.label}
+              </option>
+            ))}
+          </select>
+          <Tabs
+            value={periodType}
+            onValueChange={(value) => {
+              const nextPeriodType = value as AdminAnalyticsPeriodType;
+              setPeriodType(nextPeriodType);
+              setSelectedPeriodStart(analyticsPeriodStart(nextPeriodType, singaporeTodayKey()));
+            }}
+          >
             <TabsList>
-              <TabsTrigger value="7">7d</TabsTrigger>
-              <TabsTrigger value="30">30d</TabsTrigger>
-              <TabsTrigger value="90">90d</TabsTrigger>
+              <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="month">Month</TabsTrigger>
+              <TabsTrigger value="quarter">Quarter</TabsTrigger>
             </TabsList>
           </Tabs>
+          <select
+            value={selectedPeriodStart}
+            onChange={(event) => setSelectedPeriodStart(event.target.value)}
+            aria-label="Analytics period"
+            className="h-9 min-w-32 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            {periodOptions.map((period) => (
+              <option key={period.value} value={period.value}>
+                {period.label}
+              </option>
+            ))}
+          </select>
           <Button
             variant="outline"
             size="icon"
@@ -448,11 +637,19 @@ export function AdminAnalyticsDashboard() {
 
       {summary && (
         <>
+          <section className="flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border py-3 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
+              <CalendarDays className="size-4" aria-hidden />
+              {formatPeriod(summary)}
+            </span>
+            <span>{summary.courseEngagement.label}</span>
+            <span>{summary.activeUserCount} total site visitors</span>
+          </section>
           <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             {summary.kpis.map((kpi, index) => {
               const Icon = kpiIcons[index] ?? TrendingUp;
               return (
-                <Card key={kpi.label} className="aspect-square py-0 shadow-sm">
+                <Card key={kpi.label} className="min-h-40 py-0 shadow-sm md:aspect-square">
                   <CardContent className="grid h-full grid-rows-[2.5rem_1fr_2rem] gap-2 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <p className="line-clamp-2 text-[15px] font-medium leading-5 text-muted-foreground">
@@ -477,20 +674,21 @@ export function AdminAnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Engagement Trend</CardTitle>
                 <CardDescription>
-                  Active users, resource views, and clicks by day. Last generated {generatedAt}.
+                  Course activity, meaningful engagement, and completions by Singapore calendar day.
+                  Last generated {generatedAt}.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <MiniTrend trend={summary.trend} />
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <span className="size-2 rounded-full bg-brand-indigo" /> Active users
+                    <span className="size-2 rounded-full bg-brand-indigo" /> Course active
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <span className="size-2 rounded-full bg-emerald-500" /> Resource views
+                    <span className="size-2 rounded-full bg-emerald-500" /> Meaningfully engaged
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <span className="size-2 rounded-full bg-amber-500" /> Clicks
+                    <span className="size-2 rounded-full bg-amber-500" /> Completions
                   </span>
                 </div>
               </CardContent>
@@ -499,8 +697,8 @@ export function AdminAnalyticsDashboard() {
 
           <section className="grid gap-6 xl:grid-cols-2">
             <AnalyticsListCard
-              title="Most Viewed Resources"
-              description="Content demand by unique users and repeat views."
+              title="Resource Performance"
+              description="Reach, progress, repeat use, and completion for the selected course."
               className="h-[30rem]"
             >
               {summary.topResources.length === 0 ? (
@@ -513,22 +711,27 @@ export function AdminAnalyticsDashboard() {
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">{resource.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {resource.courseId ?? 'No course'} · {resource.type ?? 'resource'}
+                            {resource.courseId ?? 'No course'} | {resource.type ?? 'resource'}
                           </p>
                         </div>
-                        <p className="text-sm font-semibold">{resource.views}</p>
+                        <p className="text-sm font-semibold">{resource.uniqueUsers} viewers</p>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-muted">
                         <div
-                          className="h-full rounded-full bg-brand-indigo"
+                          className="h-full rounded-full bg-emerald-500"
                           style={{
-                            width: `${Math.min(100, resource.views * 8)}%`,
+                            width: `${resource.averageProgress}%`,
                           }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {resource.uniqueUsers} unique users · {resource.viewsPerUser} views/user
-                      </p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span>{resource.views} opens</span>
+                        <span>{resource.starterUsers} starters</span>
+                        <span>{resource.completedUsers} completed</span>
+                        <span>{resource.averageProgress}% average progress</span>
+                        <span>{resource.completionRate}% starter completion</span>
+                        <span>{resource.repeatViewers} repeat viewers</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -537,10 +740,74 @@ export function AdminAnalyticsDashboard() {
 
             <AnalyticsListCard
               title="Most Engaged Users"
-              description="Useful for identifying warm leads, motivated families, and success stories."
+              description="Signed-in users with the strongest course progress in this period."
               className="h-[30rem]"
             >
               <UserRows users={summary.topUsers} />
+            </AnalyticsListCard>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2">
+            <AnalyticsListCard
+              title="Course Engagement Funnel"
+              description="Period reach at each stricter level of signed-in course engagement."
+              className="h-[24rem]"
+            >
+              <div className="space-y-4">
+                {summary.funnel.map((step) => (
+                  <div key={step.label} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="font-medium">{step.label}</span>
+                      <span>
+                        {step.users} <span className="text-muted-foreground">users</span>
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-brand-indigo"
+                        style={{ width: `${step.conversionRate}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {step.conversionRate}% of signed-in active users
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </AnalyticsListCard>
+
+            <AnalyticsListCard
+              title="Campaign Acquisition"
+              description="First-touch UTM or referrer attribution by browser session."
+              className="h-[24rem]"
+            >
+              {summary.topCampaigns.length === 0 ? (
+                <EmptyState label="No campaign or referrer sessions captured yet." />
+              ) : (
+                <div className="space-y-3">
+                  {summary.topCampaigns.map((campaign) => (
+                    <div
+                      key={`${campaign.source}-${campaign.medium}-${campaign.campaign}`}
+                      className="rounded-md border border-border p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{campaign.source}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {[campaign.medium, campaign.campaign].filter(Boolean).join(' | ') ||
+                              'Unlabelled source'}
+                          </p>
+                        </div>
+                        <span className="text-sm font-semibold">{campaign.sessions}</span>
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {campaign.visitors} visitors | {campaign.signedInUsers} signed in |{' '}
+                        {campaign.courseActiveUsers} course active
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </AnalyticsListCard>
           </section>
 
@@ -606,10 +873,18 @@ export function AdminAnalyticsDashboard() {
             </AnalyticsListCard>
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-2">
+          <section className="grid gap-6 xl:grid-cols-3">
             <AnalyticsListCard
-              title="Follow-up Queue"
-              description="Registered users with no or low activity in this period."
+              title="Paid but Inactive"
+              description="Eligible paid-course users with no selected-course activity in this period."
+              className="h-[24rem]"
+            >
+              <UserRows users={summary.paidInactiveUsers} />
+            </AnalyticsListCard>
+
+            <AnalyticsListCard
+              title="Low Activity"
+              description="Registered users with no or low site activity in this period."
               className="h-[24rem]"
             >
               <UserRows users={summary.lowEngagementUsers} />

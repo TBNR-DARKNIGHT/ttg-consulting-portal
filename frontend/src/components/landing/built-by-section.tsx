@@ -58,9 +58,9 @@ export function BuiltBySection() {
           {founders.map((founder) => (
             <article
               key={founder.name}
-              className="border-b border-white/10 bg-white/[0.04] px-7 py-8 transition-colors last:border-b-0 hover:bg-white/[0.07] sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:border-b-0 lg:[&:nth-child(2n)]:border-r lg:last:border-r-0"
+              className="grid grid-cols-[72px_minmax(0,1fr)] items-start gap-x-5 border-b border-white/10 bg-white/[0.04] px-5 py-6 transition-colors last:border-b-0 hover:bg-white/[0.07] sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:flex lg:flex-col lg:border-b-0 lg:px-7 lg:py-8 lg:[&:nth-child(2n)]:border-r lg:last:border-r-0"
             >
-              <div className="mb-5 size-20 overflow-hidden rounded-full ring-1 ring-white/15">
+              <div className="size-[72px] overflow-hidden rounded-full ring-1 ring-white/15 lg:mb-5 lg:size-20">
                 <img
                   src={publicStorageUrl(founder.photoPath)}
                   alt={`${founder.name} headshot`}
@@ -71,21 +71,23 @@ export function BuiltBySection() {
                   height={80}
                 />
               </div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#a8a8f0]">
-                {founder.role}
-              </p>
-              <h3 className="mt-2 text-lg font-bold text-white">{founder.name}</h3>
-              <p className="mt-1 text-[13px] italic text-white/50">{founder.title}</p>
-              <p className="mt-3 text-[13px] leading-[1.65] text-white/55">{founder.bio}</p>
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {founder.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-brand-indigo/20 px-2.5 py-1 text-[11px] text-[#a8a8f0]"
-                  >
-                    {tag}
-                  </span>
-                ))}
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#a8a8f0]">
+                  {founder.role}
+                </p>
+                <h3 className="mt-2 text-lg font-bold text-white">{founder.name}</h3>
+                <p className="mt-1 text-[13px] italic text-white/50">{founder.title}</p>
+                <p className="mt-3 text-[13px] leading-[1.65] text-white/55">{founder.bio}</p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {founder.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-brand-indigo/20 px-2.5 py-1 text-[11px] text-[#a8a8f0]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </article>
           ))}
