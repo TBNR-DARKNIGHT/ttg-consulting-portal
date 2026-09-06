@@ -19,8 +19,8 @@ function LandingPage() {
       <Navbar />
       <main>
         <HeroSection />
-        <BuiltBySection />
         <PromoVideoCardSection />
+        <BuiltBySection />
         <WhySection />
         <TtaFamilyNoteSection />
         <YoungExplorersTeaserSection />
